@@ -66,10 +66,24 @@ mirrors them (as PalEdit's `update_data.py` already did).
 - Never re-add `Talent_Melee`.
 
 ## Sources
+
+**Primary technical (for save-format truth — use first):**
 - PSP 1.0 source: `PalEdit/psp-reference/psp-core/src/domain/{pal,gps,containers}.rs`; data:
-  `PalEdit/psp-reference/data/json/*`.
-- https://nodecraft.com/support/games/palworld/general/palworld-work-suitability-level-10-explained
-- https://www.palmods.gg/guides/whats-new/work-suitability
-- https://www.palmods.gg/guides/whats-new/progression-changes
-- https://allthings.how/palworld-1-0-how-to-max-your-pals-with-ivs-passives-and-souls/
-- https://nexttier.pro/guide/palworld-patch-notes
+  `PalEdit/psp-reference/data/json/*` (actively maintained current with patches).
+- Our own RE notes: `PalEdit/CLAUDE.md`, `PalEdit/docs/save-editing-analysis.md`.
+
+**Official / best community 1.0 wikis & databases (for game-data truth — cross-check here):**
+- **paldb.cc** — https://paldb.cc/en/v1.0.0 — the most technical DB; mirrors game data,
+  pal/skill/passive/element tables, and hosts the icon/texture CDN (PalEdit already pulls
+  icons from it). **Primary data reference.**
+- **palworld.wiki.gg** — https://palworld.wiki.gg/ — the main community wiki.
+- **Fextralife** — https://palworld.wiki.fextralife.com/ — full Paldeck: stats, breeding
+  combos, Partner Skills, Work Suitabilities for all 1.0 Pals.
+- **palworld.gg** — https://palworld.gg/ — comprehensive DB + interactive map.
+- **Game8** — https://game8.co/games/Palworld — walkthrough/guides, updated for 1.0.
+- **Fandom** — https://palworld.fandom.com/wiki/Version_1.0 — the 1.0 version/patch page.
+- Progression/mechanics guides used above: palmods.gg (work-suitability, progression-changes),
+  nodecraft (work suitability 10), allthings.how (IVs/passives/souls), nexttier.pro (patch notes).
+
+> When a game-data number is in question, prefer **paldb.cc / wiki.gg** (kept current) over any
+> older guide, and prefer the **PSP source / real save bytes** for anything format-level.
