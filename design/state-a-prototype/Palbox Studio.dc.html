@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0d12;font-family:'Barlow',system-ui,sans-serif}
+  a{color:#3FC7E0;text-decoration:none}
+  a:hover{color:#7fe0f2}
+  input{font-family:inherit}
+  @keyframes floatP{0%{transform:translateY(0)}50%{transform:translateY(-26px)}100%{transform:translateY(0)}}
+  @keyframes pulseGlow{0%,100%{opacity:.5}50%{opacity:.85}}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:rgba(176,96,224,.35);border-radius:6px}
+  ::-webkit-scrollbar-track{background:transparent}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+</style>
+</helmet>
+
+<div style="position:fixed;inset:0;overflow:hidden;font-family:'Barlow',system-ui,sans-serif;color:#F2F4F6;background:
+  radial-gradient(1200px 700px at 18% -8%, rgba(176,96,224,.20), transparent 60%),
+  radial-gradient(1100px 800px at 92% 108%, rgba(63,199,224,.13), transparent 55%),
+  radial-gradient(900px 600px at 60% 40%, rgba(30,42,58,.6), transparent 70%),
+  linear-gradient(160deg,#0b0f15 0%,#0a0d12 55%,#080a0e 100%);">
+
+  <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden">
+    <div style="position:absolute;left:14%;top:22%;width:3px;height:3px;border-radius:50%;background:rgba(176,96,224,.7);box-shadow:0 0 8px 2px rgba(176,96,224,.5);animation:floatP 9s ease-in-out infinite"></div>
+    <div style="position:absolute;left:32%;top:66%;width:2px;height:2px;border-radius:50%;background:rgba(63,199,224,.7);box-shadow:0 0 7px 2px rgba(63,199,224,.5);animation:floatP 12s ease-in-out infinite .8s"></div>
+    <div style="position:absolute;left:71%;top:18%;width:2px;height:2px;border-radius:50%;background:rgba(245,166,35,.55);box-shadow:0 0 7px 2px rgba(245,166,35,.4);animation:floatP 11s ease-in-out infinite 1.6s"></div>
+    <div style="position:absolute;left:84%;top:72%;width:3px;height:3px;border-radius:50%;background:rgba(176,96,224,.6);box-shadow:0 0 8px 2px rgba(176,96,224,.45);animation:floatP 14s ease-in-out infinite .4s"></div>
+    <div style="position:absolute;left:52%;top:12%;width:2px;height:2px;border-radius:50%;background:rgba(63,199,224,.55);box-shadow:0 0 6px 2px rgba(63,199,224,.4);animation:floatP 10s ease-in-out infinite 2.1s"></div>
+  </div>
+
+  <!-- ============ TITLE BAR ============ -->
+  <div style="position:relative;z-index:40;height:48px;display:flex;align-items:center;gap:16px;padding:0 14px 0 16px;background:linear-gradient(180deg,rgba(27,39,51,.92),rgba(18,24,32,.92));border-bottom:1px solid rgba(255,255,255,.07);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div style="width:17px;height:17px;border-radius:4px;background:conic-gradient(from 210deg,#B060E0,#3FC7E0,#B060E0);box-shadow:0 0 10px rgba(176,96,224,.6)"></div>
+      <span style="font-family:'Rajdhani';font-weight:700;font-size:17px;letter-spacing:.14em;color:#F2F4F6">PALBOX&nbsp;STUDIO</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:5px;background:rgba(176,96,224,.14);border:1px solid rgba(176,96,224,.42);box-shadow:0 0 14px rgba(176,96,224,.18) inset">
+      <div style="width:8px;height:8px;transform:rotate(45deg);background:#B060E0;box-shadow:0 0 8px rgba(176,96,224,.8)"></div>
+      <span style="font-family:'Rajdhani';font-weight:600;font-size:12px;letter-spacing:.16em;color:#D9B8F0">GLOBAL&nbsp;PALBOX</span>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:6px;background:rgba(95,209,106,.10);border:1px solid rgba(95,209,106,.30)">
+      <svg width="14" height="15" viewBox="0 0 24 26" fill="none"><path d="M12 1 22 5v9c0 6.5-4.3 10-10 11C6.3 24 2 20.5 2 14V5l10-4Z" fill="rgba(95,209,106,.18)" stroke="#5FD16A" stroke-width="1.6"/><path d="m7.5 13 3 3 6-6.5" stroke="#5FD16A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span style="font-size:12.5px;color:#9AD6A0;letter-spacing:.02em">Editing a copy · <b style="color:#C7EBCB;font-weight:600">backed up</b></span>
+    </div>
+    <div style="display:flex;gap:2px;margin-left:8px">
+      <div style="width:34px;height:30px;display:grid;place-items:center;border-radius:5px;color:#9AA6B2;cursor:pointer" style-hover="background:rgba(255,255,255,.08)">—</div>
+      <div style="width:34px;height:30px;display:grid;place-items:center;border-radius:5px;color:#9AA6B2;font-size:12px;cursor:pointer" style-hover="background:rgba(255,255,255,.08)">▢</div>
+      <div style="width:34px;height:30px;display:grid;place-items:center;border-radius:5px;color:#9AA6B2;cursor:pointer" style-hover="background:rgba(224,90,90,.85);color:#fff">✕</div>
+    </div>
+  </div>
+
+  <!-- ============ STAGE ============ -->
+  <div style="position:absolute;top:48px;left:0;right:0;bottom:0;padding:14px 50px">
+
+    <!-- ===== HERO PAL CARD (full-bleed) ===== -->
+    <div style="width:100%;height:100%;border-radius:16px;padding:1px;background:linear-gradient(150deg,rgba(176,96,224,.55),rgba(63,199,224,.18) 40%,rgba(176,96,224,.30));box-shadow:0 0 60px rgba(176,96,224,.20),0 24px 60px rgba(0,0,0,.55)">
+      <div style="height:100%;border-radius:15px;background:linear-gradient(155deg,rgba(27,39,51,.90),rgba(15,20,27,.93));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;flex-direction:column;overflow:hidden">
+
+        <!-- card header -->
+        <div style="display:flex;align-items:center;gap:16px;padding:16px 26px 15px;border-bottom:1px solid rgba(255,255,255,.06);background:linear-gradient(180deg,rgba(255,255,255,.045),transparent)">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:11px">
+              <input value="{{ name }}" onChange="{{ onName }}" spellcheck="false" style="font-family:'Rajdhani';font-weight:700;font-size:34px;line-height:1;letter-spacing:.02em;color:#F7F9FB;background:transparent;border:0;border-bottom:1px dashed rgba(255,255,255,.16);padding:0 2px 2px;max-width:340px;outline:none">
+              <button title="Rename" style="width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);cursor:pointer" style-hover="border-color:rgba(63,199,224,.5)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="m14.5 5.5 4 4M4 20l1-4L16 5l3 3L8 19l-4 1Z" stroke="#9FD8E6" stroke-width="1.7" stroke-linejoin="round"/></svg></button>
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(63,143,224,.18);border:1px solid rgba(63,143,224,.55);color:#8FBEF2;font-size:17px">♂</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;margin-top:11px;flex-wrap:wrap">
+              <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 13px 5px 10px;border-radius:20px;background:rgba(240,116,58,.16);border:1px solid rgba(240,116,58,.5)"><span style="width:10px;height:10px;transform:rotate(45deg);background:#F0743A;box-shadow:0 0 7px rgba(240,116,58,.8)"></span><span style="font-family:'Barlow Semi Condensed';font-weight:600;font-size:14px;letter-spacing:.04em;color:#F7C3A6">Fire</span></span>
+              <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 13px 5px 10px;border-radius:20px;background:rgba(155,95,224,.16);border:1px solid rgba(155,95,224,.5)"><span style="width:10px;height:10px;transform:rotate(45deg);background:#9B5FE0;box-shadow:0 0 7px rgba(155,95,224,.8)"></span><span style="font-family:'Barlow Semi Condensed';font-weight:600;font-size:14px;letter-spacing:.04em;color:#D6BEF2">Dark</span></span>
+              <span style="font-size:12.5px;color:#6E7A86;margin-left:4px">Palpedia No. 095</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button onClick="{{ togglePreset }}" style="display:flex;align-items:center;gap:7px;padding:10px 15px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#CBD3DB;cursor:pointer;font-family:'Rajdhani';font-weight:600;font-size:14px;letter-spacing:.08em" style-hover="border-color:rgba(63,199,224,.5);color:#EAFBFF">◈ PRESETS</button>
+            <button onClick="{{ toggleFav }}" title="Favorite" style="width:42px;height:42px;display:grid;place-items:center;border-radius:9px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);cursor:pointer">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="{{ favFill }}"><path d="M12 2.6l2.9 5.9 6.5.95-4.7 4.6 1.1 6.45L12 21.5 6.1 20.5l1.1-6.45-4.7-4.6 6.5-.95L12 2.6Z" stroke="{{ favStroke }}" stroke-width="1.4" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- NEXT exp bar -->
+        <div style="padding:11px 26px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:14px">
+          <span style="font-family:'Rajdhani';font-weight:600;font-size:12.5px;letter-spacing:.18em;color:#9AA6B2">NEXT</span>
+          <div style="flex:1;height:8px;border-radius:5px;background:rgba(255,255,255,.06);overflow:hidden;border:1px solid rgba(255,255,255,.06)"><div style="width:62%;height:100%;background:linear-gradient(90deg,#3FC7E0,#7fe0f2);box-shadow:0 0 10px rgba(63,199,224,.7)"></div></div>
+          <span style="font-size:12.5px;color:#8FA0AC;font-variant-numeric:tabular-nums">18,240 / 29,500 EXP</span>
+        </div>
+
+        <!-- 3-column body -->
+        <div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(220px,320px) minmax(340px,1fr) minmax(250px,350px)">
+
+          <!-- ===== LEFT COLUMN: partner + passives ===== -->
+          <div style="padding:20px 22px;display:flex;flex-direction:column;gap:22px;border-right:1px solid rgba(255,255,255,.05);overflow:auto;min-width:0">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px"><span style="width:3px;height:15px;background:#3FC7E0;border-radius:2px;box-shadow:0 0 8px rgba(63,199,224,.6)"></span><h3 style="margin:0;font-family:'Rajdhani';font-weight:600;font-size:14px;letter-spacing:.16em;color:#9FD8E6">PARTNER SKILL</h3></div>
+              <div style="padding:15px;border-radius:11px;background:rgba(240,116,58,.06);border:1px solid rgba(240,116,58,.22)">
+                <div style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;transform:rotate(45deg);background:#F0743A;box-shadow:0 0 8px rgba(240,116,58,.7)"></span><span style="font-family:'Rajdhani';font-weight:700;font-size:18px;color:#F3E4DA">Incineration</span></div>
+                <p style="margin:8px 0 0;font-size:13px;line-height:1.55;color:#B4A79C">Mountable partner. Deals fire damage to enemies ahead while ridden; ignites nearby foes on impact.</p>
+              </div>
+            </div>
+            <div style="flex:1;min-height:0;display:flex;flex-direction:column">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px"><span style="width:3px;height:15px;background:#3FC7E0;border-radius:2px;box-shadow:0 0 8px rgba(63,199,224,.6)"></span><h3 style="margin:0;font-family:'Rajdhani';font-weight:600;font-size:14px;letter-spacing:.16em;color:#9FD8E6">PASSIVE SKILLS</h3><span style="margin-left:auto;font-size:12px;color:#6E7A86">3 / 4</span></div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="padding:11px 13px;border-radius:10px;border-left:3px solid #35C9A5;background:linear-gradient(90deg,rgba(53,201,165,.14),rgba(255,255,255,.02))"><div style="display:flex;align-items:center;gap:8px"><span style="color:#4FE0BD;font-size:11px;letter-spacing:-1px">▲▲▲</span><span style="font-family:'Barlow Semi Condensed';font-weight:600;font-size:15px;color:#EAF6F2">Legend</span></div><div style="font-size:12px;color:#8FC7B7;margin-top:3px">+20% Attack · +20% Defense · +15% Move Speed</div></div>
+                <div style="padding:11px 13px;border-radius:10px;border-left:3px solid #F5A623;background:linear-gradient(90deg,rgba(245,166,35,.14),rgba(255,255,255,.02))"><div style="display:flex;align-items:center;gap:8px"><span style="color:#F5C97A;font-size:11px;letter-spacing:-1px">▲</span><span style="font-family:'Barlow Semi Condensed';font-weight:600;font-size:15px;color:#F6EEDF">Ferocious</span></div><div style="font-size:12px;color:#C7A874;margin-top:3px">+20% Attack</div></div>
+                <div style="padding:11px 13px;border-radius:10px;border-left:3px solid #F5A623;background:linear-gradient(90deg,rgba(245,166,35,.14),rgba(255,255,255,.02))"><div style="display:flex;align-items:center;gap:8px"><span style="color:#F5C97A;font-size:11px;letter-spacing:-1px">▲▲</span><span style="font-family:'Barlow Semi Condensed';font-weight:600;font-size:15px;color:#F6EEDF">Burly Body</span></div><div style="font-size:12px;color:#C7A874;margin-top:3px">+20% Defense</div></div>
+                <button onClick="{{ addPassive }}" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:10px;border:1px dashed rgba(255,255,255,.16);background:transparent;color:#7C8894;cursor:pointer;font-size:13.5px" style-hover="border-color:rgba(63,199,224,.5);color:#9FD8E6">+ Add passive</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== CENTER: portrait + big level + moves ===== -->
+          <div style="padding:20px 22px;display:flex;flex-direction:column;gap:16px;min-height:0;overflow:auto;min-width:0">
+            <!-- framed portrait slot -->
+            <div style="position:relative;flex:none;width:100%;height:min(32vh,290px);border-radius:14px;overflow:hidden;border:1px solid rgba(176,96,224,.35);background:
+              repeating-linear-gradient(135deg,rgba(176,96,224,.07) 0 12px,rgba(176,96,224,.02) 12px 24px),
+              radial-gradient(120% 90% at 50% 12%, rgba(240,116,58,.12), transparent 55%),
+              radial-gradient(120% 100% at 50% 100%, rgba(155,95,224,.20), transparent 60%),
+              linear-gradient(180deg,#141a22,#0e131a);box-shadow:inset 0 0 50px rgba(0,0,0,.5),inset 0 0 30px rgba(176,96,224,.15)">
+              <div style="position:absolute;top:12px;left:12px"><span style="padding:3px 10px;border-radius:5px;background:rgba(224,90,90,.85);color:#fff;font-family:'Rajdhani';font-weight:700;font-size:12px;letter-spacing:.12em;box-shadow:0 0 12px rgba(224,90,90,.5)">ALPHA</span></div>
+              <div style="position:absolute;top:12px;right:12px;display:flex;align-items:center;gap:5px;padding:3px 9px;border-radius:5px;background:rgba(245,201,122,.18);border:1px solid rgba(245,201,122,.5)"><span style="color:#F5C97A;font-size:12px">✦</span><span style="font-family:'Barlow Semi Condensed';font-weight:600;font-size:11.5px;color:#F5C97A;letter-spacing:.06em">LUCKY</span></div>
+              <div style="position:absolute;inset:0 0 60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:rgba(214,190,242,.55)">
+                <svg width="76" height="76" viewBox="0 0 24 24" fill="none" style="opacity:.6"><circle cx="12" cy="9" r="4.4" stroke="#D6BEF2" stroke-width="1.3"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke="#D6BEF2" stroke-width="1.3"/></svg>
+                <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.04em;color:rgba(214,190,242,.65)">pal art / icon</span>
+              </div>
+              <div style="position:absolute;left:0;right:0;bottom:0;padding:11px 14px;display:flex;align-items:flex-end;justify-content:space-between;background:linear-gradient(0deg,rgba(8,10,14,.86),transparent)">
+                <div>
+                  <div style="font-family:'Rajdhani';font-weight:600;font-size:10.5px;letter-spacing:.18em;color:#B99AD6;margin-bottom:3px">CONDENSATION</div>
+                  <div style="font-size:18px;letter-spacing:2px;color:#F5A623">★★<span style="color:rgba(255,255,255,.22)">★★</span></div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-family:'Rajdhani';font-weight:600;font-size:10.5px;letter-spacing:.18em;color:#B99AD6;margin-bottom:3px">PAL SOULS</div>
+                  <div style="font-family:'Rajdhani';font-weight:700;font-size:19px;color:#9B5FE0;text-shadow:0 0 12px rgba(155,95,224,.6)">+3</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- big LEVEL editor -->
+            <div style="flex:none;display:flex;align-items:center;justify-content:center;gap:18px">
+              <button onClick="{{ decLevel }}" style="width:46px;height:46px;border-radius:12px;border:1px solid rgba(63,199,224,.4);background:rgba(63,199,224,.12);color:#9FD8E6;cursor:pointer;font-size:26px;line-height:1" style-hover="background:rgba(63,199,224,.22)">−</button>
+              <div style="text-align:center;min-width:150px">
+                <div style="font-family:'Rajdhani';font-weight:600;font-size:12px;letter-spacing:.24em;color:#8FE3F2">LEVEL</div>
+                <input value="{{ level }}" onChange="{{ onLevel }}" inputmode="numeric" style="width:150px;text-align:center;font-family:'Rajdhani';font-weight:700;font-size:46px;line-height:1.05;color:#EAFBFF;background:transparent;border:0;outline:none;border-bottom:1px dashed rgba(63,199,224,.28)">
+              </div>
+              <button onClick="{{ incLevel }}" style="width:46px;height:46px;border-radius:12px;border:1px solid rgba(63,199,224,.4);background:rgba(63,199,224,.12);color:#9FD8E6;cursor:pointer;font-size:26px;line-height:1" style-hover="background:rgba(63,199,224,.22)">+</button>
+            </div>
+
+            <!-- MOVES (active + swap list) -->
+            <div style="flex:none;display:flex;flex-direction:column">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="width:3px;height:15px;background:#3FC7E0;border-radius:2px;box-shadow:0 0 8px rgba(63,199,224,.6)"></span><h3 style="margin:0;font-family:'Rajdhani';font-weight:600;font-size:14px;letter-spacing:.16em;color:#9FD8E6">MOVES</h3><span style="margin-left:auto;font-size:12px;color:#6E7A86">tap or drag to equip · {{ activeCount }}/3</span></div>
+              <!-- active slots -->
+              <div onDragOver="{{ allowDrop }}" onDrop="{{ dropActive }}" style="display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:rgba(63,199,224,.06);border:1px solid rgba(63,199,224,.22);margin-bottom:10px">
+                <sc-for list="{{ activeMoves }}" as="m" hint-placeholder-count="3">
+                  <div draggable="true" onDragStart="{{ m.onDragStart }}" onClick="{{ m.unequip }}" title="Remove from active" style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;background:{{ m.bg }};border:1px solid {{ m.border }};cursor:grab">
+                    <span style="color:#7C8894;font-size:15px;letter-spacing:-2px">⠿</span>
+                    <span style="width:11px;height:11px;transform:rotate(45deg);background:{{ m.elColor }};flex:none;box-shadow:0 0 6px {{ m.elColor }}"></span>
+                    <span style="flex:1;font-family:'Barlow Semi Condensed';font-weight:600;font-size:15px;color:#EDE7DF">{{ m.name }}</span>
+                    <span style="font-size:11px;color:#8FA0AC">PWR</span>
+                    <span style="font-family:'Rajdhani';font-weight:700;font-size:17px;color:{{ m.txt }};min-width:30px;text-align:right">{{ m.power }}</span>
+                  </div>
+                </sc-for>
+                <sc-for list="{{ emptySlots }}" as="e" hint-placeholder-count="0">
+                  <div style="display:flex;align-items:center;justify-content:center;padding:11px;border-radius:9px;border:1px dashed rgba(255,255,255,.14);color:#6E7A86;font-size:13px">empty slot — drag a move here</div>
+                </sc-for>
+              </div>
+              <!-- bench / learnable, scrolls -->
+              <div style="font-family:'Rajdhani';font-weight:600;font-size:11.5px;letter-spacing:.14em;color:#6E7A86;margin:2px 2px 7px">AVAILABLE MOVES</div>
+              <div onDragOver="{{ allowDrop }}" onDrop="{{ dropBench }}" style="display:flex;flex-direction:column;gap:7px;padding-right:4px">
+                <sc-for list="{{ benchMoves }}" as="m" hint-placeholder-count="6">
+                  <div draggable="true" onDragStart="{{ m.onDragStart }}" onClick="{{ m.equip }}" title="Equip" style="display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);cursor:grab" style-hover="border-color:{{ m.border }};background:{{ m.bg }}">
+                    <span style="color:#5E6873;font-size:15px;letter-spacing:-2px">⠿</span>
+                    <span style="width:10px;height:10px;transform:rotate(45deg);background:{{ m.elColor }};flex:none"></span>
+                    <span style="flex:1;font-family:'Barlow Semi Condensed';font-weight:600;font-size:14px;color:#C6CFD7">{{ m.name }}</span>
+                    <span style="font-size:10.5px;color:#8FA0AC">PWR</span>
+                    <span style="font-family:'Rajdhani';font-weight:700;font-size:15px;color:#B7C0C8;min-width:28px;text-align:right">{{ m.power }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== RIGHT COLUMN: stats + work suit ===== -->
+          <div style="padding:20px 22px;display:flex;flex-direction:column;gap:20px;border-left:1px solid rgba(255,255,255,.05);overflow:auto;min-width:0">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="width:3px;height:15px;background:#3FC7E0;border-radius:2px;box-shadow:0 0 8px rgba(63,199,224,.6)"></span><h3 style="margin:0;font-family:'Rajdhani';font-weight:600;font-size:14px;letter-spacing:.16em;color:#9FD8E6">STATS</h3></div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span style="color:#9AA6B2">HP</span><span style="color:#CFEBD2;font-family:'Rajdhani';font-weight:600;font-size:15px;font-variant-numeric:tabular-nums">3,940</span></div>
+                  <div style="height:8px;border-radius:5px;background:rgba(255,255,255,.06);overflow:hidden"><div style="width:88%;height:100%;background:linear-gradient(90deg,#5FD16A,#84e08d);box-shadow:0 0 8px rgba(95,209,106,.5)"></div></div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:14px"><span style="color:#C6CFD7">Attack</span><span style="display:inline-flex;align-items:center;gap:5px;font-family:'Rajdhani';font-weight:700;font-size:18px;color:#F2F4F6;font-variant-numeric:tabular-nums">452<span style="color:#5FD16A;font-size:13px">▲</span></span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:14px"><span style="color:#C6CFD7">Defense</span><span style="font-family:'Rajdhani';font-weight:700;font-size:18px;color:#F2F4F6;font-variant-numeric:tabular-nums">318</span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:14px"><span style="color:#C6CFD7">Work Speed</span><span style="display:inline-flex;align-items:center;gap:5px;font-family:'Rajdhani';font-weight:700;font-size:18px;color:#F2F4F6;font-variant-numeric:tabular-nums">100<span style="color:#5FD16A;font-size:13px">▲</span></span></div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span style="color:#9AA6B2">SAN</span><span style="color:#CBD3DB;font-family:'Rajdhani';font-weight:600;font-size:14px">92</span></div>
+                  <div style="height:7px;border-radius:5px;background:rgba(255,255,255,.06);overflow:hidden"><div style="width:92%;height:100%;background:linear-gradient(90deg,#3FC7E0,#7fe0f2)"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span style="color:#9AA6B2">Food</span><span style="color:#F0C39A;font-family:'Rajdhani';font-weight:600;font-size:14px">74%</span></div>
+                  <div style="height:7px;border-radius:5px;background:rgba(255,255,255,.06);overflow:hidden"><div style="width:74%;height:100%;background:linear-gradient(90deg,#E8963A,#f2b06a)"></div></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:11px;margin-top:2px">
+                  <span style="font-family:'Rajdhani';font-weight:600;font-size:12.5px;letter-spacing:.14em;color:#9AA6B2">TRUST</span>
+                  <div style="flex:1;height:9px;border-radius:5px;background:rgba(255,255,255,.06);overflow:hidden"><div style="width:78%;height:100%;background:linear-gradient(90deg,#B060E0,#d89af0);box-shadow:0 0 10px rgba(176,96,224,.6)"></div></div>
+                  <span style="font-size:12.5px;color:#C9B4E0;font-variant-numeric:tabular-nums">Rank 8</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- work suitability with icon + number + up/down -->
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="width:3px;height:15px;background:#3FC7E0;border-radius:2px;box-shadow:0 0 8px rgba(63,199,224,.6)"></span><h3 style="margin:0;font-family:'Rajdhani';font-weight:600;font-size:14px;letter-spacing:.16em;color:#9FD8E6">WORK SUITABILITY</h3></div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <sc-for list="{{ jobs }}" as="j" hint-placeholder-count="12">
+                  <div style="display:flex;align-items:center;gap:11px;padding:6px 8px;border-radius:10px;background:{{ j.rowBg }};border:1px solid {{ j.rowBorder }}">
+                    <div style="width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;background:{{ j.iconBg }};border:1px solid {{ j.iconBorder }}"><span style="font-family:'Rajdhani';font-weight:700;font-size:13px;color:{{ j.iconFg }}">{{ j.code }}</span></div>
+                    <span style="flex:1;font-size:13.5px;color:{{ j.nameFg }}">{{ j.name }}</span>
+                    <span style="font-family:'Rajdhani';font-weight:700;font-size:18px;min-width:22px;text-align:center;color:{{ j.numFg }}">{{ j.level }}</span>
+                    <div style="display:flex;flex-direction:column;gap:2px">
+                      <button onClick="{{ j.inc }}" style="width:26px;height:16px;display:grid;place-items:center;border-radius:5px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#9FD8E6;cursor:pointer;font-size:8px" style-hover="background:rgba(63,199,224,.2)">▲</button>
+                      <button onClick="{{ j.dec }}" style="width:26px;height:16px;display:grid;place-items:center;border-radius:5px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#9AA6B2;cursor:pointer;font-size:8px" style-hover="background:rgba(255,255,255,.12)">▼</button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ EDGE TABS ============ -->
+  <div onClick="{{ toggleLeft }}" style="position:absolute;left:0;top:50%;transform:{{ leftTabT }};transition:{{ transition }};z-index:55;cursor:pointer;padding:24px 11px;border-radius:0 13px 13px 0;background:linear-gradient(180deg,rgba(155,95,224,.30),rgba(155,95,224,.14));border:1px solid rgba(176,96,224,.5);border-left:0;box-shadow:0 0 22px rgba(176,96,224,.22);display:flex;flex-direction:column;align-items:center;gap:10px" style-hover="background:rgba(155,95,224,.4)">
+    <span style="color:#D6BEF2;font-size:16px">{{ leftArrow }}</span>
+    <span style="font-family:'Rajdhani';font-weight:700;font-size:15px;letter-spacing:.2em;color:#E7DAF4;writing-mode:vertical-rl">BOX</span>
+  </div>
+  <div onClick="{{ toggleRight }}" style="position:absolute;right:0;top:50%;transform:{{ rightTabT }};transition:{{ transition }};z-index:55;cursor:pointer;padding:24px 11px;border-radius:13px 0 0 13px;background:linear-gradient(180deg,rgba(63,199,224,.26),rgba(245,166,35,.14));border:1px solid rgba(63,199,224,.5);border-right:0;box-shadow:0 0 22px rgba(63,199,224,.18);display:flex;flex-direction:column;align-items:center;gap:10px" style-hover="background:rgba(63,199,224,.36)">
+    <span style="color:#9FD8E6;font-size:16px">{{ rightArrow }}</span>
+    <span style="font-family:'Rajdhani';font-weight:700;font-size:14px;letter-spacing:.14em;color:#CBEAF2;writing-mode:vertical-rl">IV / STATUE</span>
+  </div>
+
+  <!-- ============ LEFT DRAWER: GLOBAL BOX ============ -->
+  <div style="position:absolute;top:48px;bottom:0;left:0;z-index:50;width:440px;max-width:90vw;transform:{{ leftT }};transition:{{ transition }};padding:1px;background:linear-gradient(160deg,rgba(176,96,224,.6),rgba(176,96,224,.15));border-radius:0 16px 16px 0;box-shadow:24px 0 70px rgba(0,0,0,.6),0 0 50px rgba(176,96,224,.18)">
+    <div style="height:100%;border-radius:0 15px 15px 0;background:linear-gradient(155deg,rgba(24,17,32,.96),rgba(15,13,22,.97));backdrop-filter:blur(20px);display:flex;flex-direction:column;overflow:hidden">
+      <div style="padding:16px 18px 13px;border-bottom:1px solid rgba(176,96,224,.22)">
+        <div style="display:flex;align-items:center;gap:9px"><span style="width:10px;height:10px;transform:rotate(45deg);background:#B060E0;box-shadow:0 0 8px #B060E0"></span><h2 style="margin:0;font-family:'Rajdhani';font-weight:700;font-size:18px;letter-spacing:.14em;color:#E7DAF4">GLOBAL BOX</h2><span style="margin-left:auto;font-size:12px;color:#9782A8">248 pals</span><button onClick="{{ closeLeft }}" title="Close" style="width:34px;height:34px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#B99AD6;cursor:pointer;font-size:15px" style-hover="background:rgba(176,96,224,.2)">◂</button></div>
+        <div style="display:flex;gap:8px;margin-top:13px">
+          <div style="flex:1;display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9782A8" stroke-width="1.8"/><path d="m20 20-3.5-3.5" stroke="#9782A8" stroke-width="1.8" stroke-linecap="round"/></svg><input placeholder="Search pals…" style="flex:1;background:transparent;border:0;outline:none;color:#E7DAF4;font-size:14px"></div>
+          <button style="padding:0 13px;border-radius:9px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.05);color:#C9B4E0;cursor:pointer;font-family:'Barlow Semi Condensed';font-weight:600;font-size:13.5px">Sort ▾</button>
+          <button onClick="{{ toggleFilter }}" style="padding:0 13px;border-radius:9px;border:1px solid rgba(245,166,35,.4);background:rgba(245,166,35,.12);color:#F5C97A;cursor:pointer;font-family:'Barlow Semi Condensed';font-weight:600;font-size:13.5px">Filter</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:11px;flex-wrap:wrap">
+          <button style="padding:6px 13px;border-radius:16px;border:1px solid rgba(245,166,35,.5);background:rgba(245,166,35,.16);color:#F5C97A;cursor:pointer;font-size:12.5px;font-weight:600">All</button>
+          <button style="padding:6px 13px;border-radius:16px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:#B0A0BE;cursor:pointer;font-size:12.5px">⚔ Combat Team</button>
+          <button style="padding:6px 13px;border-radius:16px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:#B0A0BE;cursor:pointer;font-size:12.5px">🏭 Base Crew</button>
+          <button style="padding:6px 11px;border-radius:16px;border:1px dashed rgba(255,255,255,.18);background:transparent;color:#8B7C99;cursor:pointer;font-size:12.5px">+ Group</button>
+          <div style="margin-left:auto;display:flex;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.1)"><button onClick="{{ setMatrix }}" title="Matrix" style="width:34px;height:30px;border:0;background:{{ matrixBg }};color:{{ matrixFg }};cursor:pointer;font-size:14px">▦</button><button onClick="{{ setList }}" title="List" style="width:34px;height:30px;border:0;background:{{ listBg }};color:{{ listFg }};cursor:pointer;font-size:14px">☰</button></div>
+        </div>
+      </div>
+      <div style="flex:1;overflow:auto;padding:14px 16px">
+        <sc-if value="{{ isMatrix }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <sc-for list="{{ boxPals }}" as="p" hint-placeholder-count="9">
+              <div onClick="{{ p.select }}" style="position:relative;border-radius:12px;padding:11px 9px 10px;background:{{ p.bg }};border:1px solid {{ p.border }};cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:{{ p.glow }}">
+                <div style="position:absolute;top:6px;left:6px;display:flex;gap:3px">{{ p.badges }}</div>
+                <div style="width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.10),rgba(0,0,0,.35));border:1px solid {{ p.border }};display:grid;place-items:center;margin-top:6px"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" style="opacity:.5"><circle cx="12" cy="9" r="4" stroke="#cfc2dd" stroke-width="1.3"/><path d="M5 20c0-3.6 3.2-6 7-6s7 2.4 7 6" stroke="#cfc2dd" stroke-width="1.3"/></svg></div>
+                <span style="font-family:'Barlow Semi Condensed';font-weight:600;font-size:13.5px;color:#EAE2F2;text-align:center;line-height:1.05">{{ p.name }}</span>
+                <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;transform:rotate(45deg);background:{{ p.elColor }}"></span><span style="font-size:11.5px;color:#A99BB8;font-variant-numeric:tabular-nums">Lv.{{ p.level }}</span></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isList }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ boxPals }}" as="p" hint-placeholder-count="6">
+              <div onClick="{{ p.select }}" style="position:relative;display:flex;align-items:center;gap:12px;border-radius:11px;padding:10px 13px;background:{{ p.bg }};border:1px solid {{ p.border }};cursor:pointer;box-shadow:{{ p.glow }}">
+                <div style="width:44px;height:44px;flex:none;border-radius:50%;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.10),rgba(0,0,0,.35));border:1px solid {{ p.border }};display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="opacity:.5"><circle cx="12" cy="9" r="4" stroke="#cfc2dd" stroke-width="1.3"/><path d="M5 20c0-3.6 3.2-6 7-6s7 2.4 7 6" stroke="#cfc2dd" stroke-width="1.3"/></svg></div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:7px"><span style="font-family:'Barlow Semi Condensed';font-weight:600;font-size:14.5px;color:#EAE2F2">{{ p.name }}</span>{{ p.badges }}</div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:3px"><span style="width:8px;height:8px;transform:rotate(45deg);background:{{ p.elColor }}"></span><span style="font-size:12px;color:#A99BB8">Lv.{{ p.level }} · {{ p.passiveHint }}</span></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+      <div style="padding:13px 16px;border-top:1px solid rgba(176,96,224,.22);display:flex;gap:9px">
+        <button style="flex:1;padding:11px;border-radius:9px;border:1px solid rgba(63,199,224,.4);background:rgba(63,199,224,.12);color:#9FD8E6;cursor:pointer;font-family:'Barlow Semi Condensed';font-weight:600;font-size:14px">+ Add</button>
+        <button style="flex:1;padding:11px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#CBD3DB;cursor:pointer;font-family:'Barlow Semi Condensed';font-weight:600;font-size:14px">⧉ Clone</button>
+        <button style="flex:1;padding:11px;border-radius:9px;border:1px solid rgba(224,90,90,.35);background:rgba(224,90,90,.10);color:#E89090;cursor:pointer;font-family:'Barlow Semi Condensed';font-weight:600;font-size:14px">🗑 Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ RIGHT DRAWER: ADVANCED ============ -->
+  <div style="position:absolute;top:48px;bottom:0;right:0;z-index:50;width:420px;max-width:90vw;transform:{{ rightT }};transition:{{ transition }};padding:1px;background:linear-gradient(200deg,rgba(63,199,224,.5),rgba(63,199,224,.12));border-radius:16px 0 0 16px;box-shadow:-24px 0 70px rgba(0,0,0,.6),0 0 44px rgba(63,199,224,.16)">
+    <div style="height:100%;border-radius:15px 0 0 15px;background:linear-gradient(155deg,rgba(20,29,38,.96),rgba(13,18,25,.97));backdrop-filter:blur(20px);display:flex;flex-direction:column;overflow:hidden">
+      <div style="padding:16px 18px 13px;border-bottom:1px solid rgba(63,199,224,.2);display:flex;align-items:center;gap:9px">
+        <span style="width:3px;height:17px;background:#3FC7E0;border-radius:2px;box-shadow:0 0 8px #3FC7E0"></span>
+        <h2 style="margin:0;font-family:'Rajdhani';font-weight:700;font-size:18px;letter-spacing:.14em;color:#EAFBFF">ADVANCED</h2>
+        <button onClick="{{ closeRight }}" title="Close" style="margin-left:auto;width:34px;height:34px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#9FD8E6;cursor:pointer;font-size:15px" style-hover="background:rgba(63,199,224,.2)">▸</button>
+      </div>
+      <div style="flex:1;overflow:auto;padding:18px 20px;display:flex;flex-direction:column;gap:22px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="width:3px;height:15px;background:#3FC7E0;border-radius:2px"></span><h3 style="margin:0;font-family:'Rajdhani';font-weight:600;font-size:14px;letter-spacing:.16em;color:#9FD8E6">IV / BREEDING TRAITS</h3></div>
+          <div style="display:flex;flex-direction:column;gap:17px">
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:14px;color:#C6CFD7">HP</span><span style="font-family:'Rajdhani';font-weight:700;font-size:17px;color:#5FD16A">100</span></div>
+              <div style="position:relative;height:8px;border-radius:5px;background:rgba(255,255,255,.07)"><div style="position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:5px;background:linear-gradient(90deg,#5FD16A,#84e08d)"></div><div style="position:absolute;left:calc(100% - 9px);top:-5px;width:18px;height:18px;border-radius:50%;background:#EAF6EC;border:2px solid #5FD16A;box-shadow:0 0 8px rgba(95,209,106,.6)"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:14px;color:#C6CFD7">Attack <span style="color:#6E7A86;font-size:11.5px">(single talent · 1.0)</span></span><span style="font-family:'Rajdhani';font-weight:700;font-size:17px;color:#F5A623">84</span></div>
+              <div style="position:relative;height:8px;border-radius:5px;background:rgba(255,255,255,.07)"><div style="position:absolute;left:0;top:0;bottom:0;width:84%;border-radius:5px;background:linear-gradient(90deg,#F5A623,#f7c06a)"></div><div style="position:absolute;left:calc(84% - 9px);top:-5px;width:18px;height:18px;border-radius:50%;background:#FBEFDA;border:2px solid #F5A623;box-shadow:0 0 8px rgba(245,166,35,.6)"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:14px;color:#C6CFD7">Defense</span><span style="font-family:'Rajdhani';font-weight:700;font-size:17px;color:#9AA6B2">60</span></div>
+              <div style="position:relative;height:8px;border-radius:5px;background:rgba(255,255,255,.07)"><div style="position:absolute;left:0;top:0;bottom:0;width:60%;border-radius:5px;background:linear-gradient(90deg,#3FC7E0,#7fe0f2)"></div><div style="position:absolute;left:calc(60% - 9px);top:-5px;width:18px;height:18px;border-radius:50%;background:#E7F8FC;border:2px solid #3FC7E0;box-shadow:0 0 8px rgba(63,199,224,.6)"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="width:3px;height:15px;background:#B060E0;border-radius:2px;box-shadow:0 0 8px rgba(176,96,224,.6)"></span><h3 style="margin:0;font-family:'Rajdhani';font-weight:600;font-size:14px;letter-spacing:.16em;color:#D6BEF2">STATUE OF POWER</h3></div>
+          <div style="display:flex;gap:14px;align-items:stretch">
+            <div style="width:100px;flex:none;border-radius:12px;position:relative;overflow:hidden;border:1px solid rgba(176,96,224,.4);background:repeating-linear-gradient(135deg,rgba(176,96,224,.09) 0 10px,rgba(176,96,224,.02) 10px 20px),linear-gradient(180deg,#181120,#0f0d16);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-shadow:inset 0 0 30px rgba(176,96,224,.2)">
+              <div style="font-size:38px;filter:grayscale(.2)">🗿</div>
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:rgba(214,190,242,.6);text-align:center;padding:0 6px">statue of power image</span>
+              <div style="position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(0deg,rgba(176,96,224,.25),transparent);animation:pulseGlow 4s ease-in-out infinite"></div>
+            </div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:11px">
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'Barlow Semi Condensed';font-weight:600;font-size:12.5px;color:#B99AD6">Pal Soul Enhancement</span><span style="font-size:11px;color:#6E7A86">rank 0–10</span></div>
+              <div style="display:flex;align-items:center;gap:9px">
+                <span style="width:58px;font-size:13px;color:#9AD6A0">HP <b style="color:#5FD16A;font-family:'Rajdhani';font-weight:700;font-size:15px">+3</b></span>
+                <button style="width:26px;height:26px;flex:none;border-radius:7px;border:1px solid rgba(95,209,106,.35);background:rgba(95,209,106,.1);color:#9AD6A0;cursor:pointer;font-size:15px;line-height:1">−</button>
+                <div style="flex:1;display:flex;gap:2px"><span style="flex:1;height:9px;border-radius:2px;background:#5FD16A;box-shadow:0 0 6px rgba(95,209,106,.5)"></span><span style="flex:1;height:9px;border-radius:2px;background:#5FD16A"></span><span style="flex:1;height:9px;border-radius:2px;background:#5FD16A"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span></div>
+                <button style="width:26px;height:26px;flex:none;border-radius:7px;border:1px solid rgba(95,209,106,.35);background:rgba(95,209,106,.1);color:#9AD6A0;cursor:pointer;font-size:15px;line-height:1">+</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px">
+                <span style="width:58px;font-size:13px;color:#F5C97A">ATK <b style="color:#F5A623;font-family:'Rajdhani';font-weight:700;font-size:15px">+2</b></span>
+                <button style="width:26px;height:26px;flex:none;border-radius:7px;border:1px solid rgba(245,166,35,.35);background:rgba(245,166,35,.1);color:#F5C97A;cursor:pointer;font-size:15px;line-height:1">−</button>
+                <div style="flex:1;display:flex;gap:2px"><span style="flex:1;height:9px;border-radius:2px;background:#F5A623;box-shadow:0 0 6px rgba(245,166,35,.5)"></span><span style="flex:1;height:9px;border-radius:2px;background:#F5A623"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span></div>
+                <button style="width:26px;height:26px;flex:none;border-radius:7px;border:1px solid rgba(245,166,35,.35);background:rgba(245,166,35,.1);color:#F5C97A;cursor:pointer;font-size:15px;line-height:1">+</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px">
+                <span style="width:58px;font-size:13px;color:#9FD8E6">DEF <b style="color:#3FC7E0;font-family:'Rajdhani';font-weight:700;font-size:15px">+1</b></span>
+                <button style="width:26px;height:26px;flex:none;border-radius:7px;border:1px solid rgba(63,199,224,.35);background:rgba(63,199,224,.1);color:#9FD8E6;cursor:pointer;font-size:15px;line-height:1">−</button>
+                <div style="flex:1;display:flex;gap:2px"><span style="flex:1;height:9px;border-radius:2px;background:#3FC7E0;box-shadow:0 0 6px rgba(63,199,224,.5)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span><span style="flex:1;height:9px;border-radius:2px;background:rgba(255,255,255,.08)"></span></div>
+                <button style="width:26px;height:26px;flex:none;border-radius:7px;border:1px solid rgba(63,199,224,.35);background:rgba(63,199,224,.1);color:#9FD8E6;cursor:pointer;font-size:15px;line-height:1">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="width:3px;height:15px;background:#B060E0;border-radius:2px;box-shadow:0 0 8px rgba(176,96,224,.6)"></span><h3 style="margin:0;font-family:'Rajdhani';font-weight:600;font-size:14px;letter-spacing:.16em;color:#D6BEF2">SOULS &amp; CONDENSATION</h3></div>
+          <div style="display:flex;gap:13px">
+            <div style="flex:1;padding:14px;border-radius:12px;background:rgba(155,95,224,.08);border:1px solid rgba(155,95,224,.28)">
+              <div style="font-family:'Rajdhani';font-weight:600;font-size:12px;letter-spacing:.14em;color:#B99AD6;margin-bottom:10px">PAL SOULS</div>
+              <div style="display:flex;align-items:center;gap:9px">
+                <button style="width:32px;height:32px;border-radius:8px;border:1px solid rgba(155,95,224,.4);background:rgba(155,95,224,.14);color:#D6BEF2;cursor:pointer;font-size:17px">−</button>
+                <span style="flex:1;text-align:center;font-family:'Rajdhani';font-weight:700;font-size:28px;color:#B060E0;text-shadow:0 0 14px rgba(176,96,224,.6)">+3</span>
+                <button style="width:32px;height:32px;border-radius:8px;border:1px solid rgba(155,95,224,.4);background:rgba(155,95,224,.14);color:#D6BEF2;cursor:pointer;font-size:17px">+</button>
+              </div>
+              <div style="font-size:11px;color:#6E7A86;text-align:center;margin-top:7px">soul rank · max +4</div>
+            </div>
+            <div style="flex:1;padding:14px;border-radius:12px;background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.26)">
+              <div style="font-family:'Rajdhani';font-weight:600;font-size:12px;letter-spacing:.14em;color:#F5C97A;margin-bottom:10px">CONDENSATION</div>
+              <div style="display:flex;justify-content:center;gap:7px;font-size:28px;color:#F5A623;cursor:pointer;line-height:1"><span>★</span><span>★</span><span style="color:rgba(255,255,255,.2)">★</span><span style="color:rgba(255,255,255,.2)">★</span></div>
+              <div style="font-size:11px;color:#6E7A86;text-align:center;margin-top:9px">2 / 4 stars · 15 pals to max</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:auto;display:flex;gap:10px;padding:13px 14px;border-radius:11px;background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.28)">
+          <span style="color:#F5A623;font-size:17px;line-height:1.2">⚠</span>
+          <p style="margin:0;font-size:13px;line-height:1.55;color:#D9C39A">Editing genetic data rewrites the save. Your original is safely <b style="color:#F5C97A">backed up</b> before any write.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- filter panel -->
+  <sc-if value="{{ filterOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ toggleFilter }}" style="position:absolute;inset:0;z-index:60;background:rgba(6,8,11,.55);backdrop-filter:blur(2px);display:grid;place-items:center">
+      <div onClick="{{ stop }}" style="width:min(580px,92%);border-radius:16px;padding:1px;background:linear-gradient(150deg,rgba(245,166,35,.5),rgba(63,199,224,.2))">
+        <div style="border-radius:15px;background:linear-gradient(155deg,rgba(24,31,40,.98),rgba(15,20,27,.98));padding:22px 24px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px"><span style="width:3px;height:18px;background:#F5A623;border-radius:2px"></span><h2 style="margin:0;font-family:'Rajdhani';font-weight:700;font-size:19px;letter-spacing:.1em;color:#F2F4F6">FILTER &amp; SORT</h2><button onClick="{{ toggleFilter }}" style="margin-left:auto;width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#9AA6B2;cursor:pointer;font-size:14px">✕</button></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+            <div>
+              <div style="font-family:'Rajdhani';font-weight:600;font-size:12px;letter-spacing:.14em;color:#9FD8E6;margin-bottom:9px">ELEMENT</div>
+              <div style="display:flex;flex-wrap:wrap;gap:7px">
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;background:rgba(240,116,58,.16);border:1px solid rgba(240,116,58,.5);font-size:13px;color:#F7C3A6;cursor:pointer"><span style="width:8px;height:8px;transform:rotate(45deg);background:#F0743A"></span>Fire</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);font-size:13px;color:#9AA6B2;cursor:pointer"><span style="width:8px;height:8px;transform:rotate(45deg);background:#3F8FE0"></span>Water</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;background:rgba(155,95,224,.16);border:1px solid rgba(155,95,224,.5);font-size:13px;color:#D6BEF2;cursor:pointer"><span style="width:8px;height:8px;transform:rotate(45deg);background:#9B5FE0"></span>Dark</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);font-size:13px;color:#9AA6B2;cursor:pointer"><span style="width:8px;height:8px;transform:rotate(45deg);background:#5FBE4A"></span>Grass</span>
+              </div>
+              <div style="font-family:'Rajdhani';font-weight:600;font-size:12px;letter-spacing:.14em;color:#9FD8E6;margin:16px 0 9px">SORT BY</div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <label style="display:flex;align-items:center;gap:9px;font-size:14px;color:#F5C97A;cursor:pointer"><span style="width:16px;height:16px;border-radius:4px;background:#F5A623;display:grid;place-items:center;font-size:11px;color:#1a1a1a">✓</span>Level</label>
+                <label style="display:flex;align-items:center;gap:9px;font-size:14px;color:#9AA6B2;cursor:pointer"><span style="width:16px;height:16px;border-radius:4px;border:1px solid rgba(255,255,255,.2)"></span>Palpedia No.</label>
+                <label style="display:flex;align-items:center;gap:9px;font-size:14px;color:#9AA6B2;cursor:pointer"><span style="width:16px;height:16px;border-radius:4px;border:1px solid rgba(255,255,255,.2)"></span>Trust</label>
+                <label style="display:flex;align-items:center;gap:9px;font-size:14px;color:#9AA6B2;cursor:pointer"><span style="width:16px;height:16px;border-radius:4px;border:1px solid rgba(255,255,255,.2)"></span>Expedition Firepower</label>
+              </div>
+            </div>
+            <div>
+              <div style="font-family:'Rajdhani';font-weight:600;font-size:12px;letter-spacing:.14em;color:#9FD8E6;margin-bottom:9px">GENDER · TYPE</div>
+              <div style="display:flex;gap:7px;margin-bottom:16px"><span style="padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);font-size:13px;color:#9AA6B2;cursor:pointer">♂ Male</span><span style="padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);font-size:13px;color:#9AA6B2;cursor:pointer">♀ Female</span><span style="padding:6px 12px;border-radius:8px;background:rgba(224,90,90,.14);border:1px solid rgba(224,90,90,.4);font-size:13px;color:#E89090;cursor:pointer">◆ Alpha</span></div>
+              <div style="font-family:'Rajdhani';font-weight:600;font-size:12px;letter-spacing:.14em;color:#D6BEF2;margin-bottom:9px">GROUPS</div>
+              <div style="display:flex;flex-wrap:wrap;gap:7px">
+                <span style="padding:6px 12px;border-radius:16px;background:rgba(176,96,224,.16);border:1px solid rgba(176,96,224,.5);font-size:13px;color:#D6BEF2;cursor:pointer">⚔ Combat Team</span>
+                <span style="padding:6px 12px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);font-size:13px;color:#9AA6B2;cursor:pointer">🏭 Base Crew</span>
+                <span style="padding:6px 12px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);font-size:13px;color:#9AA6B2;cursor:pointer">Breeders</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:11px;margin-top:22px">
+            <button onClick="{{ toggleFilter }}" style="flex:1;padding:13px;border-radius:10px;border:0;background:linear-gradient(180deg,#F5A623,#e0921a);color:#1a1206;cursor:pointer;font-family:'Rajdhani';font-weight:700;font-size:15px;letter-spacing:.08em">APPLY</button>
+            <button onClick="{{ toggleFilter }}" style="padding:13px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:transparent;color:#CBD3DB;cursor:pointer;font-family:'Rajdhani';font-weight:600;font-size:15px;letter-spacing:.06em">CLEAR</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:800},&quot;reducedMotion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
+class Component extends DCLogic {
+  state = {
+    leftOpen: false, rightOpen: false,
+    favorite: true, name: "Incineram", level: 34,
+    view: "matrix", filterOpen: false,
+    moves: [
+      {id:1,name:"Ignis Blast",el:"Fire",power:100},
+      {id:2,name:"Spirit Fire",el:"Fire",power:55},
+      {id:3,name:"Fire Ball",el:"Fire",power:65},
+      {id:4,name:"Flare Arrow",el:"Fire",power:30},
+      {id:5,name:"Shadow Ball",el:"Dark",power:55},
+      {id:6,name:"Dark Ball",el:"Dark",power:45},
+      {id:7,name:"Dark Whisp",el:"Dark",power:20},
+      {id:8,name:"Air Cannon",el:"Neutral",power:25},
+      {id:9,name:"Power Shot",el:"Neutral",power:35},
+      {id:10,name:"Power Bomb",el:"Neutral",power:70},
+    ],
+    activeIds: [1,5,3],
+    jobs: [
+      {code:"KI",name:"Kindling",level:2},
+      {code:"WA",name:"Watering",level:0},
+      {code:"PL",name:"Planting",level:0},
+      {code:"EL",name:"Generating Electricity",level:0},
+      {code:"HA",name:"Handiwork",level:1},
+      {code:"GA",name:"Gathering",level:0},
+      {code:"LU",name:"Lumbering",level:0},
+      {code:"MI",name:"Mining",level:0},
+      {code:"ME",name:"Medicine Production",level:0},
+      {code:"CO",name:"Cooling",level:0},
+      {code:"TR",name:"Transporting",level:1},
+      {code:"FA",name:"Farming",level:0},
+    ],
+  };
+  EL={Fire:"#F0743A",Dark:"#9B5FE0",Neutral:"#C0C4CA",Water:"#3F8FE0",Grass:"#5FBE4A"};
+  ELtxt={Fire:"#F7C3A6",Dark:"#D6BEF2",Neutral:"#D2D6DC",Water:"#A9CBF2",Grass:"#B6E0AB"};
+  equip(id){this.setState(s=>{if(s.activeIds.includes(id))return null;let a=[...s.activeIds,id];if(a.length>3)a=a.slice(a.length-3);return{activeIds:a};});}
+  unequip(id){this.setState(s=>({activeIds:s.activeIds.filter(x=>x!==id)}));}
+  bumpJob(i,d){this.setState(s=>{const j=s.jobs.map((x,k)=>k===i?{...x,level:Math.max(0,Math.min(4,x.level+d))}:x);return{jobs:j};});}
+  mkBadges(list){return list.map((b,i)=>React.createElement("span",{key:i,style:{width:"13px",height:"13px",borderRadius:"3px",display:"grid",placeItems:"center",fontSize:"8px",fontWeight:700,color:"#12060a",background:b.color,boxShadow:`0 0 6px ${b.color}`}},b.mark));}
+  renderVals(){
+    const rm=this.props.reducedMotion??false;
+    const byId=id=>this.state.moves.find(m=>m.id===id);
+    const mkMove=(m,active)=>({
+      name:m.name,power:m.power,elColor:this.EL[m.el],txt:this.ELtxt[m.el],
+      bg:`${this.EL[m.el]}1c`,border:`${this.EL[m.el]}55`,
+      onDragStart:(e)=>e.dataTransfer.setData("text/plain",String(m.id)),
+      equip:()=>this.equip(m.id),unequip:()=>this.unequip(m.id),
+    });
+    const activeMoves=this.state.activeIds.map(byId).filter(Boolean).map(m=>mkMove(m,true));
+    const benchMoves=this.state.moves.filter(m=>!this.state.activeIds.includes(m.id)).map(m=>mkMove(m,false));
+    const emptySlots=Array.from({length:Math.max(0,3-activeMoves.length)});
+    const jobs=this.state.jobs.map((j,i)=>{
+      const on=j.level>0;
+      return{code:j.code,name:j.name,level:j.level,
+        rowBg:on?"rgba(240,116,58,.08)":"rgba(255,255,255,.02)",
+        rowBorder:on?"rgba(240,116,58,.28)":"rgba(255,255,255,.05)",
+        iconBg:on?"rgba(240,116,58,.18)":"rgba(255,255,255,.03)",
+        iconBorder:on?"rgba(240,116,58,.5)":"rgba(255,255,255,.08)",
+        iconFg:on?"#F7C3A6":"#6E7A86",
+        nameFg:on?"#E4D8CE":"#7C8894",
+        numFg:on?"#F5C97A":"#5E6873",
+        inc:()=>this.bumpJob(i,1),dec:()=>this.bumpJob(i,-1)};
+    });
+    const isMatrix=this.state.view==="matrix";
+    const mk=(name,level,elColor,accent,badges,passiveHint)=>({name,level,elColor,passiveHint,bg:`linear-gradient(160deg, ${accent}22, rgba(255,255,255,.02))`,border:`${accent}55`,glow:`0 0 16px ${accent}18`,badges:this.mkBadges(badges),select:()=>this.setState({name})});
+    const box=[
+      mk("Incineram",34,"#F0743A","#B060E0",[{color:"#E05A5A",mark:"A"},{color:"#F5C97A",mark:"★"}],"Legend · Ferocious"),
+      mk("Jetragon",50,"#E05FC0","#E05FC0",[{color:"#E05A5A",mark:"A"}],"Legend · Swift"),
+      mk("Anubis",47,"#C9A05F","#C9A05F",[{color:"#F5C97A",mark:"★"}],"Ferocious · Artisan"),
+      mk("Frostallion",50,"#5FD1E0","#5FD1E0",[{color:"#E05A5A",mark:"A"}],"Ice Emperor"),
+      mk("Blazamut",44,"#F0743A","#F0743A",[],"Musclehead"),
+      mk("Grizzbolt",38,"#F0C93A","#F0C93A",[{color:"#F5C97A",mark:"★"}],"Motivational"),
+      mk("Petallia",29,"#5FBE4A","#5FBE4A",[],"Green Thumb"),
+      mk("Penking",33,"#3F8FE0","#3F8FE0",[],"Diet Lover"),
+      mk("Depresso",12,"#9B5FE0","#9B5FE0",[],"Downer"),
+    ];
+    return {
+      leftT:this.state.leftOpen?"translateX(0)":"translateX(calc(-100% - 60px))",
+      rightT:this.state.rightOpen?"translateX(0)":"translateX(calc(100% + 60px))",
+      leftTabT:this.state.leftOpen?"translate(min(440px,90vw),-50%)":"translate(0,-50%)",
+      rightTabT:this.state.rightOpen?"translate(calc(-1 * min(420px,90vw)),-50%)":"translate(0,-50%)",
+      leftArrow:this.state.leftOpen?"◂":"▸",
+      rightArrow:this.state.rightOpen?"▸":"◂",
+      transition:rm?"none":"transform .42s cubic-bezier(.22,.61,.36,1)",
+      name:this.state.name,level:this.state.level,
+      favFill:this.state.favorite?"#F5A623":"rgba(255,255,255,.06)",
+      favStroke:this.state.favorite?"#F5A623":"rgba(255,255,255,.35)",
+      activeMoves,benchMoves,emptySlots,activeCount:activeMoves.length,jobs,
+      allowDrop:(e)=>e.preventDefault(),
+      dropActive:(e)=>{e.preventDefault();const id=+e.dataTransfer.getData("text/plain");if(id)this.equip(id);},
+      dropBench:(e)=>{e.preventDefault();const id=+e.dataTransfer.getData("text/plain");if(id)this.unequip(id);},
+      isMatrix,isList:!isMatrix,
+      matrixBg:isMatrix?"rgba(176,96,224,.3)":"transparent",matrixFg:isMatrix?"#E7DAF4":"#8B7C99",
+      listBg:!isMatrix?"rgba(176,96,224,.3)":"transparent",listFg:!isMatrix?"#E7DAF4":"#8B7C99",
+      filterOpen:this.state.filterOpen,boxPals:box,
+      toggleLeft:()=>this.setState(s=>({leftOpen:!s.leftOpen})),
+      toggleRight:()=>this.setState(s=>({rightOpen:!s.rightOpen})),
+      closeLeft:()=>this.setState({leftOpen:false}),
+      closeRight:()=>this.setState({rightOpen:false}),
+      toggleFav:()=>this.setState(s=>({favorite:!s.favorite})),
+      togglePreset:()=>{},addPassive:()=>{},
+      incLevel:()=>this.setState(s=>({level:Math.min(60,s.level+1)})),
+      decLevel:()=>this.setState(s=>({level:Math.max(1,s.level-1)})),
+      onName:(e)=>this.setState({name:e.target.value}),
+      onLevel:(e)=>{const v=parseInt(e.target.value,10);this.setState({level:isNaN(v)?1:Math.max(1,Math.min(60,v))});},
+      setMatrix:()=>this.setState({view:"matrix"}),
+      setList:()=>this.setState({view:"list"}),
+      toggleFilter:()=>this.setState(s=>({filterOpen:!s.filterOpen})),
+      stop:(e)=>e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>
