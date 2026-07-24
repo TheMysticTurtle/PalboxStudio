@@ -91,6 +91,11 @@ at once is optional — propose what feels best).
 
 ## 4. Component specs
 
+> **Authoritative value ranges (see [SPECS-1.0.md](SPECS-1.0.md)) — the prototype got some of
+> these wrong; use these:** Level **1–80** · IV/breeding traits **0–100** · **Work Suitability
+> steppers 0–10** (not 0–4) · **Pal Souls 0–10** per stat · **Condensation 0–4** stars ·
+> Passives up to **4** (rank −3..5) · Active Skills (moves) up to **3** equipped.
+
 ### 4a. Pal Card (center) — the star of the show
 Model: the in-game Party **"Pal Stats"** card (`docs/reference/Large Main Card Reference.webp`),
 re-composed so **moves/Active Skills sit on the card's right** and deep IV/statue tuning moves

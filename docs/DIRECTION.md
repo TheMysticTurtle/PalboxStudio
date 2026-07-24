@@ -21,7 +21,10 @@ This is a rewrite in *intent*, not a patch on PalEdit.
    (stats, "IVs"/talents, the statue power level, passives, moves) — no fan slang in the UI.
 3. **Modular / compartmentalized around a shared core engine.** Feature areas are
    independent modules that all depend on one headless core. The UI depends on the core;
-   the core never depends on the UI.
+   the core never depends on the UI. **The GUI is its own modular, easily-extensible layer,
+   cleanly separated from the core engine** — adding or changing a UI feature should not touch
+   the engine, and the engine must be usable headless (CLI/tests) without any UI. Owner
+   expects to keep tweaking the UI, so make it cheap to add/rearrange panels and components.
 4. **Safety first.** Never touch live saves. Always work on copies, always back up before
    write, atomic writes only. (Carried over from the PalEdit working rules.)
 5. **Engineering discipline as a first-class feature.** Detailed commits that explain the

@@ -30,8 +30,12 @@ Practical pointers for building the global-box editor. The two authoritative sou
 - `SlotId.SlotIndex` is **NOT** an authoritative display position for the global box —
   values are heavily duplicated in a real box. Don't invent slot-placement logic; an added
   clone may need "drag to an empty slot in-game."
-- Level cap **80**; passives have ranks **−3..5**; 1.0 pals have a single attack IV
-  (`Talent_Shot`; `Talent_Melee` is gone — don't re-add it).
+- Level cap **80**; passives have ranks **−3..5** (rank 5 is the 1.0 addition); 1.0 pals have
+  a single attack IV (`Talent_Shot`; `Talent_Melee` is gone — don't re-add it).
+- **Work Suitability 1–10** (all adjustable to 10 in our editor); **Pal Souls 0–10 per stat**;
+  **Condensation 0–4 stars**; **IV/talents 0–100** (raw byte 0–255). **See
+  [SPECS-1.0.md](SPECS-1.0.md) — the authoritative source for all value ranges** (don't trust
+  our pre-1.0 numbers).
 - `IsPlayer` is written `False` on every pal — detect players by *value*, not key-presence.
 
 ## Corruption traps to AVOID (we caused these in PalEdit; do NOT repeat)
