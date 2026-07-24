@@ -28,39 +28,54 @@ This is a rewrite in *intent*, not a patch on PalEdit.
    *why*, bugs encountered / perceived benefit, testing approach and results. Decision
    records (ADRs) for anything architectural. Tests around the core from day one.
 
-## Layout — the "tri-fold"
+## Layout — center-stage card + two retractable drawers
 
-The main window is three vertical sections.
+Revised 2026-07-24 (from the earlier static "tri-fold"): the window is a **big editable Pal
+card in the center**, always visible, flanked by **two side drawers that pop out and retract
+into the edges**. With both drawers retracted you see the whole card, clean and unobstructed.
+Both drawers are **clearly labeled** at their edge tabs. Visual anchor: the Party "Pal Stats"
+screen + the Global Palbox screen (see `docs/reference/`).
 
-### Left third — Global Box Explorer
-- **Tiles for each Pal**: thumbnail image, level, type, quick-view of available
-  skills / passives.
-- **Default state:** a vertical, scrollable column of *collapsed* tiles.
-- **Expandable:** an arrow pulls out a side menu; the expanded view arranges Pals in a
-  **matrix**, like peering into the actual Pal box and selecting from the grid.
-- **Search & filter:** everything searchable and filterable, clearly labeled and intuitive.
-  Similar *capability* to the species selector — but far cleaner/prettier than it.
-- **Groups:** users can create groups to quickly edit the Pals they use for a given purpose
-  without wading through the full box.
-- **Tags:** freeform tagging for organization.
+### Center — the Pal Card (always visible, fully editable)
+Modeled on Palworld 1.0's **Party "Pal Stats"** full card. Everything on it is editable and
+clearly labeled; use **official in-game terminology** throughout:
+- Portrait/render, **LEVEL**, name (+ **Edit**), gender, **element** pills, `NEXT` exp,
+  **Level Sync**, **Trust**, **Favorite**.
+- **Stats** — Attack / Defense / Work Speed (+ HP, SAN, hunger/food) — adjustable, with the
+  in-game "boosted" up-arrow treatment where relevant.
+- **Partner Skill**, **Passive Skills** (2×2 chips, rating-colored; easy add/filter).
+- **Work Suitability** (all 12 jobs, greyed when N/A, level shown when active).
+- **Moves = Active Skills** live on the **right side of the card** (element-colored rows with
+  power values, like in-game).
+- **Presets:** "apply preset" + author/save presets (passives / builds).
+
+### Left drawer — Global Box Explorer (pop-out, retractable)
+- Pops out from the left, clearly labeled; retracts into the edge to reveal the full card.
+- **Themed tiles, not bare dots:** each Pal is the round portrait **inside a tile that
+  matches the theme**, showing a brief data overview (level, element, quick skills/passives).
+- Collapsed = scrollable list of tiles; expanded = **matrix** grid, like peering into the box.
+- **Search & filter** — same capability as the in-game Sort/Filter modal, far cleaner.
 - **Operations:** add, clone, delete Pals.
 
-### Center third — Pal Card (character display + editor)
-- Laid out like the **Palworld 1.0 character card** (a reference source image will be
-  provided — attach to the design handoff).
-- Character display, stats, etc. Stats **clearly labeled and adjustable**.
-- **Passives:** easy to add and filter.
-- **Presets:** "apply preset" action, plus the ability to create/save presets.
+### Right drawer — Advanced / "hidden settings" (pop-out, retractable)
+- Pops out from the right, clearly labeled.
+- **IV / breeding traits** (the individual talent values) — clearly labeled + adjustable.
+- **Statue power level** = the **Pal Souls** rank (raised at the *Statue of Power*; confirm
+  the exact official label). **Include an image of the Statue of Power** in this window.
 
-### Right third — Talents / IVs · Statue Power Level · Moves
-Split into thirds vertically:
-1. **Talents / IVs** — the individual value stats.
-2. **Statue power level** — (confirm the official in-game name and use it).
-3. **Moves** — the Pal's move set.
+## Groups & tags (customizable, filter-like)
+- **Groups are user-named, fully customizable collections** — the user names them anything.
+- A group **behaves like a filter**: selecting it filters the box to its members.
+- **Tags bind pals to groups:** you *tag* the pals you want into a group; a pal can belong to
+  multiple groups. This is the easy-editing workflow — tag your "breeders" or "base workers"
+  and jump straight to editing just them.
+- **These are Palbox Studio metadata, NOT save data.** Stored app-side (our own local
+  db/file), keyed by each Pal's `InstanceId` — never written into the `.sav`. Must survive
+  clone/add/delete sensibly (new InstanceId on clone → not auto-tagged unless we choose to).
 
 ## Cross-cutting features
 - Presets (for passives / builds) — apply and author.
-- Groups + tags for box organization.
+- Groups + tags for box organization (see above).
 - Add / clone / delete Pals.
 - Consistent, prominent search + filter.
 
