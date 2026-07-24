@@ -1,0 +1,10 @@
+[package]
+name = "palbox-core"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Palbox Studio headless engine: Palworld 1.0 Global Pal box model, load/write, and mutations. No UI."
+
+[dependencies]
+# Save-format / GVAS + Oodle deps get added here as the engine grows.
+# Kept intentionally empty for now so the crate builds fast and clean.

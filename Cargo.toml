@@ -1,0 +1,8 @@
+# Palbox Studio — Cargo workspace.
+# Two Rust members with strict, one-directional dependencies:
+#   core      — the headless engine (save model, load/write, mutations). No UI, no Tauri.
+#   src-tauri — the desktop shell; depends on core, bridges it to the Svelte UI (ui/).
+# The UI lives in ui/ (Svelte + Vite) and is not a Cargo member.
+[workspace]
+resolver = "2"
+members = ["core", "src-tauri"]

@@ -1,0 +1,24 @@
+[package]
+name = "palbox"
+version = "0.1.0"
+description = "Palbox Studio — a beautiful Palworld 1.0 Global Pal box editor (Tauri desktop shell)."
+authors = ["The Mystic Testudine"]
+edition = "2021"
+
+[lib]
+# `_lib` suffix keeps the lib name distinct from the bin on Windows
+# (see https://github.com/rust-lang/cargo/issues/8519).
+name = "palbox_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# The headless engine. The shell depends on core; core never depends on the shell.
+palbox-core = { path = "../core" }

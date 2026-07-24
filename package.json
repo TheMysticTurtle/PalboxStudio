@@ -1,0 +1,15 @@
+{
+  "name": "palbox-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Palbox Studio — a beautiful Palworld 1.0 Global Pal box editor.",
+  "scripts": {
+    "dev": "npm --prefix ui run dev",
+    "build": "npm --prefix ui run build",
+    "check": "npm --prefix ui run check",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}
