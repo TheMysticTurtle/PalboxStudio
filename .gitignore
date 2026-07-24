@@ -29,3 +29,6 @@ psp_data_cache/
 *.sav.bak
 PalboxStudio-backups/
 scratch/
+
+# Local-only visual reference (game screenshots — kept out of git, like PalEdit/psp-reference)
+docs/reference/
