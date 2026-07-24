@@ -1,0 +1,31 @@
+# Rust
+/target/
+**/target/
+*.pdb
+
+# Tauri
+/src-tauri/target/
+/src-tauri/gen/
+
+# Node / Svelte frontend
+node_modules/
+dist/
+.svelte-kit/
+build/
+.vite/
+
+# Env / editor / OS
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local data caches / scratch
+psp_data_cache/
+*.sav
+*.sav.bak
+PalboxStudio-backups/
+scratch/
