@@ -55,9 +55,20 @@ export interface Pal {
   condensation: number;
   /** Pal Souls rank (per-stat later), 0..10. */
   souls: number;
-  stats: { hp: number; hpMax: number; attack: number; defense: number; workSpeed: number };
+  stats: {
+    hp: number;
+    hpMax: number;
+    attack: number;
+    defense: number;
+    workSpeed: number;
+    /** SAN 0..100. */
+    san: number;
+    /** Food fullness 0..1. */
+    foodPct: number;
+  };
   /** Which stats show the in-game "boosted" up-arrow. */
   boosted: Partial<Record<"attack" | "defense" | "workSpeed", boolean>>;
+  trust: { rank: number; pct: number };
   partnerSkill: { name: string; level: number; description: string; element?: ElementName };
   /** Up to 4. */
   passives: Passive[];

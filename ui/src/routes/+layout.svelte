@@ -1,4 +1,12 @@
 <script lang="ts">
+  // Self-hosted fonts (offline; no CDN) — the game-like feel.
+  import "@fontsource/rajdhani/500.css";
+  import "@fontsource/rajdhani/600.css";
+  import "@fontsource/rajdhani/700.css";
+  import "@fontsource/barlow/400.css";
+  import "@fontsource/barlow/500.css";
+  import "@fontsource/barlow/600.css";
+  import "@fontsource/barlow-semi-condensed/600.css";
   import "$lib/styles/tokens.css";
   let { children } = $props();
 </script>
@@ -14,7 +22,7 @@
   :global(body) {
     background: #0a0d12;
     color: var(--text-1);
-    font-family: system-ui, "Segoe UI", sans-serif;
+    font-family: var(--font-body);
     overflow: hidden;
   }
   :global(*) {

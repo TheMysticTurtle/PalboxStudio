@@ -25,8 +25,9 @@ export const samplePal: Pal = {
   lucky: true,
   condensation: 2,
   souls: 3,
-  stats: { hp: 535, hpMax: 2787, attack: 452, defense: 318, workSpeed: 100 },
+  stats: { hp: 2450, hpMax: 2787, attack: 452, defense: 318, workSpeed: 100, san: 92, foodPct: 0.74 },
   boosted: { attack: true, workSpeed: true },
+  trust: { rank: 8, pct: 0.78 },
   partnerSkill: {
     name: "Flameclaw Hunter",
     level: 1,

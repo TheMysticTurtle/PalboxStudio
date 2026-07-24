@@ -1,93 +1,147 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
-
-  // Confirm the UI <-> core bridge (shows nothing if run outside the app).
-  let coreVersion = $state<string | null>(null);
-  $effect(() => {
-    invoke<string>("core_version")
-      .then((v) => (coreVersion = v))
-      .catch(() => {});
-  });
+  // Frameless custom title bar (window decorations are off in tauri.conf.json).
+  // The bar is the drag handle; the controls drive the OS window.
+  async function win(action: "min" | "max" | "close") {
+    try {
+      const { getCurrentWindow } = await import("@tauri-apps/api/window");
+      const w = getCurrentWindow();
+      if (action === "min") await w.minimize();
+      else if (action === "max") await w.toggleMaximize();
+      else await w.close();
+    } catch {
+      /* running outside the app (browser preview) — no-op */
+    }
+  }
 </script>
 
-<header class="topbar">
-  <div class="brand">
+<header class="titlebar" data-tauri-drag-region>
+  <div class="brand" data-tauri-drag-region>
     <img class="mark" src="/logo.png" alt="" />
     <span class="word">PALBOX&nbsp;STUDIO</span>
-    <span class="chip identity">GLOBAL PALBOX</span>
   </div>
-  <div class="right">
-    <span class="chip safe"><span class="dot"></span> Editing a copy · backed up</span>
-    {#if coreVersion}<span class="core">core v{coreVersion}</span>{/if}
+
+  <div class="identity">
+    <span class="diamond"></span>
+    <span class="idtext">GLOBAL&nbsp;PALBOX</span>
+  </div>
+
+  <div class="spacer" data-tauri-drag-region></div>
+
+  <div class="safe">
+    <svg width="14" height="15" viewBox="0 0 24 26" fill="none" aria-hidden="true">
+      <path d="M12 1 22 5v9c0 6.5-4.3 10-10 11C6.3 24 2 20.5 2 14V5l10-4Z" fill="rgba(95,209,106,.18)" stroke="#5FD16A" stroke-width="1.6" />
+      <path d="m7.5 13 3 3 6-6.5" stroke="#5FD16A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <span>Editing a copy · <b>backed up</b></span>
+  </div>
+
+  <div class="wincontrols">
+    <button class="wc" onclick={() => win("min")} aria-label="Minimize">—</button>
+    <button class="wc" onclick={() => win("max")} aria-label="Maximize">▢</button>
+    <button class="wc close" onclick={() => win("close")} aria-label="Close">✕</button>
   </div>
 </header>
 
 <style>
-  .topbar {
+  .titlebar {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     height: var(--topbar-h);
+    z-index: 60;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    z-index: 60;
+    gap: 16px;
+    padding: 0 8px 0 16px;
     background: linear-gradient(180deg, rgba(27, 39, 51, 0.92), rgba(18, 24, 32, 0.92));
-    border-bottom: 1px solid var(--hairline);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
   .brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 9px;
   }
   .mark {
-    width: 26px;
-    height: 26px;
-    border-radius: 7px;
-    box-shadow: 0 0 14px rgba(176, 96, 224, 0.5);
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    box-shadow: 0 0 12px rgba(176, 96, 224, 0.55);
   }
   .word {
-    font-weight: 800;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 17px;
     letter-spacing: 0.14em;
-    font-size: 15px;
-  }
-  .chip {
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    padding: 4px 10px;
-    border-radius: var(--radius-pill);
+    color: var(--text-1);
   }
   .identity {
-    color: #d9b6f2;
-    border: 1px solid rgba(176, 96, 224, 0.5);
-    background: rgba(176, 96, 224, 0.12);
-  }
-  .right {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    background: rgba(176, 96, 224, 0.14);
+    border: 1px solid rgba(176, 96, 224, 0.42);
+    box-shadow: inset 0 0 14px rgba(176, 96, 224, 0.18);
+  }
+  .diamond {
+    width: 8px;
+    height: 8px;
+    transform: rotate(45deg);
+    background: var(--accent-purple);
+    box-shadow: 0 0 8px rgba(176, 96, 224, 0.8);
+  }
+  .idtext {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    color: #d9b8f0;
+  }
+  .spacer {
+    flex: 1;
   }
   .safe {
-    color: #a9e6b4;
-    border: 1px solid rgba(95, 209, 106, 0.4);
-    background: rgba(95, 209, 106, 0.1);
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    background: rgba(95, 209, 106, 0.1);
+    border: 1px solid rgba(95, 209, 106, 0.3);
+    font-size: 12.5px;
+    color: #9ad6a0;
+    letter-spacing: 0.02em;
   }
-  .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--stat-hp);
-    box-shadow: 0 0 6px var(--stat-hp);
+  .safe b {
+    color: #c7ebcb;
+    font-weight: 600;
   }
-  .core {
-    color: var(--accent-cyan-text);
-    font-size: 11px;
-    letter-spacing: 0.06em;
+  .wincontrols {
+    display: flex;
+    gap: 2px;
+    margin-left: 8px;
+  }
+  .wc {
+    width: 34px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: #9aa6b2;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .wc:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-1);
+  }
+  .wc.close:hover {
+    background: rgba(224, 90, 90, 0.85);
+    color: #fff;
   }
 </style>

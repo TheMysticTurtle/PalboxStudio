@@ -3,6 +3,11 @@
    (see docs/DESIGN-HANDOFF.md, design/state-a-prototype/PROTOTYPE-NOTES.md).
    Change a color here and it changes everywhere. */
 :root {
+  /* Type — the Palworld-like feel comes from these (self-hosted via @fontsource) */
+  --font-head: "Rajdhani", system-ui, sans-serif; /* headers, numbers, labels */
+  --font-body: "Barlow", system-ui, sans-serif; /* body / data */
+  --font-cond: "Barlow Semi Condensed", system-ui, sans-serif; /* condensed labels */
+
   /* Surfaces (frosted, semi-transparent over the atmospheric backdrop) */
   --surface-card-1: rgba(27, 39, 51, 0.9);
   --surface-card-2: rgba(15, 20, 27, 0.93);
