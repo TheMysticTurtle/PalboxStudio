@@ -1,100 +1,86 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
-
-  let coreVersion = $state<string | null>(null);
-  let bridgeError = $state<string | null>(null);
-
-  // Smoke test: ask the Rust core for its version so we can see the bridge is live.
-  // In a plain browser (no Tauri runtime) this rejects — that's expected outside the app.
-  $effect(() => {
-    invoke<string>("core_version")
-      .then((v) => (coreVersion = v))
-      .catch((e) => (bridgeError = String(e)));
-  });
+  import Backdrop from "$lib/components/Backdrop.svelte";
+  import TopBar from "$lib/components/TopBar.svelte";
+  import Drawer from "$lib/components/Drawer.svelte";
+  import { ui } from "$lib/stores/ui.svelte";
 </script>
 
-<main>
-  <div class="brand">
-    <img class="mark" src="/logo.png" alt="" />
-    <h1>PALBOX&nbsp;STUDIO</h1>
-    <span class="chip">GLOBAL PALBOX</span>
-  </div>
-  <p class="tagline">Palworld 1.0 global Pal box editor — project scaffold</p>
+<Backdrop />
+<TopBar />
 
-  <div class="status">
-    {#if coreVersion}
-      <span class="ok">●</span> core engine connected
-      <span class="ver">palbox-core v{coreVersion}</span>
-    {:else if bridgeError}
-      <span class="wait">○</span> run inside the app to connect the core
-    {:else}
-      <span class="wait">○</span> connecting to core…
-    {/if}
-  </div>
+<main class="stage">
+  <section class="card">
+    <div class="placeholder">
+      <h2>Pal Card</h2>
+      <p>The center hero card — portrait, level, stats, passives, Active Skills — lands here next.</p>
+    </div>
+  </section>
 </main>
 
+<Drawer side="left" label="BOX" width={440} accent="var(--accent-purple)" bind:open={ui.leftOpen}>
+  <div class="placeholder small">
+    <h3>Global Box</h3>
+    <p>Tiles, search / filter / sort, groups &amp; tags, add · clone · delete.</p>
+  </div>
+</Drawer>
+
+<Drawer side="right" label="IV / STATUE" width={420} accent="var(--accent-cyan)" bind:open={ui.rightOpen}>
+  <div class="placeholder small">
+    <h3>Advanced</h3>
+    <p>IV / breeding traits, Statue of Power (Pal Souls), Condensation.</p>
+  </div>
+</Drawer>
+
 <style>
-  :global(body) {
-    margin: 0;
-    background:
-      radial-gradient(1200px 700px at 18% -8%, rgba(176, 96, 224, 0.2), transparent 60%),
-      radial-gradient(1100px 800px at 92% 108%, rgba(63, 199, 224, 0.13), transparent 55%),
-      linear-gradient(160deg, #0b0f15, #0a0d12 55%, #080a0e);
-    color: #f2f4f6;
-    font-family: system-ui, "Segoe UI", sans-serif;
-  }
-  main {
-    min-height: 100vh;
+  .stage {
+    position: fixed;
+    top: var(--topbar-h);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 14px var(--stage-pad-x);
     display: flex;
-    flex-direction: column;
+  }
+  .card {
+    flex: 1;
+    position: relative;
+    border-radius: var(--radius-card);
+    background: linear-gradient(155deg, var(--surface-card-1), var(--surface-card-2));
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    backdrop-filter: blur(18px);
+    box-shadow:
+      0 0 60px rgba(176, 96, 224, 0.18),
+      0 24px 60px rgba(0, 0, 0, 0.55),
+      inset 0 0 0 1px rgba(176, 96, 224, 0.28);
+    overflow: hidden;
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 14px;
   }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+  .placeholder {
+    text-align: center;
+    color: var(--text-2);
+    max-width: 460px;
+    padding: 24px;
   }
-  .mark {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    box-shadow: 0 0 22px rgba(176, 96, 224, 0.55);
+  .placeholder h2 {
+    margin: 0 0 8px;
+    color: var(--text-1);
+    letter-spacing: 0.08em;
   }
-  h1 {
-    margin: 0;
-    font-size: 30px;
-    letter-spacing: 0.16em;
-    font-weight: 800;
+  .placeholder.small {
+    color: var(--text-2);
   }
-  .chip {
-    font-size: 11px;
+  .placeholder.small h3 {
+    margin: 0 0 6px;
+    color: var(--text-1);
     letter-spacing: 0.14em;
-    padding: 4px 10px;
-    border-radius: 20px;
-    color: #d9b6f2;
-    border: 1px solid rgba(176, 96, 224, 0.5);
-    background: rgba(176, 96, 224, 0.12);
-  }
-  .tagline {
-    margin: 0;
-    color: #9aa6b2;
-    letter-spacing: 0.02em;
-  }
-  .status {
-    margin-top: 8px;
     font-size: 14px;
-    color: #c7d0d8;
   }
-  .ok {
-    color: #5fd16a;
-  }
-  .wait {
-    color: #e8963a;
-  }
-  .ver {
-    color: #9fd8e6;
-    margin-left: 6px;
+  .placeholder p {
+    margin: 0;
+    line-height: 1.5;
+    font-size: 13px;
   }
 </style>

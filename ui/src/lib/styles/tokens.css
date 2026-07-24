@@ -1,0 +1,70 @@
+/* Palbox Studio design tokens — the single source of truth for the UI's look.
+   Values sampled from the in-game Palworld 1.0 screens + the State A prototype
+   (see docs/DESIGN-HANDOFF.md, design/state-a-prototype/PROTOTYPE-NOTES.md).
+   Change a color here and it changes everywhere. */
+:root {
+  /* Surfaces (frosted, semi-transparent over the atmospheric backdrop) */
+  --surface-card-1: rgba(27, 39, 51, 0.9);
+  --surface-card-2: rgba(15, 20, 27, 0.93);
+  --surface-drawer-1: rgba(20, 22, 30, 0.96);
+  --surface-drawer-2: rgba(13, 14, 20, 0.97);
+  --app-bg: linear-gradient(160deg, #0b0f15 0%, #0a0d12 55%, #080a0e 100%);
+  --hairline: rgba(255, 255, 255, 0.07);
+
+  /* Identity / accents */
+  --accent-purple: #b060e0; /* Global-box "genetic data" identity */
+  --soul-purple: #9b5fe0;
+  --accent-amber: #f5a623; /* active / selected */
+  --accent-amber-text: #f5c97a;
+  --accent-cyan: #3fc7e0; /* section accents / advanced drawer */
+  --accent-cyan-text: #9fd8e6;
+
+  /* Text */
+  --text-1: #f2f4f6;
+  --text-2: #9aa6b2;
+  --text-muted: #6e7a86;
+
+  /* Stat bars */
+  --stat-hp: #5fd16a;
+  --stat-food: #e8963a;
+  --stat-san: #3fc7e0;
+  --stat-trust: #b060e0;
+
+  /* Elements (colored diamond per element) */
+  --el-neutral: #c0c4ca;
+  --el-fire: #f0743a;
+  --el-water: #3f8fe0;
+  --el-grass: #5fbe4a;
+  --el-electric: #f0c93a;
+  --el-ice: #5fd1e0;
+  --el-ground: #c9a05f;
+  --el-dark: #9b5fe0;
+  --el-dragon: #e05fc0;
+
+  /* Passive rating chips */
+  --rate-good: #35c9a5;
+  --rate-ok: #f5a623;
+  --rate-bad: #e05a5a;
+
+  /* Shape */
+  --radius-pill: 18px;
+  --radius-card: 15px;
+  --radius-control: 10px;
+
+  /* Layout */
+  --topbar-h: 48px;
+  --drawer-box-w: 440px;
+  --drawer-adv-w: 420px;
+  --stage-pad-x: 50px; /* room for the edge tabs */
+
+  /* Motion */
+  --drawer-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --drawer-dur: 0.42s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
