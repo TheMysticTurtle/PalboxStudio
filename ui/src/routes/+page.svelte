@@ -15,7 +15,7 @@
 
 <main>
   <div class="brand">
-    <span class="mark" aria-hidden="true"></span>
+    <img class="mark" src="/logo.png" alt="" />
     <h1>PALBOX&nbsp;STUDIO</h1>
     <span class="chip">GLOBAL PALBOX</span>
   </div>
@@ -57,11 +57,10 @@
     gap: 14px;
   }
   .mark {
-    width: 26px;
-    height: 26px;
-    border-radius: 7px;
-    background: conic-gradient(from 210deg, #b060e0, #3fc7e0, #b060e0);
-    box-shadow: 0 0 18px rgba(176, 96, 224, 0.5);
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    box-shadow: 0 0 22px rgba(176, 96, 224, 0.55);
   }
   h1 {
     margin: 0;
