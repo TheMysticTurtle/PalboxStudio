@@ -62,6 +62,30 @@ export function dtoToPal(dto: PalDto): Pal {
   };
 }
 
+/** Change a loaded pal's species in place: rewrite the species code and re-derive
+ *  the species-dependent display fields (elements, Paldex no., Partner Skill, bench
+ *  learnset) from the reference table. Per-instance edits (level, IVs, souls,
+ *  passives, equipped moves) are kept. A pal whose name still matches its old
+ *  species (i.e. no custom nickname) follows to the new species name. Persisted on
+ *  save: palToDto sends the new characterId, and the engine's set_species writes it. */
+export function reSpecies(pal: Pal, code: string): void {
+  const oldSp = ref.speciesByCode[pal.species];
+  const sp = ref.speciesByCode[code];
+  if (!pal.name || pal.name === oldSp?.name) pal.name = sp?.name ?? code;
+  pal.species = code;
+  pal.elements = (sp?.elements ?? []) as ElementName[];
+  pal.paldexNo = sp && sp.deckIndex >= 0 ? `No. ${String(sp.deckIndex).padStart(3, "0")}` : "";
+  pal.partnerSkill = {
+    name: sp?.partnerSkill?.name ?? "—",
+    level: pal.partnerSkill.level,
+    description:
+      sp?.partnerSkill?.description || "No Partner Skill reference is available for this species.",
+    element: sp?.partnerSkill?.element ?? pal.elements[0],
+  };
+  // Bench = the new species' learnset minus anything still equipped.
+  pal.benchMoves = (sp?.moves ?? []).filter((m) => !pal.activeSkills.includes(m));
+}
+
 /** Build the editable DTO back from the display `Pal` for saving. */
 export function palToDto(pal: Pal, slot: number): PalDto {
   const sp = ref.speciesByCode[pal.species];

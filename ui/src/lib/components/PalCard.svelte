@@ -1,13 +1,22 @@
 <script lang="ts">
   import type { Pal, ElementName } from "$lib/data/types";
   import { LIMITS, ELEMENT_COLOR } from "$lib/data/constants";
-  import { resolveMove } from "$lib/data/refdata.svelte";
+  import { ref, resolveMove } from "$lib/data/refdata.svelte";
+  import { palIcon, onPalIconError } from "$lib/data/icons";
+  import { reSpecies } from "$lib/data/mapper";
   import SectionHeader from "./SectionHeader.svelte";
   import ElementPill from "./ElementPill.svelte";
   import PassiveChip from "./PassiveChip.svelte";
   import WorkSuitRow from "./WorkSuitRow.svelte";
+  import SpeciesSelector from "./SpeciesSelector.svelte";
 
   let { pal }: { pal: Pal } = $props();
+
+  // Species display name (tolerant of an alpha BOSS_ prefix) + the selector modal.
+  let speciesOpen = $state(false);
+  const speciesName = $derived(
+    ref.speciesByCode[pal.species.replace(/^BOSS_/i, "")]?.name ?? pal.species,
+  );
 
   const genderSymbol = $derived(pal.gender === "Male" ? "♂" : pal.gender === "Female" ? "♀" : "–");
   const hpPct = $derived(Math.min(100, (pal.stats.hp / pal.stats.hpMax) * 100));
@@ -65,10 +74,7 @@
   let bench = $derived(pal.benchMoves.map(asMove));
 
   // Real pal portrait from PalEdit's icons; fall back to the #ERROR placeholder.
-  const iconSrc = $derived(`/pals/T_${pal.species}_icon_normal.png`);
-  function onIconError(e: Event) {
-    (e.currentTarget as HTMLImageElement).src = "/pals/%23ERROR.png";
-  }
+  const iconSrc = $derived(palIcon(pal.species));
 </script>
 
 <div class="card">
@@ -84,6 +90,10 @@
       </div>
       <div class="subline">
         {#each pal.elements as el}<ElementPill element={el} />{/each}
+        <button class="species" onclick={() => (speciesOpen = true)} title="Change species">
+          {speciesName}
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#c9b4e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
         <span class="pdx">Palpedia {pal.paldexNo}</span>
       </div>
     </div>
@@ -134,7 +144,7 @@
         <span class="badge alpha" class:hide={!pal.alpha}>ALPHA</span>
         <span class="badge lucky" class:hide={!pal.lucky}>✦ LUCKY</span>
         <div class="art">
-          <img class="palimg" src={iconSrc} alt={pal.name} onerror={onIconError} />
+          <img class="palimg" src={iconSrc} alt={pal.name} onerror={onPalIconError} />
         </div>
         <div class="poverlay">
           <div>
@@ -232,6 +242,8 @@
   </div>
 </div>
 
+<SpeciesSelector bind:open={speciesOpen} current={pal.species} onpick={(code) => reSpecies(pal, code)} />
+
 <style>
   .card {
     height: 100%;
@@ -295,6 +307,14 @@
   .gender.female { background: rgba(224, 95, 192, 0.18); border: 1px solid rgba(224, 95, 192, 0.55); color: #f2a0d8; }
   .gender.unknown { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.14); color: #9aa6b2; }
   .subline { display: flex; align-items: center; gap: 9px; margin-top: 11px; flex-wrap: wrap; }
+  .species {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 14px; cursor: pointer;
+    font-family: var(--font-cond); font-weight: 600; font-size: 13px; color: #d6bef2;
+    background: rgba(176, 96, 224, 0.12); border: 1px solid rgba(176, 96, 224, 0.4);
+    transition: background 0.14s, border-color 0.14s;
+  }
+  .species:hover { background: rgba(176, 96, 224, 0.22); border-color: rgba(176, 96, 224, 0.65); }
   .pdx { font-size: 12.5px; color: #6e7a86; margin-left: 4px; }
   .headactions { display: flex; align-items: center; gap: 10px; }
   .preset {
