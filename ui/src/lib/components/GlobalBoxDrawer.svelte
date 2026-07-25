@@ -1,19 +1,40 @@
 <script lang="ts">
-  import type { ElementName } from "$lib/data/types";
+  import type { ElementName, BoxPal } from "$lib/data/types";
   import { ELEMENT_COLOR } from "$lib/data/constants";
   import { sampleBox } from "$lib/data/sampleBox";
+  import { ref } from "$lib/data/refdata.svelte";
   import { ui } from "$lib/stores/ui.svelte";
+  import { box, openBoxFile, selectSlot } from "$lib/stores/box.svelte";
+  import type { BoxTileDto } from "$lib/data/engine";
   import BoxTile from "./BoxTile.svelte";
 
   const elements: ElementName[] = [
     "Neutral", "Fire", "Water", "Grass", "Electric", "Ice", "Ground", "Dark", "Dragon",
   ];
-  const groups = ["All", ...Array.from(new Set(sampleBox.flatMap((p) => p.groups ?? [])))];
 
   let search = $state("");
   let selectedEls = $state<Set<ElementName>>(new Set());
   let activeGroup = $state("All");
-  let pickedFile = $state<string | null>(null);
+
+  // Real box tiles (joined to species for name/elements) when a box is open;
+  // otherwise the sample fixtures.
+  function tileToBoxPal(t: BoxTileDto): BoxPal {
+    const sp = ref.speciesByCode[t.characterId];
+    return {
+      instanceId: String(t.slot),
+      species: t.characterId,
+      name: sp?.name ?? t.characterId,
+      level: t.level,
+      elements: (sp?.elements ?? []) as ElementName[],
+      alpha: t.isAlpha,
+      lucky: t.isLucky,
+    };
+  }
+  let source = $derived(box.open ? box.tiles.map(tileToBoxPal) : sampleBox);
+  const groups = $derived([
+    "All",
+    ...Array.from(new Set(source.flatMap((p) => p.groups ?? []))),
+  ]);
 
   function toggleEl(el: ElementName) {
     const s = new Set(selectedEls);
@@ -23,7 +44,7 @@
   }
 
   let filtered = $derived(
-    sampleBox.filter((p) => {
+    source.filter((p) => {
       if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
       if (selectedEls.size && !p.elements.some((e) => selectedEls.has(e))) return false;
       if (activeGroup !== "All" && !(p.groups ?? []).includes(activeGroup)) return false;
@@ -31,9 +52,7 @@
     }),
   );
 
-  // Browse for a GlobalPalStorage.sav, defaulting to Palworld's usual save location.
-  // (Loading the file is the engine's job — this just picks it.)
-  async function openBox() {
+  async function openBoxClicked() {
     try {
       const { open } = await import("@tauri-apps/plugin-dialog");
       const { localDataDir, join } = await import("@tauri-apps/api/path");
@@ -44,20 +63,28 @@
         multiple: false,
         filters: [{ name: "Palworld Save", extensions: ["sav"] }],
       });
-      if (typeof file === "string") pickedFile = file;
+      if (typeof file === "string") await openBoxFile(file);
     } catch (e) {
       console.warn("File dialog is only available inside the app", e);
     }
   }
 
-  const select = (id: string) => (ui.selectedId = id);
+  function select(id: string) {
+    if (box.open) selectSlot(Number(id));
+    else ui.selectedId = id;
+  }
+  const isSelected = (id: string) =>
+    box.open ? box.selectedSlot === Number(id) : ui.selectedId === id;
 </script>
 
 <div class="box">
-  <button class="open" onclick={openBox}>⭳ Open Global Palbox</button>
-  {#if pickedFile}
-    <div class="picked" title={pickedFile}>Selected: <b>{pickedFile.split(/[\\/]/).pop()}</b> — loading comes with the engine.</div>
+  <button class="open" onclick={openBoxClicked} disabled={box.loading}>
+    {box.loading ? "Opening…" : "⭳ Open Global Palbox"}
+  </button>
+  {#if box.open}
+    <div class="picked">{box.tiles.length} pals · {box.slotCount} slots · <b>{box.path.split(/[\\/]/).pop()}</b></div>
   {/if}
+  {#if box.error}<div class="err">{box.error}</div>{/if}
 
   <div class="controls">
     <div class="searchbox">
@@ -84,9 +111,9 @@
 
   <div class="matrix">
     {#each filtered as p (p.instanceId)}
-      <BoxTile pal={p} size="sm" selected={ui.selectedId === p.instanceId} onselect={select} />
+      <BoxTile pal={p} size="sm" selected={isSelected(p.instanceId)} onselect={select} />
     {/each}
-    {#if !filtered.length}<div class="empty">No pals match.</div>{/if}
+    {#if !filtered.length}<div class="empty">{box.open ? "No pals match." : "Open a box to load your pals."}</div>{/if}
   </div>
 
   <div class="footer">
@@ -98,15 +125,16 @@
 
 <style>
   .box { height: 100%; display: flex; flex-direction: column; gap: 11px; }
-
   .open {
     padding: 11px; border-radius: 10px; cursor: pointer;
     font-family: var(--font-head); font-weight: 600; font-size: 14px; letter-spacing: 0.06em;
     color: #eafbff; border: 1px solid rgba(63, 199, 224, 0.45); background: rgba(63, 199, 224, 0.14);
   }
   .open:hover { background: rgba(63, 199, 224, 0.24); }
+  .open:disabled { opacity: 0.6; cursor: default; }
   .picked { font-size: 11.5px; color: #9782a8; }
   .picked b { color: #c9b4e0; }
+  .err { font-size: 11.5px; color: #e89090; }
 
   .controls { display: flex; align-items: center; gap: 8px; }
   .searchbox { flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 9px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.09); }

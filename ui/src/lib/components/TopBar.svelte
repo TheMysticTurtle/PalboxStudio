@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { box, saveToFile } from "$lib/stores/box.svelte";
+
   // Frameless custom title bar (window decorations are off in tauri.conf.json).
   // The bar is the drag handle; the controls drive the OS window.
   async function win(action: "min" | "max" | "close") {
@@ -26,6 +28,11 @@
   </div>
 
   <div class="spacer" data-tauri-drag-region></div>
+
+  {#if box.open}
+    <button class="savebtn" onclick={saveToFile} title="Backup the original, then write the edited box">💾 Save Box</button>
+    {#if box.saveMsg}<span class="savemsg">{box.saveMsg}</span>{/if}
+  {/if}
 
   <div class="safe">
     <svg width="14" height="15" viewBox="0 0 24 26" fill="none" aria-hidden="true">
@@ -119,6 +126,18 @@
     color: #c7ebcb;
     font-weight: 600;
   }
+  .savebtn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(63, 199, 224, 0.45);
+    background: rgba(63, 199, 224, 0.14);
+    color: #eafbff;
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+  .savebtn:hover { background: rgba(63, 199, 224, 0.24); }
+  .savemsg { font-size: 11.5px; color: #9ad6a0; }
   .wincontrols {
     display: flex;
     gap: 2px;

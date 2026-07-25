@@ -7,11 +7,13 @@
   import GlobalBoxDrawer from "$lib/components/GlobalBoxDrawer.svelte";
   import BoxMatrix from "$lib/components/BoxMatrix.svelte";
   import { ui } from "$lib/stores/ui.svelte";
+  import { box } from "$lib/stores/box.svelte";
   import { samplePal } from "$lib/data/samplePal";
 
-  // Deep-cloned so edits don't mutate the module constant; $state makes it
-  // deeply reactive so the card's editors update the model live.
-  let pal = $state(structuredClone(samplePal));
+  // Until a real box is open, edit a sample fixture; once a pal is loaded from
+  // the engine (box.pal), the card edits that — persisted on save.
+  let fallback = $state(structuredClone(samplePal));
+  let pal = $derived(box.pal ?? fallback);
 </script>
 
 <Backdrop />

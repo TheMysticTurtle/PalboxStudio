@@ -1,20 +1,44 @@
 <script lang="ts">
+  import type { ElementName, BoxPal } from "$lib/data/types";
   import { sampleBox } from "$lib/data/sampleBox";
+  import { ref } from "$lib/data/refdata.svelte";
   import { ui } from "$lib/stores/ui.svelte";
+  import { box, selectSlot } from "$lib/stores/box.svelte";
+  import type { BoxTileDto } from "$lib/data/engine";
   import BoxTile from "./BoxTile.svelte";
-  const select = (id: string) => (ui.selectedId = id);
+
+  function tileToBoxPal(t: BoxTileDto): BoxPal {
+    const sp = ref.speciesByCode[t.characterId];
+    return {
+      instanceId: String(t.slot),
+      species: t.characterId,
+      name: sp?.name ?? t.characterId,
+      level: t.level,
+      elements: (sp?.elements ?? []) as ElementName[],
+      alpha: t.isAlpha,
+      lucky: t.isLucky,
+    };
+  }
+  let source = $derived(box.open ? box.tiles.map(tileToBoxPal) : sampleBox);
+
+  function select(id: string) {
+    if (box.open) selectSlot(Number(id));
+    else ui.selectedId = id;
+  }
+  const isSelected = (id: string) =>
+    box.open ? box.selectedSlot === Number(id) : ui.selectedId === id;
 </script>
 
 <div class="overlay">
   <div class="head">
     <span class="diamond"></span>
     <h2>GLOBAL PALBOX</h2>
-    <span class="count">{sampleBox.length} pals</span>
+    <span class="count">{source.length} pals</span>
     <button class="collapse" onclick={() => (ui.boxExpanded = false)} aria-label="Collapse to drawer">⤡ Collapse</button>
   </div>
   <div class="grid">
-    {#each sampleBox as p (p.instanceId)}
-      <BoxTile pal={p} size="lg" selected={ui.selectedId === p.instanceId} onselect={select} />
+    {#each source as p (p.instanceId)}
+      <BoxTile pal={p} size="lg" selected={isSelected(p.instanceId)} onselect={select} />
     {/each}
   </div>
 </div>
