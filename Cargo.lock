@@ -2267,6 +2267,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
+name = "ooz-rs"
+version = "0.1.0"
+source = "git+https://github.com/palworld-save-pal/ooz-rs#c197be7a4b49b2f37f339888da1c10ab87780c19"
+dependencies = [
+ "cc",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "open"
 version = "5.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2309,6 +2318,9 @@ dependencies = [
 [[package]]
 name = "palbox-core"
 version = "0.1.0"
+dependencies = [
+ "uesave",
+]
 
 [[package]]
 name = "pango"
@@ -3992,6 +4004,20 @@ dependencies = [
  "memoffset",
  "tempfile",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "uesave"
+version = "0.7.1"
+source = "git+https://github.com/oMaN-Rod/uesave-rs.git?rev=a5271781df0ed021d72e5ad6eab1c59d5199451c#a5271781df0ed021d72e5ad6eab1c59d5199451c"
+dependencies = [
+ "bitflags 2.13.1",
+ "byteorder",
+ "flate2",
+ "indexmap 2.14.0",
+ "ooz-rs",
+ "serde",
+ "thiserror 1.0.69",
 ]
 
 [[package]]

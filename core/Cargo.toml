@@ -6,5 +6,6 @@ license = "MIT"
 description = "Palbox Studio headless engine: Palworld 1.0 Global Pal box model, load/write, and mutations. No UI."
 
 [dependencies]
-# Save-format / GVAS + Oodle deps get added here as the engine grows.
-# Kept intentionally empty for now so the crate builds fast and clean.
+# Palworld .sav decode/encode: Oodle decompression + GVAS, via oMaN-Rod's uesave
+# fork (the one PSP uses). Pinned to PSP's known-good commit for reproducibility.
+uesave = { git = "https://github.com/oMaN-Rod/uesave-rs.git", rev = "a5271781df0ed021d72e5ad6eab1c59d5199451c", features = ["oodle"] }
