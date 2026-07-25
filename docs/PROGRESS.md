@@ -38,9 +38,20 @@ lossless round-trip), `ue.rs` (uesave→Palworld type aliases + our own accessor
 (`slot_count` + `list_pals` over `SaveParameterArray`). **Global-box ONLY** (no world/Level.sav).
 Verified on a scratchpad COPY of the owner's real `GlobalPalStorage.sav`: **960 slots / 61 pals**
 read correctly; round-trip re-decodes. `cargo test -p palbox-core` = 4/4 (set env
-`PALBOX_TEST_SAV` to the copy; NEVER touch live saves). **Next engine:** full `PalDto` (all
-editable fields per the ADR 0002 map), granular mutations, backup→atomic-write `save_box`, then
-the Tauri commands + wire the UI's Open button + box tiles to real data.
+`PALBOX_TEST_SAV` to the copy; NEVER touch live saves).
+
+**ENGINE DONE + UI WIRED — the core loop works.** `core/src/pal.rs`: full `PalDto` read + a
+setter (edit port) for every field (level/nickname/gender/ivs/souls/condensation/lucky/passives/
+equipped-moves). `src-tauri`: Tauri commands `open_box`/`get_pal`/`update_pal`/`save_box`
+(session state + **backup→atomic write**). Verified on the real save (read full DTO, edit level
+55→80, save round-trip; `cargo test -p palbox-core` 6/6). UI wired via `engine.ts` (invoke),
+`mapper.ts` (dtoToPal/palToDto join species), `stores/box.svelte.ts`: **Open Global Palbox →
+real tiles → select → card shows the real pal → edit → Save Box (backup + write)**. Build +
+svelte-check 0/0. Run `npm run tauri dev` to use it.
+**Still pending:** work-suitability edit setter (array-of-structs; read works, edit doesn't
+persist yet), the computed combat-stat FORMULA (Attack/Def/WorkSpeed + max HP shown are
+placeholders = base scaling), groups/tags SQLite, schema-driven filters + species selector,
+nickname-clear edge, in-game icon assets. `samplePal`/`sampleBox` are now fallback fixtures only.
 
 **Reference dataset DONE:** `ui/static/data/{species,moves,passives,elements,schema}.json`
 via `scripts/gen_species.py` — 406 storable pals + 351 moves + 420 passives + 9 elements,
