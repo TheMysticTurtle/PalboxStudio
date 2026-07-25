@@ -31,6 +31,17 @@ reference JSON / editable save model / mutable app-data SQLite), the Tauri comma
 the `PalDto` (raw-editable vs engine-computed stats), the backup→atomic-write save flow, and the
 SQLite schema for groups/tags/presets. Build the UI against those DTO shapes so the engine drops in.
 
+**ENGINE STARTED — I/O + read proven on the REAL save.** `core/` now depends on oMaN-Rod's
+`uesave` fork (rev pinned = PSP's known-good commit) with the **`oodle` feature — it BUILDS and
+works on this machine**. Modules: `save.rs` (`read_sav`/`write_sav` = Oodle/GVAS decode/encode,
+lossless round-trip), `ue.rs` (uesave→Palworld type aliases + our own accessors), `globalbox.rs`
+(`slot_count` + `list_pals` over `SaveParameterArray`). **Global-box ONLY** (no world/Level.sav).
+Verified on a scratchpad COPY of the owner's real `GlobalPalStorage.sav`: **960 slots / 61 pals**
+read correctly; round-trip re-decodes. `cargo test -p palbox-core` = 4/4 (set env
+`PALBOX_TEST_SAV` to the copy; NEVER touch live saves). **Next engine:** full `PalDto` (all
+editable fields per the ADR 0002 map), granular mutations, backup→atomic-write `save_box`, then
+the Tauri commands + wire the UI's Open button + box tiles to real data.
+
 **Reference dataset DONE:** `ui/static/data/{species,moves,passives,elements,schema}.json`
 via `scripts/gen_species.py` — 406 storable pals + 351 moves + 420 passives + 9 elements,
 validated (0 dangling), provenance in each `_meta`. Docs in DATA-AND-ASSETS.md. Static reference
