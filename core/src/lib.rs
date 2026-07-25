@@ -7,7 +7,9 @@
 //! Value ranges here are the verified 1.0 numbers from docs/SPECS-1.0.md — deliberately
 //! NOT the stale pre-1.0 values our old PalEdit fork used.
 
+pub mod globalbox;
 pub mod save;
+pub mod ue;
 
 /// Core crate version — surfaced to the UI as a smoke test that the bridge is wired up.
 pub fn version() -> &'static str {
