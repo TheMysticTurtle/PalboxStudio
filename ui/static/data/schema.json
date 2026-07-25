@@ -1,0 +1,128 @@
+{
+ "_meta": {
+  "generated": "2026-07-24",
+  "source": "oMaN-Rod/palworld-save-pal dumps + PalEdit en-GB names",
+  "generator": "scripts/gen_species.py",
+  "note": "Do not hand-edit; re-run the generator.",
+  "of": "species"
+ },
+ "schema": [
+  {
+   "key": "name",
+   "label": "Name",
+   "type": "text",
+   "filterable": true,
+   "displayable": true
+  },
+  {
+   "key": "elements",
+   "label": "Element",
+   "type": "multi",
+   "filterable": true,
+   "displayable": true
+  },
+  {
+   "key": "category",
+   "label": "Category",
+   "type": "enum",
+   "filterable": true,
+   "displayable": true,
+   "values": [
+    "Natural",
+    "TowerBoss",
+    "Unobtainable"
+   ]
+  },
+  {
+   "key": "rarity",
+   "label": "Rarity",
+   "type": "number",
+   "filterable": true,
+   "displayable": true
+  },
+  {
+   "key": "size",
+   "label": "Size",
+   "type": "enum",
+   "filterable": true,
+   "displayable": true
+  },
+  {
+   "key": "genus",
+   "label": "Genus",
+   "type": "enum",
+   "filterable": true,
+   "displayable": true
+  },
+  {
+   "key": "nocturnal",
+   "label": "Nocturnal",
+   "type": "bool",
+   "filterable": true,
+   "displayable": true
+  },
+  {
+   "key": "work",
+   "label": "Work Suitability",
+   "type": "map",
+   "filterable": true,
+   "displayable": true
+  },
+  {
+   "key": "moves",
+   "label": "Learnset",
+   "type": "multi",
+   "filterable": true,
+   "displayable": false
+  },
+  {
+   "key": "deckIndex",
+   "label": "Paldeck No.",
+   "type": "number",
+   "filterable": false,
+   "displayable": true
+  },
+  {
+   "key": "combiRank",
+   "label": "Breeding Rank",
+   "type": "number",
+   "filterable": true,
+   "displayable": true
+  },
+  {
+   "key": "scaling",
+   "label": "Base Scaling",
+   "type": "map",
+   "filterable": false,
+   "displayable": true
+  },
+  {
+   "key": "captureRate",
+   "label": "Capture Rate",
+   "type": "number",
+   "filterable": false,
+   "displayable": true
+  },
+  {
+   "key": "price",
+   "label": "Gold Value",
+   "type": "number",
+   "filterable": false,
+   "displayable": true
+  },
+  {
+   "key": "partnerSkill",
+   "label": "Partner Skill",
+   "type": "text",
+   "filterable": false,
+   "displayable": true
+  },
+  {
+   "key": "farmDrops",
+   "label": "Ranch Drops",
+   "type": "multi",
+   "filterable": true,
+   "displayable": true
+  }
+ ]
+}

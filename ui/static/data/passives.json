@@ -1,0 +1,2111 @@
+{
+ "_meta": {
+  "generated": "2026-07-24",
+  "source": "oMaN-Rod/palworld-save-pal dumps + PalEdit en-GB names",
+  "generator": "scripts/gen_species.py",
+  "note": "Do not hand-edit; re-run the generator.",
+  "count": 420
+ },
+ "passives": {
+  "AirDash_1": {
+   "name": "Aerial Dash +1",
+   "rating": 1,
+   "description": "Aerial Dash +1"
+  },
+  "AirDash_2": {
+   "name": "Aerial Dash +2",
+   "rating": 1,
+   "description": "Aerial Dash +2"
+  },
+  "AirDash_3": {
+   "name": "Aerial Dash +3",
+   "rating": 1,
+   "description": "Aerial Dash +3"
+  },
+  "AirDash_4": {
+   "name": "Aerial Dash +4",
+   "rating": 1,
+   "description": "Aerial Dash +4"
+  },
+  "Alien": {
+   "name": "Otherworldly Cells",
+   "rating": 1,
+   "description": "Attack +10%, Fire Resistance +15%, Electricity Attack +15%"
+  },
+  "Attack_ACC_up1": {
+   "name": "Attack Up Lv. 1",
+   "rating": 1,
+   "description": "Attack +5%"
+  },
+  "Attack_ACC_up1_Armor": {
+   "name": "Attack Up (S) Lv. 1",
+   "rating": 1,
+   "description": "Attack +3%"
+  },
+  "Attack_ACC_up1_Otomo_Only_Equip": {
+   "name": "Pal Attack Up Lv. 1",
+   "rating": 1,
+   "description": "Attack +4%"
+  },
+  "Attack_ACC_up2": {
+   "name": "Attack Up Lv. 2",
+   "rating": 2,
+   "description": "Attack +10%"
+  },
+  "Attack_ACC_up2_Armor": {
+   "name": "Attack Up (S) Lv. 2",
+   "rating": 2,
+   "description": "Attack +6%"
+  },
+  "Attack_ACC_up2_Otomo_Only_Equip": {
+   "name": "Pal Attack Up Lv. 2",
+   "rating": 2,
+   "description": "Attack +8%"
+  },
+  "Attack_ACC_up3": {
+   "name": "Attack Up Lv. 3",
+   "rating": 3,
+   "description": "Attack +15%"
+  },
+  "Attack_ACC_up3_Armor": {
+   "name": "Attack Up (S) Lv. 3",
+   "rating": 3,
+   "description": "Attack +9%"
+  },
+  "Attack_ACC_up3_Otomo_Only_Equip": {
+   "name": "Pal Attack Up Lv. 3",
+   "rating": 3,
+   "description": "Attack +12%"
+  },
+  "Attack_ACC_up4": {
+   "name": "Attack Up Lv. 4",
+   "rating": 4,
+   "description": "Attack +20%"
+  },
+  "Attack_ACC_up4_Armor": {
+   "name": "Attack Up (S) Lv. 4",
+   "rating": 4,
+   "description": "Attack +12%"
+  },
+  "Attack_ACC_up4_Otomo_Only_Equip": {
+   "name": "Pal Attack Up Lv. 4",
+   "rating": 4,
+   "description": "Attack +16%"
+  },
+  "AutoHPRegeneRate_Passive": {
+   "name": "Healing Coach",
+   "rating": 3,
+   "description": "Healing Coach"
+  },
+  "AvoidDurationUp_EquipSkill_2": {
+   "name": "Extended Dodge Immunity",
+   "rating": 1,
+   "description": "Extended Dodge Immunity"
+  },
+  "BossDefeatReward_AmaterasuWolf_Dark": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_Anubis": {
+   "name": "Ground Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Earth Attack +1%"
+  },
+  "BossDefeatReward_BadCatgirl": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_BerryGoat_Dark": {
+   "name": "Grass Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Leaf Attack +2%"
+  },
+  "BossDefeatReward_BlackMetalDragon": {
+   "name": "Dragon Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Dragon Attack +2%"
+  },
+  "BossDefeatReward_BlackPuppy": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_BlueDragon": {
+   "name": "Water Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Water Attack +1%"
+  },
+  "BossDefeatReward_BlueThunderHorse": {
+   "name": "Electric Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Electricity Attack +2%"
+  },
+  "BossDefeatReward_BlueberryFairy": {
+   "name": "Grass Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Leaf Attack +2%"
+  },
+  "BossDefeatReward_CactusDoll": {
+   "name": "Grass Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Leaf Attack +1%"
+  },
+  "BossDefeatReward_CaptainPenguin": {
+   "name": "Water Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Water Attack +1%"
+  },
+  "BossDefeatReward_CatMage": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_CatVampire": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_CubeTurtle": {
+   "name": "Ground Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Earth Attack +1%"
+  },
+  "BossDefeatReward_CubeTurtle_Neutral": {
+   "name": "Neutral Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Normal Attack +2%"
+  },
+  "BossDefeatReward_DarkScorpion": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_DarkScorpion_Ground": {
+   "name": "Ground Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Earth Attack +1%"
+  },
+  "BossDefeatReward_DomeArmorDragon": {
+   "name": "Dragon Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Dragon Attack +3%"
+  },
+  "BossDefeatReward_ElecLizard": {
+   "name": "Electric Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Electricity Attack +1%"
+  },
+  "BossDefeatReward_ElecPanda": {
+   "name": "Electric Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Electricity Attack +2%"
+  },
+  "BossDefeatReward_ElecSnail": {
+   "name": "Electric Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Electricity Attack +1%"
+  },
+  "BossDefeatReward_FairyDragon": {
+   "name": "Dragon Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dragon Attack +1%"
+  },
+  "BossDefeatReward_FengyunDeeper": {
+   "name": "Neutral Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Normal Attack +1%"
+  },
+  "BossDefeatReward_FengyunDeeper_Electric": {
+   "name": "Electric Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Electricity Attack +2%"
+  },
+  "BossDefeatReward_FireKirin": {
+   "name": "Fire Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Fire Attack +1%"
+  },
+  "BossDefeatReward_FlameBuffalo": {
+   "name": "Fire Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Fire Attack +1%"
+  },
+  "BossDefeatReward_FlowerDinosaur_Electric": {
+   "name": "Electric Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Electricity Attack +1%"
+  },
+  "BossDefeatReward_FlowerDoll": {
+   "name": "Grass Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Leaf Attack +1%"
+  },
+  "BossDefeatReward_FoxExorcist": {
+   "name": "Fire Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Fire Attack +2%"
+  },
+  "BossDefeatReward_FoxMage": {
+   "name": "Fire Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Fire Attack +1%"
+  },
+  "BossDefeatReward_GhostDragon": {
+   "name": "Dragon Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Dragon Attack +2%"
+  },
+  "BossDefeatReward_GhostRabbit": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_GoldenHorse": {
+   "name": "Ground Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Earth Attack +2%"
+  },
+  "BossDefeatReward_GrassGolem": {
+   "name": "Grass Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Leaf Attack +2%"
+  },
+  "BossDefeatReward_GrassGolem_Dark": {
+   "name": "Dark Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Dark Attack +2%"
+  },
+  "BossDefeatReward_GrassMammoth": {
+   "name": "Grass Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Leaf Attack +2%"
+  },
+  "BossDefeatReward_GrassPanda_Electric": {
+   "name": "Electric Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Electricity Attack +1%"
+  },
+  "BossDefeatReward_GrassRabbitMan": {
+   "name": "Grass Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Leaf Attack +1%"
+  },
+  "BossDefeatReward_GrimGirl": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_HawkBird": {
+   "name": "Neutral Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Normal Attack +1%"
+  },
+  "BossDefeatReward_HerculesBeetle": {
+   "name": "Ground Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Earth Attack +1%"
+  },
+  "BossDefeatReward_HerculesBeetle_Ground": {
+   "name": "Ground Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Earth Attack +2%"
+  },
+  "BossDefeatReward_Horus_Water": {
+   "name": "Water Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Water Attack +2%"
+  },
+  "BossDefeatReward_IceFox": {
+   "name": "Ice Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Ice Attack +1%"
+  },
+  "BossDefeatReward_IceHorse": {
+   "name": "Ice Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Ice Attack +3%"
+  },
+  "BossDefeatReward_IceHorse_Dark": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_IceNarwhal": {
+   "name": "Ice Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Ice Attack +3%"
+  },
+  "BossDefeatReward_IceNarwhal_Fire": {
+   "name": "Fire Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Fire Attack +3%"
+  },
+  "BossDefeatReward_JetDragon": {
+   "name": "Dragon Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Dragon Attack +3%"
+  },
+  "BossDefeatReward_KabukiMan": {
+   "name": "Fire Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Fire Attack +2%"
+  },
+  "BossDefeatReward_KingAlpaca": {
+   "name": "Neutral Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Normal Attack +1%"
+  },
+  "BossDefeatReward_KingAlpaca_Ice": {
+   "name": "Ice Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Ice Attack +2%"
+  },
+  "BossDefeatReward_KingBahamut": {
+   "name": "Fire Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Fire Attack +3%"
+  },
+  "BossDefeatReward_Kirin": {
+   "name": "Electric Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Electricity Attack +1%"
+  },
+  "BossDefeatReward_Kitsunebi_Ice": {
+   "name": "Ice Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Ice Attack +3%"
+  },
+  "BossDefeatReward_LazyCatfish": {
+   "name": "Ground Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Earth Attack +1%"
+  },
+  "BossDefeatReward_LazyDragon_Electric": {
+   "name": "Dragon Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dragon Attack +1%"
+  },
+  "BossDefeatReward_LilyQueen": {
+   "name": "Grass Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Leaf Attack +3%"
+  },
+  "BossDefeatReward_LilyQueen_Dark": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_LotusDragon": {
+   "name": "Water Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Water Attack +2%"
+  },
+  "BossDefeatReward_Manticore": {
+   "name": "Fire Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Fire Attack +1%"
+  },
+  "BossDefeatReward_MoonChild": {
+   "name": "Dark Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Dark Attack +2%"
+  },
+  "BossDefeatReward_MopKing": {
+   "name": "Ice Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Ice Attack +1%"
+  },
+  "BossDefeatReward_MushroomLady": {
+   "name": "Grass Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Leaf Attack +1%"
+  },
+  "BossDefeatReward_Mutant": {
+   "name": "Neutral Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Normal Attack +1%"
+  },
+  "BossDefeatReward_MysteryMask": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_NaughtyCat": {
+   "name": "Neutral Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Normal Attack +1%"
+  },
+  "BossDefeatReward_NightBlueHorse": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_PinkRabbit_Grass": {
+   "name": "Grass Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Leaf Attack +2%"
+  },
+  "BossDefeatReward_PlantSlime": {
+   "name": "Ground Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Earth Attack +1%"
+  },
+  "BossDefeatReward_PoseidonOrca": {
+   "name": "Water Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Water Attack +3%"
+  },
+  "BossDefeatReward_PurpleSpider": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_QueenBee": {
+   "name": "Grass Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Leaf Attack +1%"
+  },
+  "BossDefeatReward_RaijinDaughter_Water": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_RockBeast": {
+   "name": "Ground Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Earth Attack +2%"
+  },
+  "BossDefeatReward_RockBeast_Ice": {
+   "name": "Ice Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Ice Attack +2%"
+  },
+  "BossDefeatReward_Ronin": {
+   "name": "Fire Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Fire Attack +2%"
+  },
+  "BossDefeatReward_SaintCentaur_1": {
+   "name": "Neutral Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Normal Attack +3%"
+  },
+  "BossDefeatReward_SaintCentaur_2": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "BossDefeatReward_SakuraSaurus": {
+   "name": "Grass Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Leaf Attack +1%"
+  },
+  "BossDefeatReward_SakuraSaurus_Water": {
+   "name": "Water Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Water Attack +1%"
+  },
+  "BossDefeatReward_ScorpionMan_Electric": {
+   "name": "Electric Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Electricity Attack +1%"
+  },
+  "BossDefeatReward_SkyDragon": {
+   "name": "Dragon Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dragon Attack +1%"
+  },
+  "BossDefeatReward_Suzaku": {
+   "name": "Fire Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Fire Attack +3%"
+  },
+  "BossDefeatReward_ThunderBird": {
+   "name": "Electric Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Electricity Attack +1%"
+  },
+  "BossDefeatReward_ThunderFluffyBird": {
+   "name": "Electric Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Electricity Attack +1%"
+  },
+  "BossDefeatReward_Umihebi": {
+   "name": "Water Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Water Attack +2%"
+  },
+  "BossDefeatReward_VioletFairy": {
+   "name": "Grass Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Leaf Attack +2%"
+  },
+  "BossDefeatReward_VolcanicMonster": {
+   "name": "Ground Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Earth Attack +1%"
+  },
+  "BossDefeatReward_VolcanoDragon": {
+   "name": "Fire Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Fire Attack +1%"
+  },
+  "BossDefeatReward_VolcanoDragon_Ice": {
+   "name": "Ice Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Ice Attack +2%"
+  },
+  "BossDefeatReward_WeaselDragon": {
+   "name": "Ice Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Ice Attack +1%"
+  },
+  "BossDefeatReward_Werewolf_Ice": {
+   "name": "Ice Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Ice Attack +3%"
+  },
+  "BossDefeatReward_WhiteDeer": {
+   "name": "Neutral Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Normal Attack +2%"
+  },
+  "BossDefeatReward_WhiteDeer_Dark": {
+   "name": "Dark Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Dark Attack +2%"
+  },
+  "BossDefeatReward_WhiteMoth": {
+   "name": "Ice Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Ice Attack +1%"
+  },
+  "BossDefeatReward_WhiteShieldDragon": {
+   "name": "Dragon Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Dragon Attack +2%"
+  },
+  "BossDefeatReward_WhiteTiger_Ground": {
+   "name": "Ground Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Earth Attack +2%"
+  },
+  "BossDefeatReward_WingGolem": {
+   "name": "Ground Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Earth Attack +1%"
+  },
+  "BossDefeatReward_Yeti_Grass": {
+   "name": "Grass Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Leaf Attack +1%"
+  },
+  "CaptureLevel_Up_1": {
+   "name": "Capture Strength +1",
+   "rating": 1,
+   "description": "Capture Strength +1"
+  },
+  "CaptureLevel_Up_2": {
+   "name": "Capture Strength +2",
+   "rating": 1,
+   "description": "Capture Strength +2"
+  },
+  "CaptureLevel_Up_3": {
+   "name": "Capture Strength +3",
+   "rating": 1,
+   "description": "Capture Strength +3"
+  },
+  "CaptureLevel_Up_4": {
+   "name": "Capture Strength +4",
+   "rating": 1,
+   "description": "Capture Strength +4"
+  },
+  "CaptureLevel_Up_5": {
+   "name": "Capture Strength +5",
+   "rating": 1,
+   "description": "Capture Strength +5"
+  },
+  "CaptureLevel_Up_6": {
+   "name": "Capture Strength +6",
+   "rating": 1,
+   "description": "Capture Strength +6"
+  },
+  "CollectItem_Berries": {
+   "name": "Berry Picker",
+   "rating": 1,
+   "description": "Berry Picker"
+  },
+  "CollectItem_Egg": {
+   "name": "Egg Layer",
+   "rating": 1,
+   "description": "Egg Layer"
+  },
+  "CollectItem_Milk": {
+   "name": "Milk Maker",
+   "rating": 1,
+   "description": "Milk Maker"
+  },
+  "CollectItem_Money": {
+   "name": "Gold Digger",
+   "rating": 1,
+   "description": "Gold Digger"
+  },
+  "CollectItem_Sweets": {
+   "name": "Confectioner",
+   "rating": 1,
+   "description": "Confectioner"
+  },
+  "CollectItem_Wool_Alpaca": {
+   "name": "Wool Maker",
+   "rating": 1,
+   "description": "Wool Maker"
+  },
+  "CollectItem_Wool_SheepBall": {
+   "name": "Wool Maker",
+   "rating": 1,
+   "description": "Wool Maker"
+  },
+  "CollectItem_Wool_WhiteMoth": {
+   "name": "Silk Spinner",
+   "rating": 1,
+   "description": "Silk Spinner"
+  },
+  "CoolTimeReduction_Down_1": {
+   "name": "Easygoing",
+   "rating": -1,
+   "description": "Skill Cooldown -15%"
+  },
+  "CoolTimeReduction_Up_1": {
+   "name": "Serenity",
+   "rating": 3,
+   "description": "Skill Cooldown +30%, Attack +10%"
+  },
+  "CoolTimeReduction_Up_2": {
+   "name": "Impatient",
+   "rating": 1,
+   "description": "Skill Cooldown +15%"
+  },
+  "CoolTimeReduction_Up_3": {
+   "name": "Tempest Fury",
+   "rating": 4,
+   "description": "Active skill cooldown reduction 0.0% Attack +0.0%"
+  },
+  "CraftSpeed_down1": {
+   "name": "Clumsy",
+   "rating": -1,
+   "description": "Work Speed -10%"
+  },
+  "CraftSpeed_down2": {
+   "name": "Slacker",
+   "rating": -3,
+   "description": "Work Speed -30%"
+  },
+  "CraftSpeed_up1": {
+   "name": "Serious",
+   "rating": 1,
+   "description": "Work Speed +20%"
+  },
+  "CraftSpeed_up2": {
+   "name": "Artisan",
+   "rating": 3,
+   "description": "Work Speed +50%"
+  },
+  "CraftSpeed_up3": {
+   "name": "Remarkable Craftsmanship",
+   "rating": 4,
+   "description": "Work Speed +75%"
+  },
+  "Defense_ACC_up1_Otomo_Only_Equip": {
+   "name": "Pal Defense Up Lv. 1",
+   "rating": 1,
+   "description": "Defense +5%"
+  },
+  "Defense_ACC_up2_Otomo_Only_Equip": {
+   "name": "Pal Defense Up Lv. 2",
+   "rating": 2,
+   "description": "Defense +10%"
+  },
+  "Defense_ACC_up3_Otomo_Only_Equip": {
+   "name": "Pal Defense Up Lv. 3",
+   "rating": 3,
+   "description": "Defense +15%"
+  },
+  "Defense_ACC_up4_Otomo_Only_Equip": {
+   "name": "Pal Defense Up Lv. 4",
+   "rating": 4,
+   "description": "Defense +20%"
+  },
+  "Deffence_down1": {
+   "name": "Downtrodden",
+   "rating": -1,
+   "description": "Defense -10%"
+  },
+  "Deffence_down2": {
+   "name": "Brittle",
+   "rating": -3,
+   "description": "Defense -20%"
+  },
+  "Deffence_up1": {
+   "name": "Hard Skin",
+   "rating": 1,
+   "description": "Defense +10%"
+  },
+  "Deffence_up2": {
+   "name": "Burly Body",
+   "rating": 3,
+   "description": "Defense +20%"
+  },
+  "Deffence_up2_2": {
+   "name": "Heavyweight",
+   "rating": 2,
+   "description": "Defense +20%"
+  },
+  "Deffence_up3": {
+   "name": "Diamond Body",
+   "rating": 4,
+   "description": "Defense +30%"
+  },
+  "Defuser_ExplosiveSpore_EquipSkill": {
+   "name": "Explosion Immunity",
+   "rating": 1,
+   "description": "Explosion Immunity"
+  },
+  "ElementBoost_Aqua_1_PAL": {
+   "name": "Hydromaniac",
+   "rating": 1,
+   "description": "Water Attack +10%"
+  },
+  "ElementBoost_Aqua_2_PAL": {
+   "name": "Lord of the Sea",
+   "rating": 3,
+   "description": "Water Attack +30%"
+  },
+  "ElementBoost_Dark_1_BossDefeat": {
+   "name": "Dark Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dark Attack +1%"
+  },
+  "ElementBoost_Dark_1_Otomo_Only_Equip": {
+   "name": "Pal Dark Damage Enhancement Lv. 1",
+   "rating": 1,
+   "description": "Dark Attack +6%"
+  },
+  "ElementBoost_Dark_1_PAL": {
+   "name": "Veil of Darkness",
+   "rating": 1,
+   "description": "Dark Attack +10%"
+  },
+  "ElementBoost_Dark_2_BossDefeat": {
+   "name": "Dark Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Dark Attack +2%"
+  },
+  "ElementBoost_Dark_2_Otomo_Only_Equip": {
+   "name": "Pal Dark Damage Enhancement Lv. 2",
+   "rating": 2,
+   "description": "Dark Attack +12%"
+  },
+  "ElementBoost_Dark_2_PAL": {
+   "name": "Lord of the Underworld",
+   "rating": 3,
+   "description": "Dark Attack +30%"
+  },
+  "ElementBoost_Dark_3_BossDefeat": {
+   "name": "Dark Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Dark Attack +3%"
+  },
+  "ElementBoost_Dark_3_Otomo_Only_Equip": {
+   "name": "Pal Dark Damage Enhancement Lv. 3",
+   "rating": 3,
+   "description": "Dark Attack +18%"
+  },
+  "ElementBoost_Dark_4_Otomo_Only_Equip": {
+   "name": "Pal Dark Damage Enhancement Lv. 4",
+   "rating": 4,
+   "description": "Dark Attack +20%"
+  },
+  "ElementBoost_Dragon_1_BossDefeat": {
+   "name": "Dragon Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Dragon Attack +1%"
+  },
+  "ElementBoost_Dragon_1_Otomo_Only_Equip": {
+   "name": "Pal Dragon Damage Enhancement Lv. 1",
+   "rating": 1,
+   "description": "Dragon Attack +6%"
+  },
+  "ElementBoost_Dragon_1_PAL": {
+   "name": "Blood of the Dragon",
+   "rating": 1,
+   "description": "Dragon Attack +10%"
+  },
+  "ElementBoost_Dragon_2_BossDefeat": {
+   "name": "Dragon Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Dragon Attack +2%"
+  },
+  "ElementBoost_Dragon_2_Otomo_Only_Equip": {
+   "name": "Pal Dragon Damage Enhancement Lv. 2",
+   "rating": 2,
+   "description": "Dragon Attack +12%"
+  },
+  "ElementBoost_Dragon_2_PAL": {
+   "name": "Divine Dragon",
+   "rating": 3,
+   "description": "Dragon Attack +30%"
+  },
+  "ElementBoost_Dragon_3_BossDefeat": {
+   "name": "Dragon Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Dragon Attack +3%"
+  },
+  "ElementBoost_Dragon_3_Otomo_Only_Equip": {
+   "name": "Pal Dragon Damage Enhancement Lv. 3",
+   "rating": 3,
+   "description": "Dragon Attack +18%"
+  },
+  "ElementBoost_Dragon_4_Otomo_Only_Equip": {
+   "name": "Pal Dragon Damage Enhancement Lv. 4",
+   "rating": 4,
+   "description": "Dragon Attack +20%"
+  },
+  "ElementBoost_Earth_1_BossDefeat": {
+   "name": "Ground Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Earth Attack +1%"
+  },
+  "ElementBoost_Earth_1_Otomo_Only_Equip": {
+   "name": "Pal Ground Damage Enhancement Lv. 1",
+   "rating": 1,
+   "description": "Earth Attack +6%"
+  },
+  "ElementBoost_Earth_1_PAL": {
+   "name": "Power of Gaia",
+   "rating": 1,
+   "description": "Earth Attack +10%"
+  },
+  "ElementBoost_Earth_2_BossDefeat": {
+   "name": "Ground Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Earth Attack +2%"
+  },
+  "ElementBoost_Earth_2_Otomo_Only_Equip": {
+   "name": "Pal Ground Damage Enhancement Lv. 2",
+   "rating": 2,
+   "description": "Earth Attack +12%"
+  },
+  "ElementBoost_Earth_2_PAL": {
+   "name": "Earth Emperor",
+   "rating": 3,
+   "description": "Earth Attack +30%"
+  },
+  "ElementBoost_Earth_3_BossDefeat": {
+   "name": "Ground Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Earth Attack +3%"
+  },
+  "ElementBoost_Earth_3_Otomo_Only_Equip": {
+   "name": "Pal Ground Damage Enhancement Lv. 3",
+   "rating": 3,
+   "description": "Earth Attack +18%"
+  },
+  "ElementBoost_Earth_4_Otomo_Only_Equip": {
+   "name": "Pal Ground Damage Enhancement Lv. 4",
+   "rating": 4,
+   "description": "Earth Attack +20%"
+  },
+  "ElementBoost_Electricity_1_BossDefeat": {
+   "name": "Electric Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Electricity Attack +1%"
+  },
+  "ElementBoost_Electricity_1_Otomo_Only_Equip": {
+   "name": "Pal Electric Damage Enhancement Lv. 1",
+   "rating": 1,
+   "description": "Electricity Attack +6%"
+  },
+  "ElementBoost_Electricity_2_BossDefeat": {
+   "name": "Electric Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Electricity Attack +2%"
+  },
+  "ElementBoost_Electricity_2_Otomo_Only_Equip": {
+   "name": "Pal Electric Damage Enhancement Lv. 2",
+   "rating": 2,
+   "description": "Electricity Attack +12%"
+  },
+  "ElementBoost_Electricity_3_BossDefeat": {
+   "name": "Electric Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Electricity Attack +3%"
+  },
+  "ElementBoost_Electricity_3_Otomo_Only_Equip": {
+   "name": "Pal Electric Damage Enhancement Lv. 3",
+   "rating": 3,
+   "description": "Electricity Attack +18%"
+  },
+  "ElementBoost_Electricity_4_Otomo_Only_Equip": {
+   "name": "Pal Electric Damage Enhancement Lv. 4",
+   "rating": 4,
+   "description": "Electricity Attack +20%"
+  },
+  "ElementBoost_Fire_1_BossDefeat": {
+   "name": "Fire Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Fire Attack +1%"
+  },
+  "ElementBoost_Fire_1_Otomo_Only_Equip": {
+   "name": "Pal Fire Damage Enhancement Lv. 1",
+   "rating": 1,
+   "description": "Fire Attack +6%"
+  },
+  "ElementBoost_Fire_1_PAL": {
+   "name": "Pyromaniac",
+   "rating": 1,
+   "description": "Fire Attack +10%"
+  },
+  "ElementBoost_Fire_2_BossDefeat": {
+   "name": "Fire Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Fire Attack +2%"
+  },
+  "ElementBoost_Fire_2_Otomo_Only_Equip": {
+   "name": "Pal Fire Damage Enhancement Lv. 2",
+   "rating": 2,
+   "description": "Fire Attack +12%"
+  },
+  "ElementBoost_Fire_2_PAL": {
+   "name": "Flame Emperor",
+   "rating": 3,
+   "description": "Fire Attack +30%"
+  },
+  "ElementBoost_Fire_3_BossDefeat": {
+   "name": "Fire Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Fire Attack +3%"
+  },
+  "ElementBoost_Fire_3_Otomo_Only_Equip": {
+   "name": "Pal Fire Damage Enhancement Lv. 3",
+   "rating": 3,
+   "description": "Fire Attack +18%"
+  },
+  "ElementBoost_Fire_4_Otomo_Only_Equip": {
+   "name": "Pal Fire Damage Enhancement Lv. 4",
+   "rating": 4,
+   "description": "Fire Attack +20%"
+  },
+  "ElementBoost_Ice_1_BossDefeat": {
+   "name": "Ice Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Ice Attack +1%"
+  },
+  "ElementBoost_Ice_1_Otomo_Only_Equip": {
+   "name": "Pal Ice Damage Enhancement Lv. 1",
+   "rating": 1,
+   "description": "Ice Attack +6%"
+  },
+  "ElementBoost_Ice_1_PAL": {
+   "name": "Coldblooded",
+   "rating": 1,
+   "description": "Ice Attack +10%"
+  },
+  "ElementBoost_Ice_2_BossDefeat": {
+   "name": "Ice Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Ice Attack +2%"
+  },
+  "ElementBoost_Ice_2_Otomo_Only_Equip": {
+   "name": "Pal Ice Damage Enhancement Lv. 2",
+   "rating": 2,
+   "description": "Ice Attack +12%"
+  },
+  "ElementBoost_Ice_2_PAL": {
+   "name": "Ice Emperor",
+   "rating": 3,
+   "description": "Ice Attack +30%"
+  },
+  "ElementBoost_Ice_3_BossDefeat": {
+   "name": "Ice Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Ice Attack +3%"
+  },
+  "ElementBoost_Ice_3_Otomo_Only_Equip": {
+   "name": "Pal Ice Damage Enhancement Lv. 3",
+   "rating": 3,
+   "description": "Ice Attack +18%"
+  },
+  "ElementBoost_Ice_4_Otomo_Only_Equip": {
+   "name": "Pal Ice Damage Enhancement Lv. 4",
+   "rating": 4,
+   "description": "Ice Attack +20%"
+  },
+  "ElementBoost_Leaf_1_BossDefeat": {
+   "name": "Grass Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Leaf Attack +1%"
+  },
+  "ElementBoost_Leaf_1_Otomo_Only_Equip": {
+   "name": "Pal Grass Damage Enhancement Lv. 1",
+   "rating": 1,
+   "description": "Leaf Attack +6%"
+  },
+  "ElementBoost_Leaf_1_PAL": {
+   "name": "Fragrant Foliage",
+   "rating": 1,
+   "description": "Leaf Attack +10%"
+  },
+  "ElementBoost_Leaf_2_BossDefeat": {
+   "name": "Grass Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Leaf Attack +2%"
+  },
+  "ElementBoost_Leaf_2_Otomo_Only_Equip": {
+   "name": "Pal Grass Damage Enhancement Lv. 2",
+   "rating": 2,
+   "description": "Leaf Attack +12%"
+  },
+  "ElementBoost_Leaf_2_PAL": {
+   "name": "Spirit Emperor",
+   "rating": 3,
+   "description": "Leaf Attack +30%"
+  },
+  "ElementBoost_Leaf_3_BossDefeat": {
+   "name": "Grass Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Leaf Attack +3%"
+  },
+  "ElementBoost_Leaf_3_Otomo_Only_Equip": {
+   "name": "Pal Grass Damage Enhancement Lv. 3",
+   "rating": 3,
+   "description": "Leaf Attack +18%"
+  },
+  "ElementBoost_Leaf_4_Otomo_Only_Equip": {
+   "name": "Pal Grass Damage Enhancement Lv. 4",
+   "rating": 4,
+   "description": "Leaf Attack +20%"
+  },
+  "ElementBoost_Normal_1_BossDefeat": {
+   "name": "Neutral Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Normal Attack +1%"
+  },
+  "ElementBoost_Normal_1_Otomo_Only_Equip": {
+   "name": "Pal Neutral Damage Enhancement Lv. 1",
+   "rating": 1,
+   "description": "Normal Attack +6%"
+  },
+  "ElementBoost_Normal_1_PAL": {
+   "name": "Spirit of Zen",
+   "rating": 1,
+   "description": "Normal Attack +10%"
+  },
+  "ElementBoost_Normal_2_BossDefeat": {
+   "name": "Neutral Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Normal Attack +2%"
+  },
+  "ElementBoost_Normal_2_Otomo_Only_Equip": {
+   "name": "Pal Neutral Damage Enhancement Lv. 2",
+   "rating": 2,
+   "description": "Normal Attack +12%"
+  },
+  "ElementBoost_Normal_2_PAL": {
+   "name": "Celestial Emperor",
+   "rating": 3,
+   "description": "Normal Attack +30%"
+  },
+  "ElementBoost_Normal_3_BossDefeat": {
+   "name": "Neutral Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Normal Attack +3%"
+  },
+  "ElementBoost_Normal_3_Otomo_Only_Equip": {
+   "name": "Pal Neutral Damage Enhancement Lv. 3",
+   "rating": 3,
+   "description": "Normal Attack +18%"
+  },
+  "ElementBoost_Normal_4_Otomo_Only_Equip": {
+   "name": "Pal Neutral Damage Enhancement Lv. 4",
+   "rating": 4,
+   "description": "Normal Attack +20%"
+  },
+  "ElementBoost_Thunder_1_PAL": {
+   "name": "Capacitor",
+   "rating": 1,
+   "description": "Electricity Attack +10%"
+  },
+  "ElementBoost_Thunder_2_PAL": {
+   "name": "Lord of Lightning",
+   "rating": 3,
+   "description": "Electricity Attack +30%"
+  },
+  "ElementBoost_Water_1_BossDefeat": {
+   "name": "Water Damage Enhancement (Small)",
+   "rating": 1,
+   "description": "Water Attack +1%"
+  },
+  "ElementBoost_Water_1_Otomo_Only_Equip": {
+   "name": "Pal Water Damage Enhancement Lv. 1",
+   "rating": 1,
+   "description": "Water Attack +6%"
+  },
+  "ElementBoost_Water_2_BossDefeat": {
+   "name": "Water Damage Enhancement (Medium)",
+   "rating": 1,
+   "description": "Water Attack +2%"
+  },
+  "ElementBoost_Water_2_Otomo_Only_Equip": {
+   "name": "Pal Water Damage Enhancement Lv. 2",
+   "rating": 2,
+   "description": "Water Attack +12%"
+  },
+  "ElementBoost_Water_3_BossDefeat": {
+   "name": "Water Damage Enhancement (Large)",
+   "rating": 1,
+   "description": "Water Attack +3%"
+  },
+  "ElementBoost_Water_3_Otomo_Only_Equip": {
+   "name": "Pal Water Damage Enhancement Lv. 3",
+   "rating": 3,
+   "description": "Water Attack +18%"
+  },
+  "ElementBoost_Water_4_Otomo_Only_Equip": {
+   "name": "Pal Water Damage Enhancement Lv. 4",
+   "rating": 4,
+   "description": "Water Attack +20%"
+  },
+  "ElementResist_Aqua_1": {
+   "name": "Water Damage Reduction Lv. 1",
+   "rating": 1,
+   "description": "Water Resistance +15%"
+  },
+  "ElementResist_Aqua_1_PAL": {
+   "name": "Waterproof",
+   "rating": 1,
+   "description": "Water Resistance +10%"
+  },
+  "ElementResist_Aqua_2": {
+   "name": "Water Damage Reduction Lv. 2",
+   "rating": 2,
+   "description": "Water Resistance +25%"
+  },
+  "ElementResist_Aqua_3": {
+   "name": "Water Damage Reduction Lv. 3",
+   "rating": 3,
+   "description": "Water Resistance +30%"
+  },
+  "ElementResist_Aqua_4": {
+   "name": "Water Damage Reduction Lv. 4",
+   "rating": 4,
+   "description": "Water Resistance +35%"
+  },
+  "ElementResist_Dark_1": {
+   "name": "Dark Damage Reduction Lv. 1",
+   "rating": 1,
+   "description": "Dark Resistance +15%"
+  },
+  "ElementResist_Dark_1_PAL": {
+   "name": "Cheery",
+   "rating": 1,
+   "description": "Dark Resistance +10%"
+  },
+  "ElementResist_Dark_2": {
+   "name": "Dark Damage Reduction Lv. 2",
+   "rating": 2,
+   "description": "Dark Resistance +25%"
+  },
+  "ElementResist_Dark_3": {
+   "name": "Dark Damage Reduction Lv. 3",
+   "rating": 3,
+   "description": "Dark Resistance +30%"
+  },
+  "ElementResist_Dark_4": {
+   "name": "Dark Damage Reduction Lv. 4",
+   "rating": 4,
+   "description": "Dark Resistance +35%"
+  },
+  "ElementResist_Dragon_1": {
+   "name": "Dragon Damage Reduction Lv. 1",
+   "rating": 1,
+   "description": "Dragon Resistance +15%"
+  },
+  "ElementResist_Dragon_1_PAL": {
+   "name": "Dragonkiller",
+   "rating": 1,
+   "description": "Dragon Resistance +10%"
+  },
+  "ElementResist_Dragon_2": {
+   "name": "Dragon Damage Reduction Lv. 2",
+   "rating": 2,
+   "description": "Dragon Resistance +25%"
+  },
+  "ElementResist_Dragon_3": {
+   "name": "Dragon Damage Reduction Lv. 3",
+   "rating": 3,
+   "description": "Dragon Resistance +30%"
+  },
+  "ElementResist_Dragon_4": {
+   "name": "Dragon Damage Reduction Lv. 4",
+   "rating": 4,
+   "description": "Dragon Resistance +35%"
+  },
+  "ElementResist_Earth_1": {
+   "name": "Earth Damage Reduction Lv. 1",
+   "rating": 1,
+   "description": "Earth Resistance +15%"
+  },
+  "ElementResist_Earth_1_PAL": {
+   "name": "Earthquake Resistant",
+   "rating": 1,
+   "description": "Earth Resistance +10%"
+  },
+  "ElementResist_Earth_2": {
+   "name": "Earth Damage Reduction Lv. 2",
+   "rating": 2,
+   "description": "Earth Resistance +25%"
+  },
+  "ElementResist_Earth_3": {
+   "name": "Earth Damage Reduction Lv. 3",
+   "rating": 3,
+   "description": "Earth Resistance +30%"
+  },
+  "ElementResist_Earth_4": {
+   "name": "Ground Damage Reduction Lv. 4",
+   "rating": 4,
+   "description": "Earth Resistance +35%"
+  },
+  "ElementResist_Fire_1": {
+   "name": "Fire Damage Reduction Lv. 1",
+   "rating": 1,
+   "description": "Fire Resistance +15%"
+  },
+  "ElementResist_Fire_1_PAL": {
+   "name": "Suntan Lover",
+   "rating": 1,
+   "description": "Fire Resistance +10%"
+  },
+  "ElementResist_Fire_2": {
+   "name": "Fire Damage Reduction Lv. 2",
+   "rating": 2,
+   "description": "Fire Resistance +25%"
+  },
+  "ElementResist_Fire_3": {
+   "name": "Fire Damage Reduction Lv. 3",
+   "rating": 3,
+   "description": "Fire Resistance +30%"
+  },
+  "ElementResist_Fire_4": {
+   "name": "Fire Damage Reduction Lv. 4",
+   "rating": 4,
+   "description": "Fire Resistance +35%"
+  },
+  "ElementResist_Ice_1": {
+   "name": "Ice Damage Reduction Lv. 1",
+   "rating": 1,
+   "description": "Ice Resistance +15%"
+  },
+  "ElementResist_Ice_1_PAL": {
+   "name": "Heated Body",
+   "rating": 1,
+   "description": "Ice Resistance +10%"
+  },
+  "ElementResist_Ice_2": {
+   "name": "Ice Damage Reduction Lv. 2",
+   "rating": 2,
+   "description": "Ice Resistance +25%"
+  },
+  "ElementResist_Ice_3": {
+   "name": "Ice Damage Reduction Lv. 3",
+   "rating": 3,
+   "description": "Ice Resistance +30%"
+  },
+  "ElementResist_Ice_4": {
+   "name": "Ice Damage Reduction Lv. 4",
+   "rating": 4,
+   "description": "Ice Resistance +35%"
+  },
+  "ElementResist_Leaf_1": {
+   "name": "Grass Damage Reduction Lv. 1",
+   "rating": 1,
+   "description": "Leaf Resistance +15%"
+  },
+  "ElementResist_Leaf_1_PAL": {
+   "name": "Botanical Barrier",
+   "rating": 1,
+   "description": "Leaf Resistance +10%"
+  },
+  "ElementResist_Leaf_2": {
+   "name": "Grass Damage Reduction Lv. 2",
+   "rating": 2,
+   "description": "Leaf Resistance +25%"
+  },
+  "ElementResist_Leaf_3": {
+   "name": "Grass Damage Reduction Lv. 3",
+   "rating": 3,
+   "description": "Leaf Resistance +30%"
+  },
+  "ElementResist_Leaf_4": {
+   "name": "Grass Damage Reduction Lv. 4",
+   "rating": 4,
+   "description": "Leaf Resistance +35%"
+  },
+  "ElementResist_Normal_1": {
+   "name": "Neutral Damage Reduction Lv. 1",
+   "rating": 1,
+   "description": "Normal Resistance +15%"
+  },
+  "ElementResist_Normal_1_PAL": {
+   "name": "Abnormal",
+   "rating": 1,
+   "description": "Normal Resistance +10%"
+  },
+  "ElementResist_Normal_2": {
+   "name": "Neutral Damage Reduction Lv. 2",
+   "rating": 2,
+   "description": "Normal Resistance +25%"
+  },
+  "ElementResist_Normal_3": {
+   "name": "Neutral Damage Reduction Lv. 3",
+   "rating": 3,
+   "description": "Normal Resistance +30%"
+  },
+  "ElementResist_Normal_4": {
+   "name": "Neutral Damage Reduction Lv. 4",
+   "rating": 4,
+   "description": "Normal Resistance +35%"
+  },
+  "ElementResist_Thunder_1": {
+   "name": "Electric Damage Reduction Lv. 1",
+   "rating": 1,
+   "description": "Electricity Resistance +15%"
+  },
+  "ElementResist_Thunder_1_PAL": {
+   "name": "Insulated Body",
+   "rating": 1,
+   "description": "Electricity Resistance +10%"
+  },
+  "ElementResist_Thunder_2": {
+   "name": "Electric Damage Reduction Lv. 2",
+   "rating": 2,
+   "description": "Electricity Resistance +25%"
+  },
+  "ElementResist_Thunder_3": {
+   "name": "Electric Damage Reduction Lv. 3",
+   "rating": 3,
+   "description": "Electricity Resistance +30%"
+  },
+  "ElementResist_Thunder_4": {
+   "name": "Electric Damage Reduction Lv. 4",
+   "rating": 4,
+   "description": "Electricity Resistance +35%"
+  },
+  "EternalFlame": {
+   "name": "Eternal Flame",
+   "rating": 4,
+   "description": "Fire Attack +30%, Electricity Attack +30%"
+  },
+  "FriendshipPoint_Increase_EquipSkill": {
+   "name": "Party Pals Bond Boost",
+   "rating": -1,
+   "description": "Party Pals Bond Boost"
+  },
+  "GYM_NAME_Desert": {
+   "name": "PIDF Commander",
+   "rating": 3,
+   "description": "Attack +20%, Move Speed +10%"
+  },
+  "GYM_NAME_Forest": {
+   "name": "Free Pal Alliance Founder",
+   "rating": 3,
+   "description": "Attack +20%, Move Speed +10%"
+  },
+  "GYM_NAME_Meadow": {
+   "name": "Rayne Syndicate Boss",
+   "rating": 3,
+   "description": "Attack +20%, Move Speed +10%"
+  },
+  "GYM_NAME_Sakurajima": {
+   "name": "Leader of the Moonflowers",
+   "rating": 3,
+   "description": "Attack +20%, Move Speed +10%"
+  },
+  "GYM_NAME_Snow": {
+   "name": "PAL Genetic Research Unit Commander",
+   "rating": 3,
+   "description": "Attack +20%, Move Speed +10%"
+  },
+  "GYM_NAME_Viking": {
+   "name": "Jarl of Feybreak",
+   "rating": 3,
+   "description": "Attack +20%, Move Speed +10%"
+  },
+  "GYM_NAME_Volcano": {
+   "name": "Brothers of the Eternal Pyre Soul Leader",
+   "rating": 3,
+   "description": "Attack +20%, Move Speed +10%"
+  },
+  "HP_ACC_up1": {
+   "name": "Health Up Lv. 1",
+   "rating": 1,
+   "description": "Max HP +10%"
+  },
+  "HP_ACC_up2": {
+   "name": "Health Up Lv. 2",
+   "rating": 2,
+   "description": "Max HP +15%"
+  },
+  "HP_ACC_up3": {
+   "name": "Health Up Lv. 3",
+   "rating": 3,
+   "description": "Max HP +20%"
+  },
+  "HP_ACC_up4": {
+   "name": "Health Up Lv. 4",
+   "rating": 4,
+   "description": "Max HP +25%"
+  },
+  "Invader": {
+   "name": "Invader",
+   "rating": 4,
+   "description": "Dark Attack +30%, Dragon Attack +30%"
+  },
+  "Invalid_ToxicGas_EquipSkill": {
+   "name": "Toxic Gas Immunity",
+   "rating": 1,
+   "description": "Toxic Gas Immunity"
+  },
+  "JumpCount_Increase1": {
+   "name": "Jump Count Increase +1",
+   "rating": 1,
+   "description": "Jumps +1%"
+  },
+  "JumpCount_Increase2": {
+   "name": "Jump Count Increase +2",
+   "rating": 1,
+   "description": "Jumps +2%"
+  },
+  "JumpCount_Increase3": {
+   "name": "Jump Count Increase +3",
+   "rating": 1,
+   "description": "Jumps +3%"
+  },
+  "JumpPower_Increase": {
+   "name": "Jump Power Boost",
+   "rating": 1,
+   "description": "Jump Power +25%"
+  },
+  "Legend": {
+   "name": "Legend",
+   "rating": 4,
+   "description": "Attack +20%, Defense +20%, Move Speed +20%"
+  },
+  "MaxInventoryWeight_up": {
+   "name": "Max Carrying Capacity Lv. 1",
+   "rating": 1,
+   "description": "Carry Weight +50%"
+  },
+  "MaxInventoryWeight_up2": {
+   "name": "Max Carrying Capacity Lv. 2",
+   "rating": 1,
+   "description": "Carry Weight +150%"
+  },
+  "MaxInventoryWeight_up3": {
+   "name": "Max Carrying Capacity Lv. 3",
+   "rating": 3,
+   "description": "Carry Weight +200%"
+  },
+  "MaxInventoryWeight_up_Equip_1": {
+   "name": "Max Carrying Capacity Lv. 1",
+   "rating": -1,
+   "description": "Carry Weight +50%"
+  },
+  "MaxInventoryWeight_up_Equip_2": {
+   "name": "Max Carrying Capacity Lv. 2",
+   "rating": -1,
+   "description": "Carry Weight +100%"
+  },
+  "MaxInventoryWeight_up_Equip_3": {
+   "name": "Max Carrying Capacity Lv. 3",
+   "rating": -1,
+   "description": "Carry Weight +200%"
+  },
+  "MaxInventoryWeight_up_Equip_4": {
+   "name": "Max Carrying Capacity Lv. 4",
+   "rating": -1,
+   "description": "Carry Weight +300%"
+  },
+  "MiniNushi": {
+   "name": "Whopper",
+   "rating": 3,
+   "description": "Water Attack +5%, Ice Attack +5%, Defense +5%"
+  },
+  "MoveSpeed_up_1": {
+   "name": "Nimble",
+   "rating": 1,
+   "description": "Move Speed +10%"
+  },
+  "MoveSpeed_up_2": {
+   "name": "Runner",
+   "rating": 3,
+   "description": "Move Speed +20%"
+  },
+  "MoveSpeed_up_3": {
+   "name": "Swift",
+   "rating": 4,
+   "description": "Move Speed +30%"
+  },
+  "MutationPal_Babysitter": {
+   "name": "Babysitter",
+   "rating": 4,
+   "description": "Egg Hatching +30%"
+  },
+  "MutationPal_ExplosionResist": {
+   "name": "Heavily Armored",
+   "rating": 4,
+   "description": "<Status_Up>Immune</> to Explosion Damage"
+  },
+  "MutationPal_Immortal": {
+   "name": "Immortality",
+   "rating": 4,
+   "description": "Life Steal +5%, Attack +15%"
+  },
+  "MutationPal_Mutant": {
+   "name": "Idiosyncratic",
+   "rating": 4,
+   "description": "Pal and Player Auto Health Regeneration Rate +50.0% Defense +{EffectValue4}% <Status_Up>Immune</> to Poison Damage <Status_Up>Immune</> to Burn Damage"
+  },
+  "NightOwl": {
+   "name": "Night Owl",
+   "rating": -1,
+   "description": "Tends to nap through the day, due to being nocturnal."
+  },
+  "Nocturnal": {
+   "name": "Insomnia",
+   "rating": 1,
+   "description": "Does not sleep and continues to work even at night."
+  },
+  "NonKilling": {
+   "name": "Mercy Hit",
+   "rating": -1,
+   "description": "Pacifist. Will not reduce the target's Health below 1."
+  },
+  "Noukin": {
+   "name": "Musclehead",
+   "rating": 2,
+   "description": "Attack +30%, Work Speed -50%"
+  },
+  "Nushi": {
+   "name": "Lunker",
+   "rating": 4,
+   "description": "Water Attack +20%, Ice Attack +20%, Defense +20%"
+  },
+  "OctaviaArmorVampire": {
+   "name": "Blood Is Fuel",
+   "rating": 4,
+   "description": "Life Steal +1%"
+  },
+  "PAL_ALLAttack_down1": {
+   "name": "Coward",
+   "rating": -1,
+   "description": "Attack -10%"
+  },
+  "PAL_ALLAttack_down2": {
+   "name": "Pacifist",
+   "rating": -3,
+   "description": "Attack -20%"
+  },
+  "PAL_ALLAttack_up1": {
+   "name": "Brave",
+   "rating": 1,
+   "description": "Attack +10%"
+  },
+  "PAL_ALLAttack_up2": {
+   "name": "Ferocious",
+   "rating": 3,
+   "description": "Attack +20%"
+  },
+  "PAL_ALLAttack_up3": {
+   "name": "Demon God",
+   "rating": 4,
+   "description": "Attack +30%, Defense +5%"
+  },
+  "PAL_CorporateSlave": {
+   "name": "Work Slave",
+   "rating": 1,
+   "description": "Work Speed +30%, Attack -30%"
+  },
+  "PAL_FullStomach_Down_1": {
+   "name": "Dainty Eater",
+   "rating": 1,
+   "description": "Hunger Rate -10%"
+  },
+  "PAL_FullStomach_Down_2": {
+   "name": "Diet Lover",
+   "rating": 3,
+   "description": "Hunger Rate -15%"
+  },
+  "PAL_FullStomach_Down_3": {
+   "name": "Mastery of Fasting",
+   "rating": 4,
+   "description": "Hunger Rate -20%"
+  },
+  "PAL_FullStomach_Up_1": {
+   "name": "Glutton",
+   "rating": -1,
+   "description": "Hunger Rate +10%"
+  },
+  "PAL_FullStomach_Up_2": {
+   "name": "Bottomless Stomach",
+   "rating": -2,
+   "description": "Hunger Rate +15%"
+  },
+  "PAL_Sanity_Down_1": {
+   "name": "Positive Thinker",
+   "rating": 1,
+   "description": "Sanity Drain -10%"
+  },
+  "PAL_Sanity_Down_2": {
+   "name": "Workaholic",
+   "rating": 3,
+   "description": "Sanity Drain -15%"
+  },
+  "PAL_Sanity_Down_3": {
+   "name": "Heart of the Immovable King",
+   "rating": 4,
+   "description": "Sanity Drain -20%"
+  },
+  "PAL_Sanity_Up_1": {
+   "name": "Unstable",
+   "rating": -1,
+   "description": "Sanity Drain +10%"
+  },
+  "PAL_Sanity_Up_2": {
+   "name": "Destructive",
+   "rating": -2,
+   "description": "Sanity Drain +15%"
+  },
+  "PAL_SpiritualInst": {
+   "name": "Mentally unstable",
+   "rating": -1,
+   "description": "Work Speed -10%, Defense -10%"
+  },
+  "PAL_conceited": {
+   "name": "Conceited",
+   "rating": 1,
+   "description": "Work Speed +10%, Defense -10%"
+  },
+  "PAL_masochist": {
+   "name": "Masochist",
+   "rating": 1,
+   "description": "Defense +15%, Attack -15%"
+  },
+  "PAL_oraora": {
+   "name": "Aggressive",
+   "rating": 1,
+   "description": "Attack +10%, Defense -10%"
+  },
+  "PAL_rude": {
+   "name": "Hooligan",
+   "rating": 1,
+   "description": "Attack +15%, Work Speed -10%"
+  },
+  "PAL_sadist": {
+   "name": "Sadist",
+   "rating": 1,
+   "description": "Attack +15%, Defense -15%"
+  },
+  "PalExp_Increase_1_Otomo_Only_Equip": {
+   "name": "Pal EXP Up Lv. 1",
+   "rating": 1,
+   "description": "Pal EXP +30%"
+  },
+  "PalExp_Increase_2_Otomo_Only_Equip": {
+   "name": "Pal EXP Up Lv. 2",
+   "rating": 2,
+   "description": "Pal EXP +40%"
+  },
+  "PalExp_Increase_3_Otomo_Only_Equip": {
+   "name": "Pal EXP Up Lv. 3",
+   "rating": 3,
+   "description": "Pal EXP +50%"
+  },
+  "PlayerSP_DecreaseRate_Passive": {
+   "name": "Wellness Watcher",
+   "rating": 3,
+   "description": "Wellness Watcher"
+  },
+  "Rare": {
+   "name": "Lucky",
+   "rating": 4,
+   "description": "Attack +15%, Defense +15%, Work Speed +20%"
+  },
+  "ReloadSpeedUp_Passive": {
+   "name": "Reload Master",
+   "rating": 3,
+   "description": "Reload Master"
+  },
+  "RideJumpCount_Increase1": {
+   "name": "Lightfooted",
+   "rating": 4,
+   "description": "Mounted Jump Count +1"
+  },
+  "RideJumpCount_Increase2": {
+   "name": "Skymarcher",
+   "rating": 4,
+   "description": "Mounted Jump Count +2"
+  },
+  "SalePrice_Down_1": {
+   "name": "Shabby",
+   "rating": -1,
+   "description": "Sell Price -10%, Buy Price +10%"
+  },
+  "SalePrice_Up_1": {
+   "name": "Noble",
+   "rating": 3,
+   "description": "Sell Price +5%, Buy Price -5%"
+  },
+  "SalePrice_Up_2": {
+   "name": "Fine Furs",
+   "rating": 1,
+   "description": "Sell Price +3%, Buy Price -3%"
+  },
+  "Salvation": {
+   "name": "Savior",
+   "rating": 4,
+   "description": "Normal Attack +30%, Leaf Attack +30%"
+  },
+  "SelfDeathAddItemDrop_up_1": {
+   "name": "Sharing is Caring",
+   "rating": 1,
+   "description": "Your Dropped Items + 15.0%"
+  },
+  "SelfDeathAddItemDrop_up_2": {
+   "name": "Service-Minded",
+   "rating": 3,
+   "description": "Your Dropped Items + 50.0%"
+  },
+  "SelfDeathAddItemDrop_up_3": {
+   "name": "Lavish Hospitality",
+   "rating": 4,
+   "description": "Your Dropped Items + 100.0%"
+  },
+  "SphereModule_Curve": {
+   "name": "Sphere Curve +1",
+   "rating": 1,
+   "description": "Sphere Curve +1"
+  },
+  "SphereModule_Curve2": {
+   "name": "Sphere Slider",
+   "rating": 1,
+   "description": "Sphere Slider"
+  },
+  "SphereModule_Heavy": {
+   "name": "Sphere Weight +1",
+   "rating": 1,
+   "description": "Sphere Weight +1"
+  },
+  "SphereModule_Homing": {
+   "name": "Sphere Homing",
+   "rating": 1,
+   "description": "Sphere Homing"
+  },
+  "SphereModule_Sniper": {
+   "name": "Sphere Range +1",
+   "rating": 1,
+   "description": "Sphere Range +1"
+  },
+  "SphereModule_Sniper2": {
+   "name": "Sphere Range +2",
+   "rating": 1,
+   "description": "Sphere Range +2"
+  },
+  "Stamina_Down_1": {
+   "name": "Sickly",
+   "rating": -1,
+   "description": "Partner Skill -25%"
+  },
+  "Stamina_Up_1": {
+   "name": "Infinite Stamina",
+   "rating": 3,
+   "description": "Partner Skill +50%"
+  },
+  "Stamina_Up_2": {
+   "name": "Fit as a Fiddle",
+   "rating": 1,
+   "description": "Partner Skill +25%"
+  },
+  "Stamina_Up_3": {
+   "name": "Eternal Engine",
+   "rating": 4,
+   "description": "Partner Skill +75%"
+  },
+  "StonDrop_Boost_1": {
+   "name": "Mining Yield Up Lv. 1",
+   "rating": 1,
+   "description": "Slightly increases the drop amount of Stone and Ore."
+  },
+  "StonDrop_Boost_2": {
+   "name": "Mining Yield Up Lv. 2",
+   "rating": 1,
+   "description": "Increases the drop amount of Stone and Ore."
+  },
+  "StonDrop_Boost_3": {
+   "name": "Mining Yield Up Lv. 3",
+   "rating": 3,
+   "description": "Greatly increases the drop amount of Stone and Ore."
+  },
+  "StonDrop_Boost_4": {
+   "name": "Mining Yield Up Lv. 4",
+   "rating": 3,
+   "description": "Significantly increases the drop amount of Stone and Ore."
+  },
+  "StonDrop_Boost_5": {
+   "name": "Mining Yield Up Lv. 5",
+   "rating": 4,
+   "description": "Massively increases the drop amount of Stone and Ore."
+  },
+  "StonWoodDrop_Boost": {
+   "name": "Logging/Mining Yield Up",
+   "rating": 3,
+   "description": "Significantly increases the drop amount of Wood, Stone, and Ore."
+  },
+  "SwimSpeed_up_1": {
+   "name": "Sleek Stroke",
+   "rating": 1,
+   "description": "30.0% increase movement speed on water."
+  },
+  "SwimSpeed_up_2": {
+   "name": "Ace Swimmer",
+   "rating": 3,
+   "description": "Ace Swimmer"
+  },
+  "SwimSpeed_up_3": {
+   "name": "King of the Waves",
+   "rating": 4,
+   "description": "King of the Waves"
+  },
+  "TemperatureResist_Cold1": {
+   "name": "Cold Resistance Lv. 1",
+   "rating": 1,
+   "description": "Cold Resistance +1%"
+  },
+  "TemperatureResist_Cold2": {
+   "name": "Cold Resistance Lv. 2",
+   "rating": 2,
+   "description": "Cold Resistance +2%"
+  },
+  "TemperatureResist_Cold3": {
+   "name": "Cold Resistance Lv. 3",
+   "rating": 3,
+   "description": "Cold Resistance +3%"
+  },
+  "TemperatureResist_Heat1": {
+   "name": "Heat Resistance Lv. 1",
+   "rating": 1,
+   "description": "Heat Resistance +1%"
+  },
+  "TemperatureResist_Heat1Cold1": {
+   "name": "Heat Resistance Lv. 1 / Cold Resistance Lv. 1",
+   "rating": 1,
+   "description": "Cold Resistance +1%, Heat Resistance +1%"
+  },
+  "TemperatureResist_Heat2": {
+   "name": "Heat Resistance Lv. 2",
+   "rating": 2,
+   "description": "Heat Resistance +2%"
+  },
+  "TemperatureResist_Heat2Cold2": {
+   "name": "Heat Resistance Lv. 2 / Cold Resistance Lv. 2",
+   "rating": 2,
+   "description": "Cold Resistance +2%, Heat Resistance +2%"
+  },
+  "TemperatureResist_Heat3": {
+   "name": "Heat Resistance Lv. 3",
+   "rating": 3,
+   "description": "Heat Resistance +3%"
+  },
+  "TemperatureResist_Heat3Cold3": {
+   "name": "Heat Resistance Lv. 3 / Cold Resistance Lv. 3",
+   "rating": 3,
+   "description": "Cold Resistance +3%, Heat Resistance +3%"
+  },
+  "Test_PalEgg_HatchingSpeed_Up": {
+   "name": "Philanthropist",
+   "rating": 3,
+   "description": "Breeding Speed +100%"
+  },
+  "TrainerATK_UP_1": {
+   "name": "Vanguard",
+   "rating": 3,
+   "description": "Attack +10%"
+  },
+  "TrainerDEF_UP_1": {
+   "name": "Stronghold Strategist",
+   "rating": 3,
+   "description": "Defense +10%"
+  },
+  "TrainerLogging_up1": {
+   "name": "Logging Foreman",
+   "rating": 3,
+   "description": "Logging +25%"
+  },
+  "TrainerMining_up1": {
+   "name": "Mine Foreman",
+   "rating": 3,
+   "description": "Mining +25%"
+  },
+  "TrainerWorkSpeed_UP_1": {
+   "name": "Motivational Leader",
+   "rating": 3,
+   "description": "Work Speed +25%"
+  },
+  "Vampire": {
+   "name": "Vampiric",
+   "rating": 4,
+   "description": "Life Steal +5%"
+  },
+  "Witch": {
+   "name": "Siren of the Void",
+   "rating": 4,
+   "description": "Dark Attack +30%, Ice Attack +30%"
+  },
+  "WoodDrop_Boost_1": {
+   "name": "Logging Yield Up Lv. 1",
+   "rating": 1,
+   "description": "Slightly increases the drop amount of Wood."
+  },
+  "WoodDrop_Boost_2": {
+   "name": "Logging Yield Up Lv. 2",
+   "rating": 1,
+   "description": "Increases the drop amount of Wood."
+  },
+  "WoodDrop_Boost_3": {
+   "name": "Logging Yield Up Lv. 3",
+   "rating": 3,
+   "description": "Greatly increases the drop amount of Wood."
+  },
+  "WoodDrop_Boost_4": {
+   "name": "Logging Yield Up Lv. 4",
+   "rating": 3,
+   "description": "Significantly increases the drop amount of Wood."
+  },
+  "WoodDrop_Boost_5": {
+   "name": "Logging Yield Up Lv. 5",
+   "rating": 4,
+   "description": "Massively increases the drop amount of Wood."
+  },
+  "WorkSpeed_ACC_up1": {
+   "name": "Speedy Worker Lv. 1",
+   "rating": 1,
+   "description": "Work Speed +10%"
+  },
+  "WorkSpeed_ACC_up2": {
+   "name": "Speedy Worker Lv. 2",
+   "rating": 2,
+   "description": "Work Speed +15%"
+  },
+  "WorkSpeed_ACC_up3": {
+   "name": "Speedy Worker Lv. 3",
+   "rating": 3,
+   "description": "Work Speed +20%"
+  },
+  "WorkSpeed_ACC_up4": {
+   "name": "Speedy Worker Lv. 4",
+   "rating": 4,
+   "description": "Work Speed +25%"
+  },
+  "WorkSuitabilityAddRank_MonsterFarm_1": {
+   "name": "Farmhand",
+   "rating": 3,
+   "description": "Farming's Work Suitability<NumBlue_13> +1</>"
+  },
+  "WorkSuitabilityAddRank_MonsterFarm_2": {
+   "name": "Ranch Master",
+   "rating": 4,
+   "description": "Farming's Work Suitability<NumBlue_13> +2</>"
+  },
+  "WorldTree_ATK": {
+   "name": "Twin-Edged Holy Blade",
+   "rating": 5,
+   "description": "Attack +50%, Defense -30%"
+  },
+  "WorldTree_ATK_DEF": {
+   "name": "God of Destruction",
+   "rating": 5,
+   "description": "Attack +40%, Defense +20%, Max HP -50%"
+  },
+  "WorldTree_CraftSpeed": {
+   "name": "Demon\u2019s Hand",
+   "rating": 5,
+   "description": "Work Speed +90%, Sanity Drain +15%"
+  },
+  "WorldTree_DEF": {
+   "name": "Sanctified Meat Shield",
+   "rating": 5,
+   "description": "Defense +50%, Attack -30%"
+  },
+  "WorldTree_FullStomach": {
+   "name": "World Tree Seedbed",
+   "rating": 5,
+   "description": "Hunger Rate -50%, Max HP -20%"
+  },
+  "WorldTree_MoveSpeed": {
+   "name": "Dimensional Leap",
+   "rating": 5,
+   "description": "Move Speed +50%, Hunger Rate +15%"
+  },
+  "WorldTree_Sanity": {
+   "name": "Hermit Sage",
+   "rating": 5,
+   "description": "Sanity Drain -50%, Work Speed -20%"
+  },
+  "YakushimaDagameBoost_Magic_Equip": {
+   "name": "Hallowed Power: Magic",
+   "rating": -1,
+   "description": "Hallowed Power: Magic"
+  },
+  "YakushimaDagameBoost_Melee_Equip": {
+   "name": "Hallowed Power: Close Range",
+   "rating": -1,
+   "description": "Hallowed Power: Close Range"
+  },
+  "YakushimaDagameBoost_Ranged_Equip": {
+   "name": "Hallowed Power: Ranged",
+   "rating": -1,
+   "description": "Hallowed Power: Ranged"
+  },
+  "YakushimaDagameBoost_Summon_Equip": {
+   "name": "Hallowed Power: Summon",
+   "rating": -1,
+   "description": "Hallowed Power: Summon"
+  },
+  "YakushimaProtection_Equip": {
+   "name": "Hallowed Guard",
+   "rating": -1,
+   "description": "Hallowed Guard"
+  },
+  "defense_ACC_up1": {
+   "name": "Defense Up Lv. 1",
+   "rating": 1,
+   "description": "Defense +10%"
+  },
+  "defense_ACC_up2": {
+   "name": "Defense Up Lv. 2",
+   "rating": 2,
+   "description": "Defense +15%"
+  },
+  "defense_ACC_up3": {
+   "name": "Defense Up Lv. 3",
+   "rating": 3,
+   "description": "Defense +20%"
+  },
+  "defense_ACC_up4": {
+   "name": "Defense Up Lv. 4",
+   "rating": 4,
+   "description": "Defense +25%"
+  }
+ }
+}
