@@ -49,10 +49,30 @@ pub fn list_pals(save: &Save) -> Vec<PalSummary> {
     pals
 }
 
+/// Read one pal's full editable DTO by box slot.
+pub fn read_pal_at(save: &Save, slot: usize) -> Option<crate::pal::PalDto> {
+    let slots = ue::prop(&save.root.properties, "SaveParameterArray").and_then(ue::array_structs)?;
+    let StructValue::Struct(slot_props) = slots.get(slot)? else {
+        return None;
+    };
+    let param = ue::prop(slot_props, "SaveParameter").and_then(ue::struct_props)?;
+    Some(crate::pal::read_pal(param, slot))
+}
+
+/// Mutable access to a pal's `SaveParameter` by slot, for edits.
+pub fn pal_param_mut(save: &mut Save, slot: usize) -> Option<&mut crate::ue::Properties> {
+    let slots =
+        ue::prop_mut(&mut save.root.properties, "SaveParameterArray").and_then(ue::array_structs_mut)?;
+    let StructValue::Struct(slot_props) = slots.get_mut(slot)? else {
+        return None;
+    };
+    ue::prop_mut(slot_props, "SaveParameter").and_then(ue::struct_props_mut)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::save::read_sav;
+    use crate::save::{read_sav, write_sav};
 
     /// Read the real Global Palbox (a scratchpad COPY) and list its pals.
     #[test]
@@ -73,5 +93,28 @@ mod tests {
         );
         assert!(total.is_some(), "expected a SaveParameterArray (GlobalPalStorage.sav)");
         assert!(!pals.is_empty(), "expected at least one pal in the box");
+    }
+
+    /// Read a full pal DTO, edit it (level -> 80), save, re-read: the edit persists.
+    #[test]
+    fn read_edit_save_first_pal() {
+        let Ok(path) = std::env::var("PALBOX_TEST_SAV") else {
+            eprintln!("skip: set PALBOX_TEST_SAV");
+            return;
+        };
+        let bytes = std::fs::read(path).expect("read fixture");
+        let mut save = read_sav(&bytes).expect("decode");
+        let slot = list_pals(&save)[0].slot;
+
+        let before = read_pal_at(&save, slot).expect("read pal dto");
+        eprintln!("full DTO: {}", serde_json::to_string(&before).unwrap());
+
+        crate::pal::set_level(pal_param_mut(&mut save, slot).expect("mut param"), 80);
+        let out = write_sav(&save).expect("encode");
+        let reloaded = read_sav(&out).expect("re-decode");
+        let after = read_pal_at(&reloaded, slot).expect("re-read pal");
+
+        assert_eq!(after.level, 80, "level edit must survive a save round-trip");
+        eprintln!("edited {} level {} -> {}", after.character_id, before.level, after.level);
     }
 }

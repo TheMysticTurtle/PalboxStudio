@@ -8,6 +8,7 @@
 //! NOT the stale pre-1.0 values our old PalEdit fork used.
 
 pub mod globalbox;
+pub mod pal;
 pub mod save;
 pub mod ue;
 

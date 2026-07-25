@@ -1,0 +1,209 @@
+//! Reading and editing an individual pal's `SaveParameter` — the editable fields.
+//!
+//! Each field has a read (view port) and a setter (edit port), so the UI can plug
+//! straight in. The engine returns **raw save values**; the UI resolves codes and
+//! computes display values (stats, work totals) from its reference tables.
+//!
+//! Move ids in the save are `EPalWazaID::<Name>`; we strip the prefix so the codes
+//! join the UI's `moves.json` (bare), and re-add it on write.
+
+use crate::ue::{self, Properties, StructValue};
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
+
+const WAZA: &str = "EPalWazaID::";
+const GENDER: &str = "EPalGenderType::";
+const WORK_PFX: &str = "EPalWorkSuitability::";
+
+/// Work suitability: internal save key -> official UI name (13).
+const WORK: [(&str, &str); 13] = [
+    ("EmitFlame", "Kindling"),
+    ("Watering", "Watering"),
+    ("Seeding", "Planting"),
+    ("GenerateElectricity", "Generating Electricity"),
+    ("Handcraft", "Handiwork"),
+    ("Collection", "Gathering"),
+    ("Deforest", "Lumbering"),
+    ("Mining", "Mining"),
+    ("OilExtraction", "Oil Extraction"),
+    ("ProductMedicine", "Medicine Production"),
+    ("Cool", "Cooling"),
+    ("Transport", "Transporting"),
+    ("MonsterFarm", "Farming"),
+];
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Souls {
+    pub hp: u8,
+    pub attack: u8,
+    pub defense: u8,
+    pub craft_speed: u8,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Ivs {
+    pub hp: u8,
+    pub shot: u8,
+    pub defense: u8,
+}
+
+/// One pal's editable fields, keyed by box `slot`. Raw save values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PalDto {
+    pub slot: usize,
+    pub character_id: String,
+    pub nickname: Option<String>,
+    pub gender: String,
+    pub level: u8,
+    pub exp: i64,
+    pub condensation: u8,
+    pub souls: Souls,
+    pub ivs: Ivs,
+    /// Official work name -> AddRank bonus (raw). UI adds the species base for the total.
+    pub work: BTreeMap<String, i64>,
+    pub passives: Vec<String>,
+    pub equipped_moves: Vec<String>,
+    pub learned_moves: Vec<String>,
+    pub is_lucky: bool,
+    pub is_alpha: bool,
+    pub hp: i64,
+    pub sanity: f32,
+    pub food: f32,
+    pub friendship: i32,
+}
+
+fn strip(prefix: &str, s: &str) -> String {
+    s.strip_prefix(prefix).unwrap_or(s).to_string()
+}
+
+/// Read all editable fields of a pal from its `SaveParameter` properties.
+pub fn read_pal(sp: &Properties, slot: usize) -> PalDto {
+    let character_id = ue::prop(sp, "CharacterID").and_then(ue::as_str).unwrap_or("").to_string();
+    let is_lucky = ue::prop(sp, "IsRarePal").and_then(ue::as_bool).unwrap_or(false);
+    let is_alpha = character_id.to_uppercase().starts_with("BOSS_") && !is_lucky;
+    let gender = ue::prop(sp, "Gender")
+        .and_then(ue::as_str)
+        .map(|g| strip(GENDER, g))
+        .unwrap_or_else(|| "Unknown".to_string());
+    let byte = |k: &str| ue::prop(sp, k).and_then(ue::as_byte);
+
+    let mut work = BTreeMap::new();
+    if let Some(list) = ue::prop(sp, "GotWorkSuitabilityAddRankList").and_then(ue::array_structs) {
+        for entry in list {
+            let StructValue::Struct(p) = entry else { continue };
+            let Some(name) = ue::prop(p, "WorkSuitability").and_then(ue::as_str) else { continue };
+            let internal = strip(WORK_PFX, name);
+            let rank = ue::prop(p, "Rank").and_then(ue::as_i32).unwrap_or(0) as i64;
+            if let Some((_, official)) = WORK.iter().find(|(i, _)| *i == internal) {
+                work.insert(official.to_string(), rank);
+            }
+        }
+    }
+
+    let moves = |k: &str| {
+        ue::prop(sp, k)
+            .and_then(ue::enum_values)
+            .map(|v| v.iter().map(|s| strip(WAZA, s)).collect::<Vec<_>>())
+            .unwrap_or_default()
+    };
+
+    PalDto {
+        slot,
+        nickname: ue::prop(sp, "NickName").and_then(ue::as_str).map(str::to_string),
+        gender,
+        level: byte("Level").unwrap_or(1),
+        exp: ue::prop(sp, "Exp").and_then(ue::as_i64).unwrap_or(0),
+        condensation: byte("Rank").unwrap_or(0),
+        souls: Souls {
+            hp: byte("Rank_HP").unwrap_or(0),
+            attack: byte("Rank_Attack").unwrap_or(0),
+            defense: byte("Rank_Defence").unwrap_or(0),
+            craft_speed: byte("Rank_CraftSpeed").unwrap_or(0),
+        },
+        ivs: Ivs {
+            hp: byte("Talent_HP").unwrap_or(0),
+            shot: byte("Talent_Shot").unwrap_or(0),
+            defense: byte("Talent_Defense").unwrap_or(0),
+        },
+        work,
+        passives: ue::prop(sp, "PassiveSkillList").and_then(ue::name_values).cloned().unwrap_or_default(),
+        equipped_moves: moves("EquipWaza"),
+        learned_moves: moves("MasteredWaza"),
+        is_lucky,
+        is_alpha,
+        hp: ue::prop(sp, "Hp").and_then(ue::fixed_point64).unwrap_or(0),
+        sanity: ue::prop(sp, "SanityValue").and_then(ue::as_f32).unwrap_or(100.0),
+        food: ue::prop(sp, "FullStomach").and_then(ue::as_f32).unwrap_or(150.0),
+        friendship: ue::prop(sp, "FriendshipPoint").and_then(ue::as_i32).unwrap_or(0),
+        character_id,
+    }
+}
+
+// ---- edit ports (setters over a mutable SaveParameter) ----
+
+pub fn set_level(sp: &mut Properties, level: u8) {
+    // Level is written only when > 1; absent = level 1 (matches the save format).
+    if level > 1 {
+        ue::set_prop(sp, "Level", ue::byte_prop(level));
+    } else {
+        ue::remove_prop(sp, "Level");
+    }
+}
+pub fn set_nickname(sp: &mut Properties, name: &str) {
+    ue::set_prop(sp, "NickName", ue::str_prop(name));
+    if ue::prop(sp, "FilteredNickName").is_some() {
+        ue::set_prop(sp, "FilteredNickName", ue::str_prop(name));
+    }
+}
+pub fn set_gender(sp: &mut Properties, gender: &str) {
+    ue::set_prop(sp, "Gender", ue::enum_prop(&format!("{GENDER}{gender}")));
+}
+pub fn set_iv(sp: &mut Properties, stat: &str, value: u8) {
+    let key = match stat {
+        "hp" => "Talent_HP",
+        "shot" => "Talent_Shot",
+        "defense" => "Talent_Defense",
+        _ => return,
+    };
+    ue::set_prop(sp, key, ue::byte_prop(value));
+}
+pub fn set_soul(sp: &mut Properties, stat: &str, rank: u8) {
+    let key = match stat {
+        "hp" => "Rank_HP",
+        "attack" => "Rank_Attack",
+        "defense" => "Rank_Defence",
+        "craftSpeed" => "Rank_CraftSpeed",
+        _ => return,
+    };
+    if rank > 0 {
+        ue::set_prop(sp, key, ue::byte_prop(rank));
+    } else {
+        ue::remove_prop(sp, key);
+    }
+}
+pub fn set_condensation(sp: &mut Properties, rank: u8) {
+    if rank > 0 {
+        ue::set_prop(sp, "Rank", ue::byte_prop(rank));
+    } else {
+        ue::remove_prop(sp, "Rank");
+    }
+}
+pub fn set_lucky(sp: &mut Properties, lucky: bool) {
+    if lucky {
+        ue::set_prop(sp, "IsRarePal", ue::bool_prop(true));
+    } else {
+        ue::remove_prop(sp, "IsRarePal");
+    }
+}
+pub fn set_passives(sp: &mut Properties, codes: Vec<String>) {
+    ue::set_prop(sp, "PassiveSkillList", ue::name_array_prop(codes));
+}
+pub fn set_equipped_moves(sp: &mut Properties, codes: Vec<String>) {
+    let full = codes
+        .into_iter()
+        .map(|c| if c.starts_with(WAZA) { c } else { format!("{WAZA}{c}") })
+        .collect();
+    ue::set_prop(sp, "EquipWaza", ue::enum_array_prop(full));
+}
