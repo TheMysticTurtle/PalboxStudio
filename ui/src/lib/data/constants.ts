@@ -32,28 +32,24 @@ export const ELEMENT_COLOR: Record<ElementName, string> = {
   Dragon: "var(--el-dragon)",
 };
 
-// The 12 Work Suitabilities in canonical order, official UI names.
+// The 13 Work Suitabilities in canonical order (official UI name + icon basename in
+// /icons/work). NOTE: 13, not 12 — the data + icons include Oil Extraction. See
+// docs/DATA-AND-ASSETS.md for the internal-codename mapping.
 export const WORK_SUITS = [
-  "Kindling",
-  "Watering",
-  "Planting",
-  "Generating Electricity",
-  "Handiwork",
-  "Gathering",
-  "Lumbering",
-  "Mining",
-  "Medicine Production",
-  "Cooling",
-  "Transporting",
-  "Farming",
+  { name: "Kindling", icon: "kindling" },
+  { name: "Watering", icon: "watering" },
+  { name: "Planting", icon: "planting" },
+  { name: "Generating Electricity", icon: "generating" },
+  { name: "Handiwork", icon: "handiwork" },
+  { name: "Gathering", icon: "gathering" },
+  { name: "Lumbering", icon: "deforesting" },
+  { name: "Mining", icon: "mining" },
+  { name: "Oil Extraction", icon: "extracting" },
+  { name: "Medicine Production", icon: "production" },
+  { name: "Cooling", icon: "cooling" },
+  { name: "Transporting", icon: "transporting" },
+  { name: "Farming", icon: "farming" },
 ] as const;
-
-/** Short 2-letter placeholder chip for a work suit until real icons are wired. */
-export function workSuitCode(name: string): string {
-  const words = name.split(" ");
-  if (words.length > 1) return (words[0][0] + words[1][0]).toUpperCase();
-  return name.slice(0, 2).toUpperCase();
-}
 
 /** Rating (-3..5) -> chip color token. */
 export function ratingColor(rating: number): string {

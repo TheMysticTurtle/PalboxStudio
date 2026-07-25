@@ -32,6 +32,8 @@ export interface Passive {
 
 export interface WorkSuit {
   name: string;
+  /** Icon basename in /icons/work — active = `<icon>.png`, level 0 = `no_<icon>.png`. */
+  icon: string;
   /** 0..10 in 1.0. */
   level: number;
 }

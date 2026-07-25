@@ -50,6 +50,12 @@
     const id = e.dataTransfer?.getData("text/plain");
     if (id) unequip(id);
   }
+
+  // Real pal portrait from PalEdit's icons; fall back to the #ERROR placeholder.
+  const iconSrc = $derived(`/pals/T_${pal.species}_icon_normal.png`);
+  function onIconError(e: Event) {
+    (e.currentTarget as HTMLImageElement).src = "/pals/%23ERROR.png";
+  }
 </script>
 
 <div class="card">
@@ -115,8 +121,7 @@
         <span class="badge alpha" class:hide={!pal.alpha}>ALPHA</span>
         <span class="badge lucky" class:hide={!pal.lucky}>✦ LUCKY</span>
         <div class="art">
-          <svg width="70" height="70" viewBox="0 0 24 24" fill="none" style="opacity:.55"><circle cx="12" cy="9" r="4.4" stroke="#D6BEF2" stroke-width="1.3"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke="#D6BEF2" stroke-width="1.3"/></svg>
-          <span class="artcap">pal art / icon</span>
+          <img class="palimg" src={iconSrc} alt={pal.name} onerror={onIconError} />
         </div>
         <div class="poverlay">
           <div>
@@ -358,8 +363,8 @@
   .badge.alpha { left: 12px; background: rgba(224, 90, 90, 0.85); color: #fff; box-shadow: 0 0 12px rgba(224, 90, 90, 0.5); }
   .badge.lucky { right: 12px; color: #f5c97a; background: rgba(245, 201, 122, 0.18); border: 1px solid rgba(245, 201, 122, 0.5); }
   .badge.hide { display: none; }
-  .art { position: absolute; inset: 0 0 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
-  .artcap { font-family: ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.04em; color: rgba(214, 190, 242, 0.6); }
+  .art { position: absolute; inset: 0 0 52px; display: grid; place-items: center; }
+  .palimg { max-width: 78%; max-height: 92%; object-fit: contain; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.5)); }
   .poverlay { position: absolute; left: 0; right: 0; bottom: 0; padding: 11px 14px; display: flex; align-items: flex-end; justify-content: space-between; background: linear-gradient(0deg, rgba(8, 10, 14, 0.86), transparent); }
   .olabel { font-family: var(--font-head); font-weight: 600; font-size: 10.5px; letter-spacing: 0.18em; color: #b99ad6; margin-bottom: 3px; }
   .soulcol { text-align: right; }
