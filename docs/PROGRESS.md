@@ -63,6 +63,20 @@ Living log of where the build is and what's next. Read this first when resuming.
    (reuse for the box filter later). Owner suggested clicking the species name to trigger it.
 3. **Left drawer opens by default** — done: `stores/ui.svelte.ts` `leftOpen: true` (pops out on
    load).
+4. **Real-data placeholder + real pal icons.** Replace the made-up `samplePal` with a REAL pal
+   built from PSP data (`PalEdit/psp-reference/data/json/pals.json` — real species, scaling
+   stats, elements, work_suitability, skill_set; l10n display names), shaped to our `Pal` model
+   so it's "ready to wire" and shows real numbers. Use the actual **pal icon asset** per species
+   (PalEdit convention `T_<Code>_icon_normal.png` from the paldb CDN — bundle locally for
+   offline; see PalEdit `update_data.py --icons` / `GetImage`). **First check if icons already
+   exist under `psp-reference`.** Map via the PSP DTO field list above.
+5. **Central card visual goals** (iterate later — owner wants it to "look sweet"; not urgent):
+   - Portrait shows the pal image with a **faint glow tinted to its PRIMARY element**. For a
+     DUAL-element pal, split it: **top half of the glow = element 1 color, bottom half =
+     element 2 color**.
+   - **Lucky** → a larger **blue** glow emanating across the rest of the card background.
+   - **Alpha** → same idea but **red**.
+   - Expect many more tweaks to the center card over time.
 
 ## PSP pal field map — our "does it map cleanly?" checklist
 Source of truth for stats = PSP's `PalDto` (`PalEdit/psp-reference/psp-core/src/dto/pal.rs`).
