@@ -94,6 +94,7 @@ pub struct MoveRef {
     pub element: String,
     pub power: i64,
     pub category: String,
+    pub skill_fruit: bool,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -178,6 +179,7 @@ pub struct ReferenceBundle {
     pub moves: BTreeMap<String, MoveRef>,
     pub species: Vec<SpeciesRef>,
     pub elements: BTreeMap<String, ElementRef>,
+    pub friendship_ranks: BTreeMap<i64, i64>,
     pub schema: Vec<SchemaColumnRef>,
 }
 
@@ -333,7 +335,14 @@ impl ReferenceDatabase {
         let mut statement = self.connection.prepare(
             r#"
             SELECT code, name, COALESCE(element_code, ''), power,
-                   COALESCE(category, '')
+                   COALESCE(category, ''),
+                   EXISTS (
+                       SELECT 1
+                       FROM item
+                       WHERE item.code = 'SkillCard_' || move.code
+                         AND item.type_b = 'ConsumeWazaMachine'
+                         AND item.disabled = 0
+                   )
             FROM move
             ORDER BY code
             "#,
@@ -346,6 +355,7 @@ impl ReferenceDatabase {
                     element: row.get(2)?,
                     power: row.get(3)?,
                     category: row.get(4)?,
+                    skill_fruit: row.get::<_, i64>(5)? != 0,
                 },
             ))
         })? {
@@ -362,6 +372,17 @@ impl ReferenceDatabase {
         })? {
             let (code, value) = row?;
             elements.insert(code, value);
+        }
+
+        let mut friendship_ranks = BTreeMap::new();
+        let mut statement = self.connection.prepare(
+            "SELECT rank, required_point FROM friendship_rank ORDER BY rank",
+        )?;
+        for row in statement.query_map([], |row| {
+            Ok((row.get::<_, i64>(0)?, row.get::<_, i64>(1)?))
+        })? {
+            let (rank, required_point) = row?;
+            friendship_ranks.insert(rank, required_point);
         }
 
         let mut species_elements: HashMap<String, Vec<String>> = HashMap::new();
@@ -590,6 +611,7 @@ impl ReferenceDatabase {
             moves,
             species,
             elements,
+            friendship_ranks,
             schema,
         })
     }
@@ -802,6 +824,16 @@ mod tests {
         assert_eq!(bundle.moves.len(), 351);
         assert_eq!(bundle.passives.len(), 420);
         assert!(bundle.passives.values().any(|passive| !passive.effects.is_empty()));
+        assert!(bundle.passives.values().all(|passive| {
+            !passive.description.trim().is_empty()
+                && !passive.description.contains('<')
+                && !passive.description.contains('{')
+        }));
+        assert_eq!(
+            bundle.moves.values().filter(|value| value.skill_fruit).count(),
+            93
+        );
+        assert_eq!(bundle.friendship_ranks.get(&10), Some(&200_000));
         assert!(bundle.species.iter().any(|species| !species.passives.is_empty()));
         assert_eq!(
             bundle

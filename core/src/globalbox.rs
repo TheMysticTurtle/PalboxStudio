@@ -12,10 +12,23 @@ use crate::ue::{self, Save, StructValue};
 #[serde(rename_all = "camelCase")]
 pub struct PalSummary {
     pub slot: usize,
+    pub instance_id: String,
     pub character_id: String,
     pub level: u8,
     pub is_lucky: bool,
     pub is_alpha: bool,
+    pub passives: Vec<String>,
+    pub equipped_moves: Vec<String>,
+    pub learned_moves: Vec<String>,
+}
+
+fn slot_instance_id(slot_props: &crate::ue::Properties) -> String {
+    ue::prop(slot_props, "InstanceId")
+        .and_then(ue::struct_props)
+        .and_then(|value| ue::prop(value, "InstanceId"))
+        .and_then(ue::as_guid)
+        .map(|value| format!("{value:?}"))
+        .unwrap_or_default()
 }
 
 /// Total fixed slot count of the box (occupied or not). `None` if the save has no
@@ -45,11 +58,18 @@ pub fn list_pals(save: &Save) -> Vec<PalSummary> {
             None | Some("None") => continue, // empty slot
             Some(id) => id.to_string(),
         };
-        // Level is written only when > 1; absent means level 1.
-        let level = ue::prop(param, "Level").and_then(ue::as_byte).unwrap_or(1);
-        let is_lucky = ue::prop(param, "IsRarePal").and_then(ue::as_bool).unwrap_or(false);
-        let is_alpha = character_id.to_uppercase().starts_with("BOSS_") && !is_lucky;
-        pals.push(PalSummary { slot, character_id, level, is_lucky, is_alpha });
+        let dto = crate::pal::read_pal(param, slot);
+        pals.push(PalSummary {
+            slot,
+            instance_id: slot_instance_id(slot_props),
+            character_id,
+            level: dto.level,
+            is_lucky: dto.is_lucky,
+            is_alpha: dto.is_alpha,
+            passives: dto.passives,
+            equipped_moves: dto.equipped_moves,
+            learned_moves: dto.learned_moves,
+        });
     }
     pals
 }
@@ -61,7 +81,9 @@ pub fn read_pal_at(save: &Save, slot: usize) -> Option<crate::pal::PalDto> {
         return None;
     };
     let param = ue::prop(slot_props, "SaveParameter").and_then(ue::struct_props)?;
-    Some(crate::pal::read_pal(param, slot))
+    let mut dto = crate::pal::read_pal(param, slot);
+    dto.instance_id = slot_instance_id(slot_props);
+    Some(dto)
 }
 
 /// Mutable access to a pal's `SaveParameter` by slot, for edits.

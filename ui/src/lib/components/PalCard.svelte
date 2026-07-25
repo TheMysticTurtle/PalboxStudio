@@ -3,7 +3,7 @@
   import { LIMITS, ELEMENT_COLOR } from "$lib/data/constants";
   import { resolveMove, resolveSpecies } from "$lib/data/refdata.svelte";
   import { palIcon, onPalIconError } from "$lib/data/icons";
-  import { reSpecies } from "$lib/data/mapper";
+  import { maxHpForPal, reSpecies } from "$lib/data/mapper";
   import SectionHeader from "./SectionHeader.svelte";
   import ElementPill from "./ElementPill.svelte";
   import PassiveChip from "./PassiveChip.svelte";
@@ -11,18 +11,20 @@
   import SpeciesSelector from "./SpeciesSelector.svelte";
   import PassiveSelector from "./PassiveSelector.svelte";
   import MoveSelector from "./MoveSelector.svelte";
+  import ElementIcon from "./ElementIcon.svelte";
 
-  let { pal }: { pal: Pal } = $props();
+  let { pal, empty = false }: { pal: Pal; empty?: boolean } = $props();
 
   // Species display name (tolerant of an alpha BOSS_ prefix) + the selector modal.
   let speciesOpen = $state(false);
   let passiveOpen = $state(false);
   let passiveEditing = $state<number | null>(null);
   let moveOpen = $state(false);
-  const speciesName = $derived(resolveSpecies(pal.species)?.name ?? pal.species);
+  const speciesName = $derived(empty ? "" : (resolveSpecies(pal.species)?.name ?? pal.species));
 
   const genderSymbol = $derived(pal.gender === "Male" ? "♂" : pal.gender === "Female" ? "♀" : "–");
-  const hpPct = $derived(Math.min(100, (pal.stats.hp / pal.stats.hpMax) * 100));
+  const hpMax = $derived(empty ? 0 : maxHpForPal(pal));
+  const hpPct = $derived(hpMax > 0 ? Math.min(100, (pal.stats.hp / hpMax) * 100) : 0);
   const soulTotal = $derived(
     pal.soulRanks.hp + pal.soulRanks.attack + pal.soulRanks.defense + pal.soulRanks.craftSpeed,
   );
@@ -30,6 +32,30 @@
   function setLevel(v: number) {
     const n = Math.round(v);
     pal.level = Math.max(LIMITS.levelMin, Math.min(LIMITS.levelMax, Number.isFinite(n) ? n : LIMITS.levelMin));
+  }
+  function finiteOr(value: number, fallback: number) {
+    return Number.isFinite(value) ? value : fallback;
+  }
+  function setHp(value: number) {
+    pal.stats.hp = Math.round(Math.max(0, Math.min(hpMax, finiteOr(value, pal.stats.hp))));
+  }
+  function setSanity(value: number) {
+    pal.stats.san = Math.round(Math.max(0, Math.min(100, finiteOr(value, pal.stats.san))));
+  }
+  function setFoodPercent(value: number) {
+    const percent = Math.max(0, Math.min(100, finiteOr(value, pal.stats.foodPct * 100)));
+    pal.stats.foodPct = percent / 100;
+  }
+  function setTrustRank(value: number) {
+    pal.trust.rank = Math.round(Math.max(0, Math.min(10, finiteOr(value, pal.trust.rank))));
+    if (pal.trust.rank === 10) pal.trust.progress = 1;
+  }
+  function setTrustProgress(value: number) {
+    if (pal.trust.rank >= 10) {
+      pal.trust.progress = 1;
+      return;
+    }
+    pal.trust.progress = Math.max(0, Math.min(100, finiteOr(value, pal.trust.progress * 100))) / 100;
   }
 
   function toggleAlpha() {
@@ -56,15 +82,31 @@
     if (passiveEditing != null) pal.passives.splice(passiveEditing, 1);
   }
 
-  // Moves: click or drag between the equipped zone and the bench.
+  // Moves: click or drag between/reorder the equipped and inactive zones.
+  type MoveList = "active" | "bench";
+  interface MoveDrag {
+    code: string;
+    list: MoveList;
+    index: number;
+  }
+
   let emptySlots = $derived(Math.max(0, LIMITS.equippedMovesMax - pal.activeSkills.length));
+  let dragTarget = $state<{ list: MoveList; index: number } | null>(null);
+
+  function isNaturalMove(code: string) {
+    return resolveSpecies(pal.species)?.moves.includes(code) ?? false;
+  }
+  function rememberLearned(code: string) {
+    if (!isNaturalMove(code) && !pal.learnedMoves.includes(code)) pal.learnedMoves.push(code);
+  }
 
   function equip(code: string) {
     if (pal.activeSkills.includes(code)) return;
+    rememberLearned(code);
     const i = pal.benchMoves.indexOf(code);
     if (i >= 0) pal.benchMoves.splice(i, 1);
     if (pal.activeSkills.length >= LIMITS.equippedMovesMax) {
-      const dropped = pal.activeSkills.shift();
+      const dropped = pal.activeSkills.pop();
       if (dropped) pal.benchMoves.push(dropped); // swap the oldest out
     }
     pal.activeSkills.push(code);
@@ -73,26 +115,88 @@
     const i = pal.activeSkills.indexOf(code);
     if (i < 0) return;
     pal.activeSkills.splice(i, 1);
-    pal.benchMoves.push(code);
+    rememberLearned(code);
+    if (!pal.benchMoves.includes(code)) pal.benchMoves.push(code);
   }
-  function onDragStart(e: DragEvent, code: string) {
-    e.dataTransfer?.setData("text/plain", code);
-    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+  function addMove(code: string) {
+    rememberLearned(code);
+    equip(code);
   }
-  const allowDrop = (e: DragEvent) => e.preventDefault();
-  function dropEquip(e: DragEvent) {
+  function onDragStart(e: DragEvent, list: MoveList, index: number) {
+    const code = list === "active" ? pal.activeSkills[index] : pal.benchMoves[index];
+    if (!code || !e.dataTransfer) return;
+    const payload: MoveDrag = { code, list, index };
+    e.dataTransfer.setData("application/x-palbox-move", JSON.stringify(payload));
+    e.dataTransfer.setData("text/plain", code);
+    e.dataTransfer.effectAllowed = "move";
+  }
+  function allowDrop(e: DragEvent, list: MoveList, index: number) {
     e.preventDefault();
-    const c = e.dataTransfer?.getData("text/plain");
-    if (c) equip(c);
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+    dragTarget = { list, index };
   }
-  function dropBench(e: DragEvent) {
+  function readDrag(e: DragEvent): MoveDrag | null {
+    const raw = e.dataTransfer?.getData("application/x-palbox-move");
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as MoveDrag;
+    } catch {
+      return null;
+    }
+  }
+  function moveSkill(source: MoveDrag, targetList: MoveList, rawTargetIndex: number) {
+    const sourceItems = source.list === "active" ? pal.activeSkills : pal.benchMoves;
+    let sourceIndex = sourceItems[source.index] === source.code
+      ? source.index
+      : sourceItems.indexOf(source.code);
+    if (sourceIndex < 0) return;
+
+    let targetIndex = rawTargetIndex;
+    sourceItems.splice(sourceIndex, 1);
+    if (source.list === targetList && sourceIndex < targetIndex) targetIndex -= 1;
+
+    if (targetList === "active") {
+      rememberLearned(source.code);
+      targetIndex = Math.max(
+        0,
+        Math.min(
+          source.list === "bench" && pal.activeSkills.length >= LIMITS.equippedMovesMax
+            ? LIMITS.equippedMovesMax - 1
+            : pal.activeSkills.length,
+          targetIndex,
+        ),
+      );
+      pal.activeSkills.splice(targetIndex, 0, source.code);
+      if (pal.activeSkills.length > LIMITS.equippedMovesMax) {
+        const displaced = pal.activeSkills.pop();
+        if (displaced && displaced !== source.code && !pal.benchMoves.includes(displaced)) {
+          rememberLearned(displaced);
+          pal.benchMoves.push(displaced);
+        }
+      }
+    } else {
+      rememberLearned(source.code);
+      targetIndex = Math.max(0, Math.min(pal.benchMoves.length, targetIndex));
+      if (!pal.benchMoves.includes(source.code)) pal.benchMoves.splice(targetIndex, 0, source.code);
+    }
+  }
+  function dropMove(e: DragEvent, list: MoveList, index: number) {
     e.preventDefault();
-    const c = e.dataTransfer?.getData("text/plain");
-    if (c) unequip(c);
+    e.stopPropagation();
+    const source = readDrag(e);
+    if (source) moveSkill(source, list, index);
+    dragTarget = null;
+  }
+  function onMoveKey(e: KeyboardEvent, code: string, list: MoveList) {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    if (list === "active") unequip(code);
+    else equip(code);
   }
 
   // Resolve move codes -> display info from moves.json.
-  const elColor = (el: string) => ELEMENT_COLOR[el as ElementName] ?? "var(--el-neutral)";
+  const displayElement = (el: string): ElementName =>
+    el && el in ELEMENT_COLOR ? el as ElementName : "Neutral";
   const asMove = (code: string) => {
     const m = resolveMove(code);
     return { code, name: m?.name ?? code, element: m?.element ?? "", power: m?.power ?? 0 };
@@ -101,18 +205,15 @@
   let bench = $derived(pal.benchMoves.map(asMove));
 
   // Real pal portrait from PalEdit's icons; fall back to the #ERROR placeholder.
-  const iconSrc = $derived(palIcon(pal.species));
+  const iconSrc = $derived(empty ? "/logo.png" : palIcon(pal.species));
 </script>
 
-<div class="card">
+<div class="card" class:empty inert={empty} aria-disabled={empty}>
   <!-- Header -->
   <div class="head">
     <div class="idcol">
       <div class="nameline">
         <input class="name" bind:value={pal.name} spellcheck="false" aria-label="Pal name" />
-        <button class="pencil" aria-label="Rename">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="m14.5 5.5 4 4M4 20l1-4L16 5l3 3L8 19l-4 1Z" stroke="#9FD8E6" stroke-width="1.7" stroke-linejoin="round"/></svg>
-        </button>
         <span class="gender {pal.gender.toLowerCase()}">{genderSymbol}</span>
       </div>
       <div class="subline">
@@ -138,20 +239,7 @@
         <img src="/icons/variants/lucky.webp" alt="" />
         <span>Lucky</span>
       </button>
-      <button class="preset">◈ PRESETS</button>
-      <button class="fav" onclick={() => (pal.favorite = !pal.favorite)} aria-pressed={pal.favorite} aria-label="Favorite">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill={pal.favorite ? "#F5A623" : "none"}>
-          <path d="M12 2.6l2.9 5.9 6.5.95-4.7 4.6 1.1 6.45L12 21.5 6.1 20.5l1.1-6.45-4.7-4.6 6.5-.95L12 2.6Z" stroke={pal.favorite ? "#F5A623" : "#9AA6B2"} stroke-width="1.4" stroke-linejoin="round"/>
-        </svg>
-      </button>
     </div>
-  </div>
-
-  <!-- NEXT exp -->
-  <div class="exp">
-    <span class="cap">NEXT</span>
-    <div class="track"><div class="fill" style="width:{pal.expPct * 100}%"></div></div>
-    <span class="num">{pal.expToNext.toLocaleString()} EXP</span>
   </div>
 
   <!-- Body -->
@@ -161,7 +249,10 @@
       <div>
         <SectionHeader title="PARTNER SKILL" />
         <div class="partner" style="--c:{ELEMENT_COLOR[pal.partnerSkill.element ?? pal.elements[0] ?? 'Neutral']}">
-          <div class="pname"><span class="pdia"></span>{pal.partnerSkill.name} <span class="lv">Lv {pal.partnerSkill.level}</span></div>
+          <div class="pname">
+            <ElementIcon element={pal.partnerSkill.element ?? pal.elements[0] ?? "Neutral"} size={20} decorative={false} />
+            {pal.partnerSkill.name} <span class="lv">Lv {pal.partnerSkill.level}</span>
+          </div>
           <p class="pdesc">{pal.partnerSkill.description}</p>
         </div>
       </div>
@@ -213,35 +304,83 @@
         <SectionHeader title="ACTIVE SKILLS">
           {#snippet right()}tap or drag · {pal.activeSkills.length} / {LIMITS.equippedMovesMax}{/snippet}
         </SectionHeader>
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div class="moveslots" ondragover={allowDrop} ondrop={dropEquip}>
-          {#each equipped as m (m.code)}
-            <button type="button" class="move equipped" draggable="true" ondragstart={(e) => onDragStart(e, m.code)} onclick={() => unequip(m.code)} title="Click or drag to unequip">
+        <div
+          class="moveslots"
+          role="group"
+          aria-label="Equipped moves drop zone"
+          class:dropzone={dragTarget?.list === "active"}
+          ondragover={(event) => allowDrop(event, "active", pal.activeSkills.length)}
+          ondragleave={() => (dragTarget = null)}
+          ondrop={(event) => dropMove(event, "active", pal.activeSkills.length)}
+        >
+          {#each equipped as m, index (m.code)}
+            <div
+              class="move equipped"
+              class:drop-target={dragTarget?.list === "active" && dragTarget.index === index}
+              draggable="true"
+              role="button"
+              tabindex="0"
+              aria-label="{m.name}, equipped. Click or drag to move."
+              ondragstart={(event) => onDragStart(event, "active", index)}
+              ondragover={(event) => allowDrop(event, "active", index)}
+              ondrop={(event) => dropMove(event, "active", index)}
+              ondragend={() => (dragTarget = null)}
+              onclick={() => unequip(m.code)}
+              onkeydown={(event) => onMoveKey(event, m.code, "active")}
+              title="Click to unequip, or drag to reorder"
+            >
               <span class="mgrip">⠿</span>
-              <span class="mdia" style="--c:{elColor(m.element)}"></span>
+              <ElementIcon element={displayElement(m.element)} size={19} decorative={false} />
               <span class="mname">{m.name}</span>
               <span class="mpwrcap">PWR</span>
               <span class="mpwr">{m.power}</span>
-            </button>
+            </div>
           {/each}
           {#each Array(emptySlots) as _, i (i)}
-            <div class="emptyslot">empty slot — drag a move here</div>
+            <div
+              class="emptyslot"
+              role="group"
+              aria-label="Empty equipped move slot"
+              ondragover={(event) => allowDrop(event, "active", pal.activeSkills.length)}
+              ondrop={(event) => dropMove(event, "active", pal.activeSkills.length)}
+            >empty slot — drag a move here</div>
           {/each}
         </div>
         <div class="bench-head">
-          <div class="bench-label">AVAILABLE MOVES</div>
+          <div class="bench-label">INACTIVE / AVAILABLE MOVES</div>
           <button class="browse-moves" onclick={() => (moveOpen = true)}>FILTER & ADD</button>
         </div>
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div class="bench" ondragover={allowDrop} ondrop={dropBench}>
-          {#each bench as m (m.code)}
-            <button type="button" class="move bench-move" draggable="true" ondragstart={(e) => onDragStart(e, m.code)} onclick={() => equip(m.code)} title="Click or drag to equip">
+        <div
+          class="bench"
+          role="group"
+          aria-label="Inactive moves drop zone"
+          class:dropzone={dragTarget?.list === "bench"}
+          ondragover={(event) => allowDrop(event, "bench", pal.benchMoves.length)}
+          ondragleave={() => (dragTarget = null)}
+          ondrop={(event) => dropMove(event, "bench", pal.benchMoves.length)}
+        >
+          {#each bench as m, index (m.code)}
+            <div
+              class="move bench-move"
+              class:drop-target={dragTarget?.list === "bench" && dragTarget.index === index}
+              draggable="true"
+              role="button"
+              tabindex="0"
+              aria-label="{m.name}, inactive. Click or drag to equip."
+              ondragstart={(event) => onDragStart(event, "bench", index)}
+              ondragover={(event) => allowDrop(event, "bench", index)}
+              ondrop={(event) => dropMove(event, "bench", index)}
+              ondragend={() => (dragTarget = null)}
+              onclick={() => equip(m.code)}
+              onkeydown={(event) => onMoveKey(event, m.code, "bench")}
+              title="Click to equip, or drag to equip/reorder"
+            >
               <span class="mgrip">⠿</span>
-              <span class="mdia small" style="--c:{elColor(m.element)}"></span>
+              <ElementIcon element={displayElement(m.element)} size={17} decorative={false} />
               <span class="mname">{m.name}</span>
               <span class="mpwrcap">PWR</span>
               <span class="mpwr">{m.power}</span>
-            </button>
+            </div>
           {/each}
         </div>
       </div>
@@ -253,24 +392,130 @@
         <SectionHeader title="STATS" />
         <div class="stats">
           <div class="barstat">
-            <div class="brow"><span class="blabel">HP</span><span class="bval hp">{pal.stats.hp.toLocaleString()}<span class="bmax">/{pal.stats.hpMax.toLocaleString()}</span></span></div>
-            <div class="track"><div class="fill hp" style="width:{hpPct}%"></div></div>
+            <div class="brow">
+              <span class="blabel">HP</span>
+              <span class="bval hp">
+                <input
+                  class="stat-number hp"
+                  type="number"
+                  min="0"
+                  max={hpMax}
+                  value={pal.stats.hp}
+                  oninput={(event) => setHp(event.currentTarget.valueAsNumber)}
+                  aria-label="Current HP"
+                />
+                <span class="bmax">/{hpMax.toLocaleString()}</span>
+              </span>
+            </div>
+            <div class="track">
+              <div class="fill hp" style="width:{hpPct}%"></div>
+              <input
+                class="track-control"
+                type="range"
+                min="0"
+                max={hpMax}
+                value={pal.stats.hp}
+                oninput={(event) => setHp(event.currentTarget.valueAsNumber)}
+                aria-label="Current HP"
+              />
+            </div>
           </div>
-          <div class="valrow"><span>Attack</span><span class="v">{pal.stats.attack}{#if pal.boosted.attack}<span class="up">▲</span>{/if}</span></div>
-          <div class="valrow"><span>Defense</span><span class="v">{pal.stats.defense}</span></div>
-          <div class="valrow"><span>Work Speed</span><span class="v">{pal.stats.workSpeed}{#if pal.boosted.workSpeed}<span class="up">▲</span>{/if}</span></div>
           <div class="barstat">
-            <div class="brow"><span class="blabel">SAN</span><span class="bval">{pal.stats.san}</span></div>
-            <div class="track thin"><div class="fill san" style="width:{pal.stats.san}%"></div></div>
+            <div class="brow">
+              <span class="blabel">SAN</span>
+              <input
+                class="stat-number"
+                type="number"
+                min="0"
+                max="100"
+                value={pal.stats.san}
+                oninput={(event) => setSanity(event.currentTarget.valueAsNumber)}
+                aria-label="Sanity"
+              />
+            </div>
+            <div class="track thin">
+              <div class="fill san" style="width:{pal.stats.san}%"></div>
+              <input
+                class="track-control"
+                type="range"
+                min="0"
+                max="100"
+                value={pal.stats.san}
+                oninput={(event) => setSanity(event.currentTarget.valueAsNumber)}
+                aria-label="Sanity"
+              />
+            </div>
           </div>
           <div class="barstat">
-            <div class="brow"><span class="blabel">Food</span><span class="bval food">{Math.round(pal.stats.foodPct * 100)}%</span></div>
-            <div class="track thin"><div class="fill food" style="width:{pal.stats.foodPct * 100}%"></div></div>
+            <div class="brow">
+              <span class="blabel">Food</span>
+              <span class="bval food">
+                <input
+                  class="stat-number food"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={Math.round(pal.stats.foodPct * 100)}
+                  oninput={(event) => setFoodPercent(event.currentTarget.valueAsNumber)}
+                  aria-label="Food percent"
+                />%
+              </span>
+            </div>
+            <div class="track thin">
+              <div class="fill food" style="width:{pal.stats.foodPct * 100}%"></div>
+              <input
+                class="track-control"
+                type="range"
+                min="0"
+                max="100"
+                value={Math.round(pal.stats.foodPct * 100)}
+                oninput={(event) => setFoodPercent(event.currentTarget.valueAsNumber)}
+                aria-label="Food percent"
+              />
+            </div>
           </div>
-          <div class="trust">
-            <span class="tlabel">TRUST</span>
-            <div class="track thick"><div class="fill trust" style="width:{pal.trust.pct * 100}%"></div></div>
-            <span class="trank">Rank {pal.trust.rank}</span>
+          <div class="barstat trust-block">
+            <div class="brow">
+              <span class="tlabel">TRUST</span>
+              <label class="trust-progress">
+                <input
+                  class="stat-number trust-progress"
+                  type="number"
+                  min="0"
+                  max="100"
+                  disabled={pal.trust.rank >= 10}
+                  value={Math.round(pal.trust.progress * 100)}
+                  oninput={(event) => setTrustProgress(event.currentTarget.valueAsNumber)}
+                  aria-label="Trust progress percent"
+                />%
+              </label>
+            </div>
+            <div class="track thin">
+              <div class="fill trust" style="width:{pal.trust.progress * 100}%"></div>
+              <input
+                class="track-control"
+                type="range"
+                min="0"
+                max="100"
+                disabled={pal.trust.rank >= 10}
+                value={Math.round(pal.trust.progress * 100)}
+                oninput={(event) => setTrustProgress(event.currentTarget.valueAsNumber)}
+                aria-label="Trust progress"
+              />
+            </div>
+            <label class="trust-rank">
+              <span>Rank</span>
+              <input
+                class="stat-number"
+                type="number"
+                min="0"
+                max="10"
+                value={pal.trust.rank}
+                oninput={(event) => setTrustRank(event.currentTarget.valueAsNumber)}
+                aria-label="Trust rank"
+              />
+              <span class="rank-max">/ 10</span>
+            </label>
           </div>
         </div>
       </div>
@@ -294,7 +539,7 @@
   onpick={choosePassive}
   onremove={removePassive}
 />
-<MoveSelector bind:open={moveOpen} species={pal.species} equipped={pal.activeSkills} onpick={equip} />
+<MoveSelector bind:open={moveOpen} species={pal.species} equipped={pal.activeSkills} onpick={addMove} />
 
 <style>
   .card {
@@ -307,6 +552,11 @@
     overflow: hidden;
     color: var(--text-1);
   }
+  .card.empty .palimg {
+    width: 96px; height: 96px; opacity: .72;
+    filter: drop-shadow(0 0 20px rgba(176, 96, 224, .4));
+  }
+  .card.empty .species-port img { width: 24px; height: 24px; opacity: .7; }
 
   /* Header */
   .head {
@@ -410,7 +660,6 @@
     background: rgba(255, 255, 255, 0.04);
     cursor: pointer;
   }
-  .fav[aria-pressed="true"] { box-shadow: 0 0 16px rgba(245, 166, 35, 0.35); border-color: rgba(245, 166, 35, 0.5); }
 
   /* Exp */
   .exp {
@@ -420,10 +669,6 @@
     padding: 11px 26px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
-  .exp .cap { font-family: var(--font-head); font-weight: 600; font-size: 12.5px; letter-spacing: 0.18em; color: #9aa6b2; }
-  .exp .track { flex: 1; height: 8px; border-radius: 5px; background: rgba(255, 255, 255, 0.06); overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.06); }
-  .exp .fill { height: 100%; background: linear-gradient(90deg, #3fc7e0, #7fe0f2); box-shadow: 0 0 10px rgba(63, 199, 224, 0.7); }
-  .exp .num { font-size: 12.5px; color: #8fa0ac; font-variant-numeric: tabular-nums; }
 
   /* Body grid */
   .body {
@@ -440,7 +685,6 @@
   /* Partner + passives */
   .partner { padding: 15px; border-radius: 11px; background: color-mix(in srgb, var(--c) 6%, transparent); border: 1px solid color-mix(in srgb, var(--c) 22%, transparent); }
   .pname { display: flex; align-items: center; gap: 8px; font-family: var(--font-head); font-weight: 700; font-size: 18px; color: #f3e4da; }
-  .pdia { width: 10px; height: 10px; transform: rotate(45deg); background: var(--c); box-shadow: 0 0 8px color-mix(in srgb, var(--c) 70%, transparent); }
   .pname .lv { color: var(--text-muted); font-weight: 400; font-size: 13px; font-family: var(--font-body); }
   .pdesc { margin: 8px 0 0; font-size: 13px; line-height: 1.55; color: #b4a79c; }
   .passblock { flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -491,7 +735,10 @@
   .moveslots { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 12px; background: rgba(63, 199, 224, 0.06); border: 1px solid rgba(63, 199, 224, 0.22); }
   .move { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; padding: 10px 12px; border-radius: 9px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: inherit; font: inherit; cursor: grab; }
   .move:active { cursor: grabbing; }
+  .move:focus-visible { outline: 2px solid rgba(63, 199, 224, 0.72); outline-offset: 2px; }
   .move:hover { border-color: rgba(63, 199, 224, 0.5); }
+  .move.drop-target { border-top-color: #8fe3f2; box-shadow: 0 -3px 0 rgba(63, 199, 224, 0.78); }
+  .moveslots.dropzone, .bench.dropzone { box-shadow: inset 0 0 0 1px rgba(63, 199, 224, 0.28); }
   .move.equipped { background: rgba(63, 199, 224, 0.05); border-color: rgba(63, 199, 224, 0.18); }
   .emptyslot { display: flex; align-items: center; justify-content: center; padding: 11px; border-radius: 9px; border: 1px dashed rgba(255, 255, 255, 0.14); color: #6e7a86; font-size: 13px; }
   .bench-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 2px 7px; }
@@ -505,8 +752,6 @@
   .bench { display: flex; flex-direction: column; gap: 7px; }
   .bench-move { padding: 9px 12px; }
   .mgrip { color: #7c8894; font-size: 15px; letter-spacing: -2px; }
-  .mdia { width: 11px; height: 11px; flex: none; transform: rotate(45deg); background: var(--c); box-shadow: 0 0 6px var(--c); }
-  .mdia.small { width: 10px; height: 10px; box-shadow: none; }
   .mname { flex: 1; font-family: var(--font-cond); font-weight: 600; font-size: 15px; color: #ede7df; }
   .bench-move .mname { font-size: 14px; color: #c6cfd7; }
   .mpwrcap { font-size: 11px; color: #8fa0ac; }
@@ -521,21 +766,43 @@
   .bval.hp { color: #cfebd2; font-size: 15px; }
   .bval.food { color: #f0c39a; }
   .bmax { color: var(--text-muted); }
-  .track { height: 8px; border-radius: 5px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
+  .track { position: relative; height: 8px; border-radius: 5px; background: rgba(255, 255, 255, 0.06); }
   .track.thin { height: 7px; }
   .track.thick { height: 9px; flex: 1; }
-  .fill { height: 100%; }
+  .fill { height: 100%; border-radius: inherit; overflow: hidden; pointer-events: none; }
+  .track-control {
+    position: absolute; z-index: 1; inset: -7px 0; width: 100%; height: calc(100% + 14px);
+    margin: 0; cursor: ew-resize; opacity: 0;
+  }
   .fill.hp { background: linear-gradient(90deg, #5fd16a, #84e08d); box-shadow: 0 0 8px rgba(95, 209, 106, 0.5); }
   .fill.san { background: linear-gradient(90deg, #3fc7e0, #7fe0f2); }
   .fill.food { background: linear-gradient(90deg, #e8963a, #f2b06a); }
   .fill.trust { background: linear-gradient(90deg, #b060e0, #d89af0); box-shadow: 0 0 10px rgba(176, 96, 224, 0.6); }
   .valrow { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
-  .valrow > span:first-child { color: #c6cfd7; }
-  .valrow .v { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-head); font-weight: 700; font-size: 18px; color: #f2f4f6; font-variant-numeric: tabular-nums; }
-  .valrow .up { color: #5fd16a; font-size: 13px; }
-  .trust { display: flex; align-items: center; gap: 11px; margin-top: 2px; }
+  .stat-number {
+    width: 48px; padding: 1px 4px; color: #dce5eb; text-align: right;
+    font: 600 14px var(--font-head); font-variant-numeric: tabular-nums;
+    border: 1px solid rgba(255,255,255,.12); border-radius: 5px;
+    outline: 0; background: rgba(255,255,255,.045);
+  }
+  .stat-number:focus { border-color: rgba(63,199,224,.65); background: rgba(63,199,224,.08); }
+  .stat-number.hp { width: 76px; color: #cfebd2; }
+  .stat-number.food { color: #f0c39a; }
+  .stat-number::-webkit-inner-spin-button, .stat-number::-webkit-outer-spin-button {
+    -webkit-appearance: none; margin: 0;
+  }
+  .trust-block { gap: 4px; margin-top: 2px; }
   .tlabel { font-family: var(--font-head); font-weight: 600; font-size: 12.5px; letter-spacing: 0.14em; color: #9aa6b2; }
-  .trank { font-size: 12.5px; color: #c9b4e0; font-variant-numeric: tabular-nums; }
+  .trust-progress { display: inline-flex; align-items: center; color: #c9b4e0; font-size: 11px; }
+  .stat-number.trust-progress { width: 44px; color: #d8c4ee; }
+  .stat-number.trust-progress:disabled { cursor: default; opacity: .55; }
+  .trust-rank {
+    display: flex; align-items: center; justify-content: flex-end; gap: 6px;
+    margin-top: 4px; color: #8f819b; font-size: 11px;
+  }
+  .trust-rank .stat-number { width: 38px; color: #d8c4ee; }
+  .rank-max { color: #655a70; font-variant-numeric: tabular-nums; }
+  .track-control:disabled { cursor: default; }
 
   .worksuit { display: flex; flex-direction: column; gap: 7px; }
 </style>

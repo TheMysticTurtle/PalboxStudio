@@ -9,6 +9,7 @@
     ranchDropOptions,
     CATEGORY_LABELS,
   } from "$lib/data/speciesFilter.svelte";
+  import ElementIcon from "./ElementIcon.svelte";
 
   let {
     filter,
@@ -74,7 +75,7 @@
           style="--c:{ELEMENT_COLOR[el]}"
           onclick={() => (filter.elements = toggleIn(filter.elements, el))}
           title={el} aria-label={el} aria-pressed={filter.elements.has(el)}
-        ><span class="d"></span></button>
+        ><ElementIcon element={el} size={20} muted={!filter.elements.has(el)} /></button>
       {/each}
     </div>
   </div>
@@ -157,10 +158,8 @@
   .lbl { font-family: var(--font-head); font-size: 10.5px; letter-spacing: 0.1em; color: #7f7090; text-transform: uppercase; min-width: 42px; }
 
   .els { display: flex; gap: 5px; flex-wrap: wrap; }
-  .eltog { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 7px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
-  .eltog .d { width: 11px; height: 11px; transform: rotate(45deg); background: var(--c); opacity: 0.55; }
+  .eltog { width: 29px; height: 29px; display: grid; place-items: center; border-radius: 7px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
   .eltog.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); }
-  .eltog.on .d { opacity: 1; box-shadow: 0 0 6px var(--c); }
 
   .works { display: flex; gap: 4px; flex-wrap: wrap; }
   .worktog { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }

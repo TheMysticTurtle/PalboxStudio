@@ -169,6 +169,14 @@ pub fn name_array_prop(values: Vec<String>) -> Property {
 pub fn enum_array_prop(values: Vec<String>) -> Property {
     Property::Array(ValueVec::Enum(values))
 }
+pub fn struct_array_prop(values: Vec<StructValue>) -> Property {
+    Property::Array(ValueVec::Struct(values))
+}
+pub fn fixed_point64_prop(value: i64) -> Property {
+    let mut properties = Properties::default();
+    set_prop(&mut properties, "Value", int64_prop(value));
+    Property::Struct(StructValue::Struct(properties))
+}
 
 /// Mutable property lookup by name.
 pub fn prop_mut<'a>(props: &'a mut Properties, key: &str) -> Option<&'a mut Property> {

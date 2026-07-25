@@ -11,6 +11,7 @@ interface RefData {
   species: SpeciesRow[];
   speciesByCode: Record<string, SpeciesRow>;
   elements: Record<string, ElementInfo>;
+  friendshipRanks: Record<string, number>;
   schema: SchemaColumn[];
 }
 
@@ -21,6 +22,7 @@ export const ref = $state<RefData>({
   species: [],
   speciesByCode: {},
   elements: {},
+  friendshipRanks: {},
   schema: [],
 });
 
@@ -38,6 +40,7 @@ export async function loadRefData(): Promise<void> {
     ref.species = bundle.species;
     ref.speciesByCode = Object.fromEntries(bundle.species.map((s) => [s.code, s]));
     ref.elements = bundle.elements;
+    ref.friendshipRanks = bundle.friendshipRanks;
     ref.schema = bundle.schema;
     ref.loaded = true;
   } catch (e) {

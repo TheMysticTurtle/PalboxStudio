@@ -3,6 +3,7 @@
   import { ELEMENT_COLOR } from "$lib/data/constants";
   import { ref, resolveSpecies } from "$lib/data/refdata.svelte";
   import { toggleIn } from "$lib/data/speciesFilter.svelte";
+  import ElementIcon from "./ElementIcon.svelte";
 
   let {
     open = $bindable(false),
@@ -17,7 +18,7 @@
   } = $props();
 
   let search = $state("");
-  let scope = $state<"species" | "all">("species");
+  let scope = $state<"natural" | "fruit" | "all">("natural");
   let elements = $state(new Set<ElementName>());
   let category = $state("All");
   let sort = $state<"power" | "name">("power");
@@ -25,6 +26,7 @@
   const elementOptions: ElementName[] = [
     "Neutral", "Fire", "Water", "Grass", "Electric", "Ice", "Ground", "Dark", "Dragon",
   ];
+  const displayElement = (element: ElementName | ""): ElementName => element || "Neutral";
   let categories = $derived([
     "All",
     ...Array.from(new Set(Object.values(ref.moves).map((m) => m.category).filter(Boolean))).sort(),
@@ -34,7 +36,8 @@
     const q = search.trim().toLowerCase();
     return Object.entries(ref.moves)
       .filter(([code, move]) => {
-        if (scope === "species" && !natural.has(code)) return false;
+        if (scope === "natural" && !natural.has(code)) return false;
+        if (scope === "fruit" && !move.skillFruit) return false;
         if (elements.size && (!move.element || !elements.has(move.element as ElementName))) return false;
         if (category !== "All" && move.category !== category) return false;
         return !q || code.toLowerCase().includes(q) || move.name.toLowerCase().includes(q);
@@ -43,7 +46,12 @@
         if (sort === "power" && a.power !== b.power) return b.power - a.power;
         return a.name.localeCompare(b.name) || ac.localeCompare(bc);
       })
-      .map(([code, move]) => ({ code, move, equipped: equipped.includes(code) }));
+      .map(([code, move]) => ({
+        code,
+        move,
+        equipped: equipped.includes(code),
+        natural: natural.has(code),
+      }));
   });
 
   function choose(code: string) {
@@ -52,7 +60,7 @@
   }
   function clear() {
     search = "";
-    scope = "species";
+    scope = "natural";
     elements = new Set();
     category = "All";
     sort = "power";
@@ -87,7 +95,8 @@
       </div>
       <div class="facets">
         <span class="label">Pool</span>
-        <button class:on={scope === "species"} onclick={() => (scope = "species")}>This species</button>
+        <button class:on={scope === "natural"} onclick={() => (scope = "natural")}>Default moves</button>
+        <button class:on={scope === "fruit"} onclick={() => (scope = "fruit")}>Skill Fruit</button>
         <button class:on={scope === "all"} onclick={() => (scope = "all")}>All moves</button>
         <span class="divider"></span>
         <span class="label">Category</span>
@@ -107,7 +116,7 @@
             aria-label={element}
             aria-pressed={elements.has(element)}
             onclick={() => (elements = toggleIn(elements, element))}
-          ><span></span></button>
+          ><ElementIcon {element} size={20} muted={!elements.has(element)} /></button>
         {/each}
       </div>
     </div>
@@ -121,10 +130,13 @@
           style="--c:{ELEMENT_COLOR[row.move.element as ElementName] ?? 'var(--el-neutral)'}"
           onclick={() => choose(row.code)}
         >
-          <span class="edia"></span>
+          <ElementIcon element={displayElement(row.move.element)} size={18} />
           <span class="info">
             <span class="name">{row.move.name}</span>
-            <span class="meta">{row.move.element || "Neutral"} · {row.move.category || "Move"}</span>
+            <span class="meta">
+              {row.move.element || "Neutral"} · {row.move.category || "Move"}
+              {#if row.natural} · Default{:else if row.move.skillFruit} · Skill Fruit{/if}
+            </span>
           </span>
           <span class="pcap">PWR</span>
           <span class="power">{row.move.power}</span>
@@ -164,10 +176,8 @@
   .facets button.on { color: #bff3fb; border-color: rgba(63,199,224,.5); background: rgba(63,199,224,.13); }
   .divider { width: 1px; height: 22px; margin: 0 4px; background: rgba(255,255,255,.09); }
   select { color: #bdc7ce; background: #1c2630; border: 1px solid rgba(255,255,255,.12); border-radius: 7px; padding: 5px 8px; }
-  .elements button { width: 27px; height: 27px; display: grid; place-items: center; cursor: pointer; border-radius: 7px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); }
-  .elements button span { width: 10px; height: 10px; transform: rotate(45deg); background: var(--c); opacity: .48; }
+  .elements button { width: 29px; height: 29px; display: grid; place-items: center; cursor: pointer; border-radius: 7px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); }
   .elements button.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); }
-  .elements button.on span { opacity: 1; box-shadow: 0 0 6px var(--c); }
   .list { flex: 1; min-height: 0; overflow: auto; padding: 14px 18px 20px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; align-content: start; }
   .move {
     min-width: 0; display: flex; align-items: center; gap: 10px; padding: 10px 11px; cursor: pointer;
@@ -176,7 +186,6 @@
   }
   .move:hover:not(:disabled) { border-color: color-mix(in srgb, var(--c) 60%, transparent); background: color-mix(in srgb, var(--c) 7%, transparent); }
   .move.equipped { opacity: .48; cursor: default; }
-  .edia { width: 11px; height: 11px; flex: none; transform: rotate(45deg); background: var(--c); box-shadow: 0 0 6px var(--c); }
   .info { min-width: 0; flex: 1; display: flex; flex-direction: column; }
   .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 14px var(--font-cond); }
   .meta { color: #82919c; font-size: 10.5px; }

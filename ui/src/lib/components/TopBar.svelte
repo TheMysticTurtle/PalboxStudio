@@ -34,13 +34,15 @@
     {#if box.saveMsg}<span class="savemsg">{box.saveMsg}</span>{/if}
   {/if}
 
-  <div class="safe">
-    <svg width="14" height="15" viewBox="0 0 24 26" fill="none" aria-hidden="true">
-      <path d="M12 1 22 5v9c0 6.5-4.3 10-10 11C6.3 24 2 20.5 2 14V5l10-4Z" fill="rgba(95,209,106,.18)" stroke="#5FD16A" stroke-width="1.6" />
-      <path d="m7.5 13 3 3 6-6.5" stroke="#5FD16A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-    </svg>
-    <span>Editing a copy · <b>backed up</b></span>
-  </div>
+  {#if box.open}
+    <div class="safe">
+      <svg width="14" height="15" viewBox="0 0 24 26" fill="none" aria-hidden="true">
+        <path d="M12 1 22 5v9c0 6.5-4.3 10-10 11C6.3 24 2 20.5 2 14V5l10-4Z" fill="rgba(95,209,106,.18)" stroke="#5FD16A" stroke-width="1.6" />
+        <path d="m7.5 13 3 3 6-6.5" stroke="#5FD16A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <span>Working copy</span>
+    </div>
+  {/if}
 
   <div class="wincontrols">
     <button class="wc" onclick={() => win("min")} aria-label="Minimize">—</button>
@@ -121,10 +123,6 @@
     font-size: 12.5px;
     color: #9ad6a0;
     letter-spacing: 0.02em;
-  }
-  .safe b {
-    color: #c7ebcb;
-    font-weight: 600;
   }
   .savebtn {
     padding: 6px 12px;

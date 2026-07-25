@@ -1,11 +1,12 @@
 <script lang="ts">
   import type { ElementName } from "$lib/data/types";
   import { ELEMENT_COLOR } from "$lib/data/constants";
+  import ElementIcon from "./ElementIcon.svelte";
   let { element }: { element: ElementName } = $props();
 </script>
 
 <span class="pill" style="--c:{ELEMENT_COLOR[element]}">
-  <span class="diamond"></span>
+  <ElementIcon {element} size={18} />
   <span class="label">{element}</span>
 </span>
 
@@ -18,13 +19,6 @@
     border-radius: 20px;
     background: color-mix(in srgb, var(--c) 16%, transparent);
     border: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
-  }
-  .diamond {
-    width: 10px;
-    height: 10px;
-    transform: rotate(45deg);
-    background: var(--c);
-    box-shadow: 0 0 7px color-mix(in srgb, var(--c) 80%, transparent);
   }
   .label {
     font-family: var(--font-cond);

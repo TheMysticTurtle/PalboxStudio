@@ -27,6 +27,10 @@ npm install && npm --prefix ui install   # one-time
 npm run tauri dev                          # run the app (hot-reloads the UI)
 ```
 
+On Windows, after installing those one-time dependencies, double-click
+`Launch Palbox Studio.cmd` in the repository root. Keep its terminal window open while using the
+development build; it owns the hot-reload server and desktop process.
+
 `npm run build` builds the frontend; `cargo test` runs the core tests. Rebuild and verify
 the reference/user database templates with `python scripts/build_reference_db.py --check`.
 

@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { BoxPal } from "$lib/data/types";
-  import { sampleBox } from "$lib/data/sampleBox";
   import { resolveSpecies, speciesDisplayName } from "$lib/data/refdata.svelte";
   import { ui } from "$lib/stores/ui.svelte";
   import { box, openBoxFile, selectSlot, addPal, clonePal, deletePal } from "$lib/stores/box.svelte";
@@ -14,13 +13,11 @@
   } from "$lib/data/speciesFilter.svelte";
 
   let search = $state("");
-  let activeGroup = $state("All");
   // The shared species filter (elements / work / rideable / ranch / category),
   // applied to each tile's species row — same control as the species selector.
   const boxFilter = createSpeciesFilter();
 
-  // Real box tiles (joined to species for name/elements) when a box is open;
-  // otherwise the sample fixtures.
+  // Real box tiles joined to the cached species reference data.
   let source: BoxPal[] = $derived(
     box.open
       ? box.tiles.map((tile) =>
@@ -28,17 +25,12 @@
             ? palToBoxPal(box.pal, tile.slot)
             : tileDtoToBoxPal(tile),
         )
-      : sampleBox,
+      : [],
   );
-  const groups = $derived([
-    "All",
-    ...Array.from(new Set(source.flatMap((p) => p.groups ?? []))),
-  ]);
 
   let filtered = $derived(
     source.filter((p) => {
       if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
-      if (activeGroup !== "All" && !(p.groups ?? []).includes(activeGroup)) return false;
       // Structured facets run against the tile's species reference row.
       const sp = resolveSpecies(p.species);
       if (sp) return speciesMatches(sp, boxFilter);
@@ -63,12 +55,10 @@
     }
   }
 
-  function select(id: string) {
-    if (box.open) selectSlot(Number(id));
-    else ui.selectedId = id;
+  function select(slot: number) {
+    if (box.open) selectSlot(slot);
   }
-  const isSelected = (id: string) =>
-    box.open ? box.selectedSlot === Number(id) : ui.selectedId === id;
+  const isSelected = (slot: number) => box.open && box.selectedSlot === slot;
 
   // Reveal the selected tile (e.g. a just-added pal that landed off-screen).
   let matrixEl: HTMLDivElement | undefined = $state();
@@ -120,16 +110,9 @@
 
   <SpeciesFilter filter={boxFilter} showSearch={false} collapsible />
 
-  <div class="groupsrow">
-    {#each groups as g (g)}
-      <button class="gchip" class:on={activeGroup === g} onclick={() => (activeGroup = g)}>{g}</button>
-    {/each}
-    <button class="gchip add" title="Create a group (coming soon)">+ Group</button>
-  </div>
-
   <div class="matrix" bind:this={matrixEl}>
-    {#each filtered as p (p.instanceId)}
-      <BoxTile pal={p} size="sm" selected={isSelected(p.instanceId)} onselect={select} />
+    {#each filtered as p (p.slot)}
+      <BoxTile pal={p} size="sm" selected={isSelected(p.slot)} onselect={select} />
     {/each}
     {#if !filtered.length}<div class="empty">{box.open ? "No pals match." : "Open a box to load your pals."}</div>{/if}
   </div>
@@ -162,11 +145,6 @@
   .count { font-family: var(--font-head); font-weight: 700; color: #9782a8; font-size: 13px; min-width: 18px; text-align: center; }
   .expand { padding: 8px 11px; border-radius: 9px; border: 1px solid rgba(176, 96, 224, 0.4); background: rgba(176, 96, 224, 0.12); color: #d6bef2; cursor: pointer; font-size: 12.5px; white-space: nowrap; }
   .expand:hover { background: rgba(176, 96, 224, 0.22); }
-
-  .groupsrow { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-  .gchip { padding: 6px 13px; border-radius: 16px; cursor: pointer; font-size: 12.5px; color: #b0a0be; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
-  .gchip.on { color: #f5c97a; background: rgba(245, 166, 35, 0.16); border-color: rgba(245, 166, 35, 0.5); font-weight: 600; }
-  .gchip.add { color: #8b7c99; border-style: dashed; }
 
   .matrix { flex: 1; overflow: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-content: start; padding-right: 4px; }
   .empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 24px; font-size: 13px; }

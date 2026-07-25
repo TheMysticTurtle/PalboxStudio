@@ -9,6 +9,7 @@ export interface PalDtoIvs { hp: number; shot: number; defense: number }
 /** Mirrors palbox_core::pal::PalDto (raw editable save values). */
 export interface PalDto {
   slot: number;
+  instanceId: string;
   characterId: string;
   nickname: string | null;
   gender: string;
@@ -32,10 +33,14 @@ export interface PalDto {
 
 export interface BoxTileDto {
   slot: number;
+  instanceId: string;
   characterId: string;
   level: number;
   isLucky: boolean;
   isAlpha: boolean;
+  passives: string[];
+  equippedMoves: string[];
+  learnedMoves: string[];
 }
 
 export interface OpenResult {

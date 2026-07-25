@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { BoxPal } from "$lib/data/types";
-  import { ELEMENT_COLOR } from "$lib/data/constants";
   import { palIcon, onPalIconError } from "$lib/data/icons";
+  import ElementIcon from "./ElementIcon.svelte";
 
   let {
     pal,
@@ -12,13 +12,13 @@
     pal: BoxPal;
     size?: "sm" | "lg";
     selected?: boolean;
-    onselect?: (id: string) => void;
+    onselect?: (slot: number) => void;
   } = $props();
 
   const iconSrc = $derived(palIcon(pal.species));
 </script>
 
-<button class="tile {size}" class:selected onclick={() => onselect?.(pal.instanceId)} title={pal.name}>
+<button class="tile {size}" class:selected onclick={() => onselect?.(pal.slot)} title={pal.name}>
   <div class="badges">
     {#if pal.alpha}<img class="emblem alpha" src="/icons/variants/alpha.webp" alt="Alpha" title="Alpha" />{/if}
     {#if pal.lucky}<img class="emblem lucky" src="/icons/variants/lucky.webp" alt="Lucky" title="Lucky" />{/if}
@@ -26,7 +26,7 @@
   <div class="port"><img src={iconSrc} alt="" loading="lazy" decoding="async" onerror={onPalIconError} /></div>
   <div class="name">{pal.name}</div>
   <div class="meta">
-    {#each pal.elements as el}<span class="dia" style="--c:{ELEMENT_COLOR[el]}"></span>{/each}
+    {#each pal.elements as el}<ElementIcon element={el} size={16} decorative={false} />{/each}
     <span class="lv">Lv.{pal.level}</span>
   </div>
   {#if size === "lg" && pal.groups?.length}
@@ -81,7 +81,6 @@
     line-height: 1.05;
   }
   .meta { display: flex; align-items: center; gap: 6px; }
-  .dia { width: 8px; height: 8px; transform: rotate(45deg); background: var(--c); box-shadow: 0 0 5px var(--c); }
   .lv { font-size: 11.5px; color: #a99bb8; font-variant-numeric: tabular-nums; }
   .groups { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 2px; }
   .gchip { font-size: 10px; color: #c9b4e0; padding: 2px 7px; border-radius: 10px; background: rgba(176, 96, 224, 0.14); border: 1px solid rgba(176, 96, 224, 0.3); }

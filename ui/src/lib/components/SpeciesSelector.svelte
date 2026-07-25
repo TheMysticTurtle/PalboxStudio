@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ref, baseSpeciesCode } from "$lib/data/refdata.svelte";
-  import { ELEMENT_COLOR } from "$lib/data/constants";
   import { palIcon, onPalIconError } from "$lib/data/icons";
+  import ElementIcon from "./ElementIcon.svelte";
   import SpeciesFilter from "./SpeciesFilter.svelte";
   import {
     createSpeciesFilter,
@@ -72,7 +72,7 @@
           <div class="port"><img src={palIcon(sp.code)} alt="" loading="lazy" decoding="async" onerror={onPalIconError} /></div>
           <div class="nm">{sp.name}</div>
           <div class="els">
-            {#each sp.elements as el}<span class="dia" style="--c:{ELEMENT_COLOR[el]}"></span>{/each}
+            {#each sp.elements as el}<ElementIcon element={el} size={16} decorative={false} />{/each}
           </div>
           {#if sp.partnerSkill}<div class="ps">{sp.partnerSkill.name}</div>{/if}
         </button>
@@ -150,8 +150,7 @@
   }
   .port img { width: 100%; height: 100%; object-fit: contain; }
   .nm { font-family: var(--font-cond); font-weight: 600; font-size: 13px; color: #eae2f2; text-align: center; line-height: 1.05; }
-  .els { display: flex; gap: 4px; height: 8px; }
-  .dia { width: 8px; height: 8px; transform: rotate(45deg); background: var(--c); box-shadow: 0 0 5px var(--c); }
+  .els { display: flex; gap: 3px; height: 16px; }
   .ps { font-size: 10.5px; color: #9a8bab; text-align: center; line-height: 1.1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
   .empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px; font-size: 13px; }
 </style>

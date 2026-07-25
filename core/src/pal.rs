@@ -53,6 +53,9 @@ pub struct Ivs {
 #[serde(rename_all = "camelCase")]
 pub struct PalDto {
     pub slot: usize,
+    /// Stable GUID from the containing box slot. Empty only when `read_pal` is
+    /// used without the slot wrapper (tests/internal helpers).
+    pub instance_id: String,
     pub character_id: String,
     pub nickname: Option<String>,
     pub gender: String,
@@ -111,6 +114,7 @@ pub fn read_pal(sp: &Properties, slot: usize) -> PalDto {
 
     PalDto {
         slot,
+        instance_id: String::new(),
         nickname: ue::prop(sp, "NickName").and_then(ue::as_str).map(str::to_string),
         gender,
         level: byte("Level").unwrap_or(1),
@@ -190,6 +194,20 @@ pub fn set_condensation(sp: &mut Properties, rank: u8) {
         ue::remove_prop(sp, "Rank");
     }
 }
+pub fn set_hp(sp: &mut Properties, value: i64) {
+    ue::set_prop(sp, "Hp", ue::fixed_point64_prop(value.max(0)));
+    // Normalize the legacy spelling so a stale duplicate cannot win on read.
+    ue::remove_prop(sp, "HP");
+}
+pub fn set_sanity(sp: &mut Properties, value: f32) {
+    ue::set_prop(sp, "SanityValue", ue::float_prop(value.clamp(0.0, 100.0)));
+}
+pub fn set_food(sp: &mut Properties, value: f32) {
+    ue::set_prop(sp, "FullStomach", ue::float_prop(value.max(0.0)));
+}
+pub fn set_friendship(sp: &mut Properties, value: i32) {
+    ue::set_prop(sp, "FriendshipPoint", ue::int_prop(value.clamp(-10_000, 200_000)));
+}
 pub fn set_lucky(sp: &mut Properties, lucky: bool) {
     if lucky {
         ue::set_prop(sp, "IsRarePal", ue::bool_prop(true));
@@ -256,6 +274,70 @@ pub fn set_equipped_moves(sp: &mut Properties, codes: Vec<String>) {
         .collect();
     ue::set_prop(sp, "EquipWaza", ue::enum_array_prop(full));
 }
+pub fn set_learned_moves(sp: &mut Properties, codes: Vec<String>) {
+    if codes.is_empty() {
+        // Do not auto-fill MasteredWaza from the natural learnset. Real saves
+        // commonly omit it, and absence must remain absence until the user
+        // explicitly adds a non-natural move.
+        ue::remove_prop(sp, "MasteredWaza");
+        return;
+    }
+    let full = codes
+        .into_iter()
+        .map(|c| if c.starts_with(WAZA) { c } else { format!("{WAZA}{c}") })
+        .collect();
+    ue::set_prop(sp, "MasteredWaza", ue::enum_array_prop(full));
+}
+
+pub fn set_work(sp: &mut Properties, work: &BTreeMap<String, i64>) {
+    // Rebuild in canonical game order and write only non-zero AddRank entries.
+    // This avoids the zero-rank bloat that broke work assignment in PalEdit.
+    let mut entries = Vec::new();
+    for (internal, official) in WORK {
+        let Some(rank) = work.get(official).copied().filter(|value| *value != 0) else {
+            continue;
+        };
+        let mut properties = Properties::default();
+        ue::set_prop(
+            &mut properties,
+            "WorkSuitability",
+            ue::enum_prop(&format!("{WORK_PFX}{internal}")),
+        );
+        ue::set_prop(
+            &mut properties,
+            "Rank",
+            ue::int_prop(rank.clamp(i32::MIN as i64, i32::MAX as i64) as i32),
+        );
+        entries.push(StructValue::Struct(properties));
+    }
+    ue::remove_prop(sp, "GotWorkSuitabilityAddRankList");
+    if !entries.is_empty() {
+        ue::set_prop(
+            sp,
+            "GotWorkSuitabilityAddRankList",
+            ue::struct_array_prop(entries),
+        );
+    }
+}
+
+/// Healthy defaults for a newly claimed Global Palbox slot. Clearing revive
+/// and sickness markers is as important as writing positive HP: otherwise the
+/// game can still treat a full-HP Pal as incapacitated.
+pub fn initialize_new_pal(sp: &mut Properties, hp: i64, food: f32) {
+    for marker in [
+        "PalReviveTimer",
+        "PhysicalHealth",
+        "WorkerSick",
+        "HungerType",
+        "FoodWithStatusEffect",
+    ] {
+        ue::remove_prop(sp, marker);
+    }
+    set_hp(sp, hp);
+    set_sanity(sp, 100.0);
+    set_food(sp, food);
+    set_friendship(sp, 0);
+}
 
 #[cfg(test)]
 mod tests {
@@ -277,5 +359,33 @@ mod tests {
         set_variant(&mut sp, false, false);
         assert_eq!(ue::prop(&sp, "CharacterID").and_then(ue::as_str), Some("Baphomet"));
         assert_eq!(ue::prop(&sp, "IsRarePal").and_then(ue::as_bool), None);
+    }
+
+    #[test]
+    fn editable_status_and_work_fields_round_trip_through_ports() {
+        let mut sp = Properties::default();
+        ue::set_prop(&mut sp, "HP", ue::fixed_point64_prop(1));
+        ue::set_prop(&mut sp, "PalReviveTimer", ue::float_prop(30.0));
+        initialize_new_pal(&mut sp, 552_000, 580.0);
+        assert_eq!(ue::prop(&sp, "Hp").and_then(ue::fixed_point64), Some(552_000));
+        assert!(ue::prop(&sp, "HP").is_none());
+        assert!(ue::prop(&sp, "PalReviveTimer").is_none());
+        assert_eq!(ue::prop(&sp, "SanityValue").and_then(ue::as_f32), Some(100.0));
+        assert_eq!(ue::prop(&sp, "FullStomach").and_then(ue::as_f32), Some(580.0));
+
+        set_friendship(&mut sp, 210_000);
+        assert_eq!(
+            ue::prop(&sp, "FriendshipPoint").and_then(ue::as_i32),
+            Some(200_000)
+        );
+
+        let mut work = BTreeMap::new();
+        work.insert("Kindling".to_string(), 2);
+        work.insert("Mining".to_string(), 0);
+        set_work(&mut sp, &work);
+        let rows = ue::prop(&sp, "GotWorkSuitabilityAddRankList")
+            .and_then(ue::array_structs)
+            .unwrap();
+        assert_eq!(rows.len(), 1);
     }
 }

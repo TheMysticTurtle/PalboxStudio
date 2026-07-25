@@ -2,6 +2,44 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Session 4 (2026-07-25) — real-save editing and editor controls
+
+**The save-editing path has completed its first real game test.** A Pal added through Palbox
+Studio was written to a backed-up Global Palbox save, loaded into Palworld, and appeared in the
+player's box. Slot selection is now a numeric storage-slot concern; a Pal's GUID `InstanceId`
+remains identity data and is no longer overloaded as a UI selection key.
+
+**The fake preview state is gone.** Starting without an open save shows an empty box and a
+zeroed, inert main card with the Palbox Studio logo. Selecting a real Pal populates that same
+card directly. The old `samplePal.ts` / `sampleBox.ts` fixtures were removed rather than hidden
+behind save-only routing or a separate blocking screen.
+
+**The main editor now exposes the requested real fields and selectors.**
+
+- Move selection is split into the species' default learnset, Skill Fruit moves, and all moves.
+  Active and inactive moves can be clicked or dragged between lists and reordered.
+- HP, sanity, food, and trust progress retain numeric entry and also use range controls; trust
+  rank is editable separately. Newly created Pals initialize with full HP, sanity, and food.
+- Work Suitability only renders entries the selected species can actually possess.
+- Species, Alpha, and Lucky are editable on the main card. Pal tiles use species display names
+  plus the Alpha/Lucky emblems; Lamball's `Sheepball` data code is explicitly mapped to the
+  case-sensitive `SheepBall` portrait asset.
+- The passive reference builder fills blank descriptions and normalizes structured effects into
+  short plain-English descriptions instead of exposing raw localization markup.
+
+**Element placeholders have been replaced.** The nine retained game-style element badges now
+live under `ui/static/icons/elements/` and render through one `ElementIcon` component in species
+tiles, species/move filters, Partner Skills, main-card element pills, and active/inactive move
+rows. CSS element colors remain responsible only for surrounding emphasis.
+
+**Developer launch path:** double-click `Launch Palbox Studio.cmd` from the repository root.
+It validates the local toolchain/dependencies and starts the Tauri development app; packaged
+installer/executable builds remain a later release task.
+
+**Verification:** `npm run check` passes with 0 errors / 0 warnings, `npm run build` passes,
+all 11 Rust tests pass, the reference DB generator check passes, and the launcher self-check
+passes.
+
 ## Session 3 (2026-07-25) — normalized 1.0 reference database
 
 **Static SQLite is live.** `scripts/build_reference_db.py --check` generates

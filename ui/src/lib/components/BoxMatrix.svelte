@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { BoxPal } from "$lib/data/types";
-  import { sampleBox } from "$lib/data/sampleBox";
   import { ui } from "$lib/stores/ui.svelte";
   import { box, selectSlot } from "$lib/stores/box.svelte";
   import { palToBoxPal, tileDtoToBoxPal } from "$lib/data/mapper";
@@ -13,15 +12,13 @@
             ? palToBoxPal(box.pal, tile.slot)
             : tileDtoToBoxPal(tile),
         )
-      : sampleBox,
+      : [],
   );
 
-  function select(id: string) {
-    if (box.open) selectSlot(Number(id));
-    else ui.selectedId = id;
+  function select(slot: number) {
+    if (box.open) selectSlot(slot);
   }
-  const isSelected = (id: string) =>
-    box.open ? box.selectedSlot === Number(id) : ui.selectedId === id;
+  const isSelected = (slot: number) => box.open && box.selectedSlot === slot;
 </script>
 
 <div class="overlay">
@@ -32,9 +29,10 @@
     <button class="collapse" onclick={() => (ui.boxExpanded = false)} aria-label="Collapse to drawer">⤡ Collapse</button>
   </div>
   <div class="grid">
-    {#each source as p (p.instanceId)}
-      <BoxTile pal={p} size="lg" selected={isSelected(p.instanceId)} onselect={select} />
+    {#each source as p (p.slot)}
+      <BoxTile pal={p} size="lg" selected={isSelected(p.slot)} onselect={select} />
     {/each}
+    {#if !source.length}<div class="empty">No Pals to display.</div>{/if}
   </div>
 </div>
 
@@ -75,4 +73,5 @@
     gap: 14px;
     align-content: start;
   }
+  .empty { grid-column: 1 / -1; padding: 36px; text-align: center; color: #7f718c; }
 </style>

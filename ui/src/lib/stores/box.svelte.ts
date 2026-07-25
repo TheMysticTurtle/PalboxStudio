@@ -40,6 +40,9 @@ async function flush() {
       tile.level = updated.level;
       tile.isLucky = updated.isLucky;
       tile.isAlpha = updated.isAlpha;
+      tile.passives = updated.passives;
+      tile.equippedMoves = updated.equippedMoves;
+      tile.learnedMoves = updated.learnedMoves;
     }
   }
 }

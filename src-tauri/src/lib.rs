@@ -97,11 +97,32 @@ struct BoxMutation {
 
 /// Add a brand-new pal (default: the turtle CubeTurtle) to a free box slot.
 #[tauri::command]
-fn add_box_pal(species: Option<String>, state: State<AppState>) -> Result<BoxMutation, String> {
+fn add_box_pal(
+    species: Option<String>,
+    state: State<AppState>,
+    cache: State<ReferenceCache>,
+) -> Result<BoxMutation, String> {
     let mut guard = state.0.lock().unwrap();
     let session = guard.as_mut().ok_or("no box open")?;
     let species = species.unwrap_or_else(|| "CubeTurtle".to_string());
     let slot = add_pal(&mut session.save, &species)?;
+    let sp = pal_param_mut(&mut session.save, slot).ok_or("new pal has no SaveParameter")?;
+    // Resolve healthy defaults from the startup cache; never query SQLite per
+    // Pal. Level 1, zero IVs/souls/condensation uses the game's base HP formula.
+    let base_code = species.strip_prefix("BOSS_").unwrap_or(&species);
+    let species_ref = cache.bundle.species.iter().find(|value| value.code == base_code);
+    let hp_scaling = species_ref.map(|value| value.scaling.hp).unwrap_or(80) as f64;
+    let alpha_rate = if species.to_uppercase().starts_with("BOSS_") {
+        1.2
+    } else {
+        1.0
+    };
+    let full_hp = (500.0 + 5.0 + hp_scaling * 0.5 * alpha_rate).floor() as i64 * 1000;
+    let full_food = species_ref
+        .map(|value| value.max_stomach)
+        .filter(|value| *value > 0)
+        .unwrap_or(300) as f32;
+    pal::initialize_new_pal(sp, full_hp, full_food);
     Ok(BoxMutation { pals: list_pals(&session.save), slot: Some(slot) })
 }
 
@@ -230,8 +251,7 @@ fn apply_passive_preset(
     read_pal_at(&session.save, slot).ok_or_else(|| "re-read failed".to_string())
 }
 
-/// Apply every implemented edit port from a DTO. (Work-suitability list setter
-/// is the one field still pending — see pal.rs.)
+/// Apply every implemented edit port from a DTO.
 fn apply_dto(sp: &mut Properties, dto: &PalDto) {
     // Species first: the game derives stats/work/learnset from CharacterID.
     // Variant second so Alpha/Lucky can add or remove the BOSS_ representation.
@@ -250,8 +270,14 @@ fn apply_dto(sp: &mut Properties, dto: &PalDto) {
     pal::set_soul(sp, "defense", dto.souls.defense);
     pal::set_soul(sp, "craftSpeed", dto.souls.craft_speed);
     pal::set_condensation(sp, dto.condensation);
+    pal::set_work(sp, &dto.work);
     pal::set_passives(sp, dto.passives.clone());
     pal::set_equipped_moves(sp, dto.equipped_moves.clone());
+    pal::set_learned_moves(sp, dto.learned_moves.clone());
+    pal::set_hp(sp, dto.hp);
+    pal::set_sanity(sp, dto.sanity);
+    pal::set_food(sp, dto.food);
+    pal::set_friendship(sp, dto.friendship);
 }
 
 fn backup_path(original: &Path) -> PathBuf {

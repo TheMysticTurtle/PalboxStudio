@@ -10,7 +10,10 @@ data, icons, and the filtering/legality logic — this catalogs where it all is 
   placeholder is fine). **In a URL the fallback must be `%23ERROR.png`** (the `#` is a fragment).
 - **Work-suitability icons** → `ui/static/icons/work/<name>.png` + `no_<name>.png` (13 active +
   13 greyed). Names use PalEdit's internal set — see the mapping below.
-- Elements have **no** image here; we draw them as CSS diamonds (`--el-*` tokens).
+- **Element badges** → `ui/static/icons/elements/<element>.webp` (9). These are the retained
+  PalEdit/PSP game-style `_icon.webp` assets, copied locally for offline use. Pal species, Partner
+  Skills, move rows, and element filters all render them through the shared `ElementIcon` component;
+  the existing `--el-*` colors remain the single source for borders, backgrounds, and highlights.
 
 ## SQLite reference dataset — `data/palbox-reference.db`
 

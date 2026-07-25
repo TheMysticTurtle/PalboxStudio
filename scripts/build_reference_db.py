@@ -165,6 +165,155 @@ def synthesized_move_name(code: str) -> str:
     return prettify(without_owner)
 
 
+def format_effect_value(value: Any) -> str:
+    number = as_float(value)
+    if number.is_integer():
+        return str(abs(int(number)))
+    return f"{abs(number):.1f}".rstrip("0").rstrip(".")
+
+
+def signed_percent(label: str, value: Any) -> str:
+    number = as_float(value)
+    sign = "+" if number >= 0 else "-"
+    return f"{label} {sign}{format_effect_value(number)}%."
+
+
+def passive_effect_sentence(
+    code: str,
+    name: str,
+    effect: dict[str, Any],
+) -> str | None:
+    effect_type = str(effect.get("type") or "None")
+    value = as_float(effect.get("value"))
+    amount = format_effect_value(value)
+
+    direct_percent = {
+        "ShotAttack": "Attack",
+        "Defense": "Defense",
+        "MaxHP": "Max HP",
+        "CraftSpeed": "Work speed",
+        "MoveSpeed": "Movement speed",
+        "MaxInventoryWeight": "Carrying capacity",
+        "PalExp_Increase": "Pal experience gained",
+        "PalSP_Increase": "Pal stamina",
+        "JumpPower_Increase": "Jump power",
+        "BreedSpeed": "Breeding speed",
+        "PalEggHatchingSpeed": "Egg hatching speed",
+        "Logging": "Logging efficiency",
+        "Mining": "Mining efficiency",
+    }
+    if effect_type in direct_percent:
+        return signed_percent(direct_percent[effect_type], value)
+
+    if effect_type.startswith("ElementBoost_"):
+        raw_element = effect_type.removeprefix("ElementBoost_")
+        element = {
+            "Normal": "Neutral",
+            "Leaf": "Grass",
+            "Earth": "Ground",
+            "Electricity": "Electric",
+        }.get(raw_element, raw_element)
+        return signed_percent(f"{element} damage", value)
+
+    if effect_type.startswith("ElementResist_"):
+        raw_element = effect_type.removeprefix("ElementResist_")
+        element = {
+            "Normal": "Neutral",
+            "Leaf": "Grass",
+            "Earth": "Ground",
+            "Electricity": "Electric",
+        }.get(raw_element, raw_element)
+        return signed_percent(f"{element} resistance", value)
+
+    if effect_type == "FullStomatch_Decrease":
+        direction = "faster" if value > 0 else "slower"
+        return f"Hunger drains {amount}% {direction}."
+    if effect_type == "Sanity_Decrease":
+        direction = "faster" if value > 0 else "slower"
+        return f"SAN drains {amount}% {direction}."
+    if effect_type == "ActiveSkillCoolTime_Decrease":
+        direction = "faster" if value > 0 else "slower"
+        return f"Active skills recharge {amount}% {direction}."
+    if effect_type == "LifeSteal":
+        return f"Restores {amount}% of damage dealt as HP."
+    if effect_type == "Nocturnal":
+        return "Can work through the night."
+    if effect_type == "NonKilling":
+        return "Attacks cannot reduce an enemy below 1 HP."
+    if effect_type == "JumpCount_Increase":
+        return f"Adds {amount} midair jump{'s' if abs(value) != 1 else ''}."
+    if effect_type == "TemperatureResist_Cold":
+        return f"Cold resistance +{amount}."
+    if effect_type == "TemperatureResist_Heat":
+        return f"Heat resistance +{amount}."
+    if effect_type == "ShopBuyPrice_Money_Increase":
+        return signed_percent("Shop purchase prices", value)
+    if effect_type == "ShopSellPrice_Money_Increase":
+        return signed_percent("Shop selling prices", value)
+    if effect_type == "CollectItem":
+        item = code.removeprefix("CollectItem_").replace("_", " ")
+        return f"Collects {item.lower()} while assigned."
+
+    if effect_type != "None":
+        return signed_percent(prettify(effect_type), value)
+
+    # Some game effects are exported as `None`; their stable codes still
+    # provide enough meaning for a useful plain-English summary.
+    if code.startswith("SwimSpeed_"):
+        return signed_percent("Swimming speed", value)
+    if code.startswith("AirDash_"):
+        return f"Adds {amount} aerial dash{'es' if abs(value) != 1 else ''}."
+    if code.startswith("CaptureLevel_"):
+        return f"Capture strength +{amount}."
+    if code.startswith("RideJumpCount_"):
+        return f"Adds {amount} mounted jump{'s' if abs(value) != 1 else ''}."
+    if code.startswith("WorkSuitabilityAddRank_MonsterFarm"):
+        return f"Farming suitability +{amount}."
+    if code.startswith("WoodDrop_Boost"):
+        return signed_percent("Logging yield", value)
+    if code.startswith("StonDrop_Boost"):
+        return signed_percent("Mining yield", value)
+    if code == "StonWoodDrop_Boost":
+        return signed_percent("Logging and mining yield", value)
+    if code.startswith("SelfDeathAddItemDrop"):
+        return signed_percent("Items dropped when defeated", value)
+    if code == "FriendshipPoint_Increase_EquipSkill":
+        return signed_percent("Trust gained by party Pals", value)
+    if code == "ReloadSpeedUp_Passive":
+        return signed_percent("Player reload speed", value)
+    if code == "PlayerSP_DecreaseRate_Passive":
+        direction = "faster" if value > 0 else "slower"
+        return f"Player stamina drains {amount}% {direction}."
+    if code == "MutationPal_ExplosionResist":
+        return "Immune to explosion damage."
+    if code == "MutationPal_Mutant":
+        return "Pal and player health regeneration +50%. Immune to poison and burn."
+    if code == "MutationPal_Immortal":
+        return "Grants the Immortality effect."
+    if code == "NightOwl":
+        return "Can work through the night."
+    if code.startswith("WorldTree_"):
+        return "World Tree resources no longer vanish when approached."
+    if "Immunity" in name:
+        return f"Grants {name.lower()}."
+    return None
+
+
+def plain_passive_description(
+    code: str,
+    name: str,
+    effects: list[dict[str, Any]],
+) -> str:
+    sentences: list[str] = []
+    for effect in effects:
+        sentence = passive_effect_sentence(code, name, effect)
+        if sentence and sentence not in sentences:
+            sentences.append(sentence)
+    if not sentences:
+        sentences.append(f"Grants the {name} effect.")
+    return " ".join(sentences)
+
+
 def as_int(value: Any, default: int = 0) -> int:
     return default if value is None else int(value)
 
@@ -580,6 +729,8 @@ def build_reference(destination: Path) -> dict[str, int]:
 
         for code, row in passives.items():
             localized = en_passives.get(code) or {}
+            passive_name = localized.get("localized_name") or prettify(code)
+            effects = row.get("effects") or []
             connection.execute(
                 """
                 INSERT INTO passive(
@@ -595,8 +746,8 @@ def build_reference(destination: Path) -> dict[str, int]:
                 """,
                 (
                     code,
-                    localized.get("localized_name") or prettify(code),
-                    (localized.get("description") or "").strip(),
+                    passive_name,
+                    plain_passive_description(code, passive_name, effects),
                     as_int(row.get("rank")),
                     as_bool(row.get("invoke_active_party")),
                     as_bool(row.get("invoke_worker")),
@@ -615,7 +766,7 @@ def build_reference(destination: Path) -> dict[str, int]:
                     psp_source,
                 ),
             )
-            for position, effect in enumerate(row.get("effects") or []):
+            for position, effect in enumerate(effects):
                 connection.execute(
                     """
                     INSERT INTO passive_effect(
