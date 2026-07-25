@@ -2,6 +2,30 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Session 2 (2026-07-24 pt.2) — UI build-out
+**New reference (use it):** `../palworld-reference/` (sibling to PalboxStudio) —
+`pal-data.md`, `save-and-file-format.md`, `paledit-code-map.md`, README. Filter categories,
+move/passive legality, the 13 work suits, per-pal save fields.
+
+**Done this session:**
+- Real assets + data: 379 pal icons + 13 work icons in `ui/static`; card renders the real
+  Incineram (CodeName Baphomet) + real work-suit icons. WORK_SUITS → **13** (added Oil Extraction).
+- **Advanced drawer complete**: IV sliders (0–100), Statue of Power per-stat souls
+  HP/ATK/DEF/WS (0–10, ±/clickable pips), condensation stars (0–4). Model gained `ivs` +
+  `soulRanks` (per the PSP DTO map).
+- **Global Box drawer**: Open-file button (`tauri-plugin-dialog`, defaults to
+  `%LOCALAPPDATA%/Pal/Saved/SaveGames`), search + element + group filters, 3-col tile matrix,
+  **Expand → full `BoxMatrix` overlay** of large tiles. `BoxTile` (sm/lg), `sampleBox`
+  (real species). Left drawer opens on load.
+- **RULE — humans/NPCs are EXCLUDED entirely** (can't live in a global box). Base filter on
+  every species/box list is `Human !== true`; never show them as clutter or a filter bucket.
+
+**Next:** wire the Rust engine (load `GlobalPalStorage.sav` → real box + computed pal stats;
+expose `core::limits` + game data via Tauri commands); species selector popup (click the
+species name → filterable **storable-species** list w/ icons); real groups/tags create/rename;
+central-card glow goals. NOTE: the open-file button needs a `tauri dev` rebuild to work
+(dialog plugin is compiled in).
+
 ## Status — end of session 2026-07-24
 
 **Done**
