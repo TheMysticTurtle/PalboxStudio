@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Pal, ElementName } from "$lib/data/types";
   import { LIMITS, ELEMENT_COLOR } from "$lib/data/constants";
-  import { ref, resolveMove } from "$lib/data/refdata.svelte";
+  import { resolveMove, resolveSpecies } from "$lib/data/refdata.svelte";
   import { palIcon, onPalIconError } from "$lib/data/icons";
   import { reSpecies } from "$lib/data/mapper";
   import SectionHeader from "./SectionHeader.svelte";
@@ -9,14 +9,17 @@
   import PassiveChip from "./PassiveChip.svelte";
   import WorkSuitRow from "./WorkSuitRow.svelte";
   import SpeciesSelector from "./SpeciesSelector.svelte";
+  import PassiveSelector from "./PassiveSelector.svelte";
+  import MoveSelector from "./MoveSelector.svelte";
 
   let { pal }: { pal: Pal } = $props();
 
   // Species display name (tolerant of an alpha BOSS_ prefix) + the selector modal.
   let speciesOpen = $state(false);
-  const speciesName = $derived(
-    ref.speciesByCode[pal.species.replace(/^BOSS_/i, "")]?.name ?? pal.species,
-  );
+  let passiveOpen = $state(false);
+  let passiveEditing = $state<number | null>(null);
+  let moveOpen = $state(false);
+  const speciesName = $derived(resolveSpecies(pal.species)?.name ?? pal.species);
 
   const genderSymbol = $derived(pal.gender === "Male" ? "♂" : pal.gender === "Female" ? "♀" : "–");
   const hpPct = $derived(Math.min(100, (pal.stats.hp / pal.stats.hpMax) * 100));
@@ -29,13 +32,37 @@
     pal.level = Math.max(LIMITS.levelMin, Math.min(LIMITS.levelMax, Number.isFinite(n) ? n : LIMITS.levelMin));
   }
 
+  function toggleAlpha() {
+    pal.alpha = !pal.alpha;
+    if (pal.alpha) pal.lucky = false;
+  }
+  function toggleLucky() {
+    pal.lucky = !pal.lucky;
+    if (pal.lucky) pal.alpha = false;
+  }
+
+  function openPassive(index: number | null) {
+    passiveEditing = index;
+    passiveOpen = true;
+  }
+  function choosePassive(code: string) {
+    if (passiveEditing == null) {
+      if (pal.passives.length < LIMITS.passivesMax && !pal.passives.includes(code)) pal.passives.push(code);
+    } else if (!pal.passives.some((value, index) => value === code && index !== passiveEditing)) {
+      pal.passives[passiveEditing] = code;
+    }
+  }
+  function removePassive() {
+    if (passiveEditing != null) pal.passives.splice(passiveEditing, 1);
+  }
+
   // Moves: click or drag between the equipped zone and the bench.
   let emptySlots = $derived(Math.max(0, LIMITS.equippedMovesMax - pal.activeSkills.length));
 
   function equip(code: string) {
+    if (pal.activeSkills.includes(code)) return;
     const i = pal.benchMoves.indexOf(code);
-    if (i < 0) return;
-    pal.benchMoves.splice(i, 1);
+    if (i >= 0) pal.benchMoves.splice(i, 1);
     if (pal.activeSkills.length >= LIMITS.equippedMovesMax) {
       const dropped = pal.activeSkills.shift();
       if (dropped) pal.benchMoves.push(dropped); // swap the oldest out
@@ -90,14 +117,27 @@
       </div>
       <div class="subline">
         {#each pal.elements as el}<ElementPill element={el} />{/each}
-        <button class="species" onclick={() => (speciesOpen = true)} title="Change species">
-          {speciesName}
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#c9b4e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
         <span class="pdx">Palpedia {pal.paldexNo}</span>
       </div>
     </div>
     <div class="headactions">
+      <button class="species" onclick={() => (speciesOpen = true)} title="Change species">
+        <span class="species-port"><img src={iconSrc} alt="" onerror={onPalIconError} /></span>
+        <span class="species-copy">
+          <span class="species-cap">SPECIES</span>
+          <strong>{speciesName}</strong>
+        </span>
+        <span class="species-change">CHANGE</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#c9b4e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="variant alpha" class:on={pal.alpha} onclick={toggleAlpha} aria-pressed={pal.alpha} title="Toggle Alpha">
+        <img src="/icons/variants/alpha.webp" alt="" />
+        <span>Alpha</span>
+      </button>
+      <button class="variant lucky" class:on={pal.lucky} onclick={toggleLucky} aria-pressed={pal.lucky} title="Toggle Lucky">
+        <img src="/icons/variants/lucky.webp" alt="" />
+        <span>Lucky</span>
+      </button>
       <button class="preset">◈ PRESETS</button>
       <button class="fav" onclick={() => (pal.favorite = !pal.favorite)} aria-pressed={pal.favorite} aria-label="Favorite">
         <svg width="22" height="22" viewBox="0 0 24 24" fill={pal.favorite ? "#F5A623" : "none"}>
@@ -130,9 +170,9 @@
           {#snippet right()}{pal.passives.length} / {LIMITS.passivesMax}{/snippet}
         </SectionHeader>
         <div class="passives">
-          {#each pal.passives as code (code)}<PassiveChip {code} />{/each}
+          {#each pal.passives as code, index (code)}<PassiveChip {code} onselect={() => openPassive(index)} />{/each}
           {#if pal.passives.length < LIMITS.passivesMax}
-            <button class="add">+ Add passive</button>
+            <button class="add" onclick={() => openPassive(null)}>+ Filter & add passive</button>
           {/if}
         </div>
       </div>
@@ -141,8 +181,8 @@
     <!-- Center: portrait + level + moves -->
     <div class="col center">
       <div class="portrait">
-        <span class="badge alpha" class:hide={!pal.alpha}>ALPHA</span>
-        <span class="badge lucky" class:hide={!pal.lucky}>✦ LUCKY</span>
+        <img class="badge alpha" class:hide={!pal.alpha} src="/icons/variants/alpha.webp" alt="Alpha" />
+        <img class="badge lucky" class:hide={!pal.lucky} src="/icons/variants/lucky.webp" alt="Lucky" />
         <div class="art">
           <img class="palimg" src={iconSrc} alt={pal.name} onerror={onPalIconError} />
         </div>
@@ -188,7 +228,10 @@
             <div class="emptyslot">empty slot — drag a move here</div>
           {/each}
         </div>
-        <div class="bench-label">AVAILABLE MOVES</div>
+        <div class="bench-head">
+          <div class="bench-label">AVAILABLE MOVES</div>
+          <button class="browse-moves" onclick={() => (moveOpen = true)}>FILTER & ADD</button>
+        </div>
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="bench" ondragover={allowDrop} ondrop={dropBench}>
           {#each bench as m (m.code)}
@@ -243,6 +286,15 @@
 </div>
 
 <SpeciesSelector bind:open={speciesOpen} current={pal.species} onpick={(code) => reSpecies(pal, code)} />
+<PassiveSelector
+  bind:open={passiveOpen}
+  species={pal.species}
+  selected={pal.passives}
+  editing={passiveEditing}
+  onpick={choosePassive}
+  onremove={removePassive}
+/>
+<MoveSelector bind:open={moveOpen} species={pal.species} equipped={pal.activeSkills} onpick={equip} />
 
 <style>
   .card {
@@ -308,15 +360,33 @@
   .gender.unknown { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.14); color: #9aa6b2; }
   .subline { display: flex; align-items: center; gap: 9px; margin-top: 11px; flex-wrap: wrap; }
   .species {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 3px 10px; border-radius: 14px; cursor: pointer;
-    font-family: var(--font-cond); font-weight: 600; font-size: 13px; color: #d6bef2;
-    background: rgba(176, 96, 224, 0.12); border: 1px solid rgba(176, 96, 224, 0.4);
-    transition: background 0.14s, border-color 0.14s;
+    display: inline-flex; align-items: center; gap: 9px;
+    min-width: 220px; padding: 5px 10px 5px 6px; border-radius: 10px; cursor: pointer;
+    color: #d6bef2; text-align: left;
+    background: rgba(176, 96, 224, 0.13); border: 1px solid rgba(176, 96, 224, 0.48);
+    box-shadow: inset 0 0 16px rgba(176, 96, 224, 0.05);
+    transition: background 0.14s, border-color 0.14s, box-shadow 0.14s;
   }
-  .species:hover { background: rgba(176, 96, 224, 0.22); border-color: rgba(176, 96, 224, 0.65); }
+  .species:hover { background: rgba(176, 96, 224, 0.23); border-color: rgba(176, 96, 224, 0.78); box-shadow: 0 0 14px rgba(176, 96, 224, 0.2); }
+  .species-port { width: 34px; height: 34px; flex: none; display: grid; place-items: center; overflow: hidden; border-radius: 8px; background: rgba(8, 7, 12, 0.42); }
+  .species-port img { width: 100%; height: 100%; object-fit: contain; }
+  .species-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; line-height: 1.05; }
+  .species-cap { color: #8f79a4; font: 600 9px var(--font-head); letter-spacing: 0.14em; }
+  .species-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #eadff4; font: 700 15px var(--font-cond); }
+  .species-change { color: #bca5d1; font: 700 9.5px var(--font-head); letter-spacing: 0.08em; }
   .pdx { font-size: 12.5px; color: #6e7a86; margin-left: 4px; }
   .headactions { display: flex; align-items: center; gap: 10px; }
+  .variant {
+    width: 48px; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0; cursor: pointer; border-radius: 10px; color: #83909a;
+    background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.1);
+  }
+  .variant img { width: 25px; height: 25px; object-fit: contain; opacity: .42; filter: grayscale(.7); }
+  .variant span { font: 600 9px var(--font-head); letter-spacing: .04em; }
+  .variant:hover { border-color: rgba(255,255,255,.24); color: #b9c2c9; }
+  .variant.alpha.on { color: #ffaaaa; border-color: rgba(255,70,70,.62); background: rgba(255,70,70,.12); box-shadow: 0 0 14px rgba(255,70,70,.2); }
+  .variant.lucky.on { color: #9fddff; border-color: rgba(70,170,255,.62); background: rgba(70,170,255,.12); box-shadow: 0 0 14px rgba(70,170,255,.2); }
+  .variant.on img { opacity: 1; filter: none; }
   .preset {
     padding: 10px 15px;
     border-radius: 9px;
@@ -394,9 +464,9 @@
       linear-gradient(180deg, #141a22, #0e131a);
     box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(176, 96, 224, 0.15);
   }
-  .badge { position: absolute; top: 12px; font-family: var(--font-head); font-weight: 700; font-size: 12px; letter-spacing: 0.1em; padding: 3px 10px; border-radius: 5px; }
-  .badge.alpha { left: 12px; background: rgba(224, 90, 90, 0.85); color: #fff; box-shadow: 0 0 12px rgba(224, 90, 90, 0.5); }
-  .badge.lucky { right: 12px; color: #f5c97a; background: rgba(245, 201, 122, 0.18); border: 1px solid rgba(245, 201, 122, 0.5); }
+  .badge { position: absolute; z-index: 2; top: 10px; width: 42px; height: 42px; object-fit: contain; filter: drop-shadow(0 2px 5px rgba(0,0,0,.7)); }
+  .badge.alpha { left: 10px; }
+  .badge.lucky { right: 10px; width: 36px; height: 36px; }
   .badge.hide { display: none; }
   .art { position: absolute; inset: 0 0 52px; display: grid; place-items: center; }
   .palimg { max-width: 78%; max-height: 92%; object-fit: contain; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.5)); }
@@ -424,7 +494,14 @@
   .move:hover { border-color: rgba(63, 199, 224, 0.5); }
   .move.equipped { background: rgba(63, 199, 224, 0.05); border-color: rgba(63, 199, 224, 0.18); }
   .emptyslot { display: flex; align-items: center; justify-content: center; padding: 11px; border-radius: 9px; border: 1px dashed rgba(255, 255, 255, 0.14); color: #6e7a86; font-size: 13px; }
-  .bench-label { font-family: var(--font-head); font-weight: 600; font-size: 11.5px; letter-spacing: 0.14em; color: #6e7a86; margin: 12px 2px 7px; }
+  .bench-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 2px 7px; }
+  .bench-label { font-family: var(--font-head); font-weight: 600; font-size: 11.5px; letter-spacing: 0.14em; color: #6e7a86; }
+  .browse-moves {
+    padding: 5px 9px; border-radius: 8px; cursor: pointer; color: #9fd8e6;
+    background: rgba(63,199,224,.09); border: 1px solid rgba(63,199,224,.3);
+    font: 700 9.5px var(--font-head); letter-spacing: .08em;
+  }
+  .browse-moves:hover { background: rgba(63,199,224,.17); border-color: rgba(63,199,224,.52); }
   .bench { display: flex; flex-direction: column; gap: 7px; }
   .bench-move { padding: 9px 12px; }
   .mgrip { color: #7c8894; font-size: 15px; letter-spacing: -2px; }

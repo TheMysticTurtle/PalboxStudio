@@ -233,10 +233,10 @@ fn apply_passive_preset(
 /// Apply every implemented edit port from a DTO. (Work-suitability list setter
 /// is the one field still pending — see pal.rs.)
 fn apply_dto(sp: &mut Properties, dto: &PalDto) {
-    // Species first: the game derives stats/work/learnset from CharacterID, so a
-    // species change must land before the other edits. set_species keeps the
-    // pal's own BOSS_ prefix, so writing the current species is a no-op.
+    // Species first: the game derives stats/work/learnset from CharacterID.
+    // Variant second so Alpha/Lucky can add or remove the BOSS_ representation.
     pal::set_species(sp, &dto.character_id);
+    pal::set_variant(sp, dto.is_alpha, dto.is_lucky);
     pal::set_level(sp, dto.level);
     if let Some(name) = &dto.nickname {
         pal::set_nickname(sp, name);
@@ -250,7 +250,6 @@ fn apply_dto(sp: &mut Properties, dto: &PalDto) {
     pal::set_soul(sp, "defense", dto.souls.defense);
     pal::set_soul(sp, "craftSpeed", dto.souls.craft_speed);
     pal::set_condensation(sp, dto.condensation);
-    pal::set_lucky(sp, dto.is_lucky);
     pal::set_passives(sp, dto.passives.clone());
     pal::set_equipped_moves(sp, dto.equipped_moves.clone());
 }

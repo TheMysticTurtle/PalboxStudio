@@ -68,10 +68,23 @@ pub struct PassivePreset {
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct PassiveEffectRef {
+    #[serde(rename = "type")]
+    pub effect_type: String,
+    pub value: Option<f64>,
+    pub target: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PassiveRef {
     pub name: String,
     pub rating: i64,
     pub description: String,
+    pub disabled: bool,
+    pub available_normal_pal: bool,
+    pub available_lucky_pal: bool,
+    pub effects: Vec<PassiveEffectRef>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -141,6 +154,7 @@ pub struct SpeciesRef {
     pub scaling: ScalingRef,
     pub work: BTreeMap<String, i64>,
     pub moves: Vec<String>,
+    pub passives: Vec<String>,
     pub partner_skill: Option<PartnerSkillRef>,
     pub farm_drops: Vec<RanchDropRef>,
 }
@@ -269,7 +283,8 @@ impl ReferenceDatabase {
         let mut passives = BTreeMap::new();
         let mut statement = self.connection.prepare(
             r#"
-            SELECT code, name, rating, description
+            SELECT code, name, rating, description, disabled,
+                   available_normal_pal, available_lucky_pal
             FROM passive
             ORDER BY code
             "#,
@@ -281,11 +296,37 @@ impl ReferenceDatabase {
                     name: row.get(1)?,
                     rating: row.get(2)?,
                     description: row.get(3)?,
+                    disabled: row.get::<_, i64>(4)? != 0,
+                    available_normal_pal: row.get::<_, i64>(5)? != 0,
+                    available_lucky_pal: row.get::<_, i64>(6)? != 0,
+                    effects: Vec::new(),
                 },
             ))
         })? {
             let (code, value) = row?;
             passives.insert(code, value);
+        }
+        let mut statement = self.connection.prepare(
+            r#"
+            SELECT passive_code, type, value, target
+            FROM passive_effect
+            ORDER BY passive_code, position
+            "#,
+        )?;
+        for row in statement.query_map([], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                PassiveEffectRef {
+                    effect_type: row.get(1)?,
+                    value: row.get(2)?,
+                    target: row.get(3)?,
+                },
+            ))
+        })? {
+            let (code, effect) = row?;
+            if let Some(passive) = passives.get_mut(&code) {
+                passive.effects.push(effect);
+            }
         }
 
         let mut moves = BTreeMap::new();
@@ -382,6 +423,24 @@ impl ReferenceDatabase {
                 .push(move_code);
         }
 
+        let mut species_passives: HashMap<String, Vec<String>> = HashMap::new();
+        let mut statement = self.connection.prepare(
+            r#"
+            SELECT species_code, passive_code
+            FROM species_passive
+            ORDER BY species_code, relationship, passive_code
+            "#,
+        )?;
+        for row in statement.query_map([], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+        })? {
+            let (species_code, passive_code) = row?;
+            species_passives
+                .entry(species_code)
+                .or_default()
+                .push(passive_code);
+        }
+
         let mut partner_skills = HashMap::new();
         let mut statement = self.connection.prepare(
             r#"
@@ -474,6 +533,7 @@ impl ReferenceDatabase {
                     elements: Vec::new(),
                     work: BTreeMap::new(),
                     moves: Vec::new(),
+                    passives: Vec::new(),
                     partner_skill: None,
                     farm_drops: Vec::new(),
                 },
@@ -483,6 +543,7 @@ impl ReferenceDatabase {
             value.elements = species_elements.remove(&code).unwrap_or_default();
             value.work = species_work.remove(&code).unwrap_or_default();
             value.moves = species_moves.remove(&code).unwrap_or_default();
+            value.passives = species_passives.remove(&code).unwrap_or_default();
             value.partner_skill = partner_skills.remove(&code);
             value.farm_drops = ranch_drops.remove(&code).unwrap_or_default();
             species.push(value);
@@ -740,6 +801,8 @@ mod tests {
         assert_eq!(bundle.species.len(), 406);
         assert_eq!(bundle.moves.len(), 351);
         assert_eq!(bundle.passives.len(), 420);
+        assert!(bundle.passives.values().any(|passive| !passive.effects.is_empty()));
+        assert!(bundle.species.iter().any(|species| !species.passives.is_empty()));
         assert_eq!(
             bundle
                 .species

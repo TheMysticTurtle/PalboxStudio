@@ -197,6 +197,16 @@ pub fn set_lucky(sp: &mut Properties, lucky: bool) {
         ue::remove_prop(sp, "IsRarePal");
     }
 }
+
+fn set_character_id(sp: &mut Properties, value: &str) {
+    let variant = match ue::prop(sp, "CharacterID") {
+        Some(crate::ue::Property::Name(_)) => ue::name_prop(value),
+        Some(crate::ue::Property::Enum(_)) => ue::enum_prop(value),
+        _ => ue::str_prop(value),
+    };
+    ue::set_prop(sp, "CharacterID", variant);
+}
+
 /// Change the pal's species by rewriting `CharacterID`, mirroring PalEdit's
 /// `SetType`: keep an alpha/lucky `BOSS_` prefix (the game stores the boss
 /// variant for those) and preserve the property's on-disk variant (Name/Str/
@@ -212,12 +222,29 @@ pub fn set_species(sp: &mut Properties, code: &str) {
         .or_else(|| code.strip_prefix("boss_"))
         .unwrap_or(code);
     let value = format!("{prefix}{base}");
-    let variant = match ue::prop(sp, "CharacterID") {
-        Some(crate::ue::Property::Name(_)) => ue::name_prop(&value),
-        Some(crate::ue::Property::Enum(_)) => ue::enum_prop(&value),
-        _ => ue::str_prop(&value),
+    set_character_id(sp, &value);
+}
+
+/// Set the mutually-exclusive Alpha/Lucky variant flags and keep CharacterID in
+/// the form Palworld expects: either trait adds `BOSS_`; Lucky additionally
+/// writes `IsRarePal`. Clearing both removes the prefix and the rare flag.
+pub fn set_variant(sp: &mut Properties, alpha: bool, lucky: bool) {
+    // Lucky wins if an untrusted caller sends both true. The UI prevents that,
+    // and normalizing here keeps the save representation unambiguous.
+    let alpha = alpha && !lucky;
+    let current = ue::prop(sp, "CharacterID").and_then(ue::as_str).unwrap_or("");
+    let base = current
+        .strip_prefix("BOSS_")
+        .or_else(|| current.strip_prefix("Boss_"))
+        .or_else(|| current.strip_prefix("boss_"))
+        .unwrap_or(current);
+    let value = if alpha || lucky {
+        format!("BOSS_{base}")
+    } else {
+        base.to_string()
     };
-    ue::set_prop(sp, "CharacterID", variant);
+    set_character_id(sp, &value);
+    set_lucky(sp, lucky);
 }
 pub fn set_passives(sp: &mut Properties, codes: Vec<String>) {
     ue::set_prop(sp, "PassiveSkillList", ue::name_array_prop(codes));
@@ -228,4 +255,27 @@ pub fn set_equipped_moves(sp: &mut Properties, codes: Vec<String>) {
         .map(|c| if c.starts_with(WAZA) { c } else { format!("{WAZA}{c}") })
         .collect();
     ue::set_prop(sp, "EquipWaza", ue::enum_array_prop(full));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn alpha_and_lucky_keep_character_id_and_rare_flag_in_sync() {
+        let mut sp = Properties::default();
+        ue::set_prop(&mut sp, "CharacterID", ue::name_prop("Baphomet"));
+
+        set_variant(&mut sp, true, false);
+        assert_eq!(ue::prop(&sp, "CharacterID").and_then(ue::as_str), Some("BOSS_Baphomet"));
+        assert_eq!(ue::prop(&sp, "IsRarePal").and_then(ue::as_bool), None);
+
+        set_variant(&mut sp, false, true);
+        assert_eq!(ue::prop(&sp, "CharacterID").and_then(ue::as_str), Some("BOSS_Baphomet"));
+        assert_eq!(ue::prop(&sp, "IsRarePal").and_then(ue::as_bool), Some(true));
+
+        set_variant(&mut sp, false, false);
+        assert_eq!(ue::prop(&sp, "CharacterID").and_then(ue::as_str), Some("Baphomet"));
+        assert_eq!(ue::prop(&sp, "IsRarePal").and_then(ue::as_bool), None);
+    }
 }

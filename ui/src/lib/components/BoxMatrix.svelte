@@ -1,25 +1,20 @@
 <script lang="ts">
-  import type { ElementName, BoxPal } from "$lib/data/types";
+  import type { BoxPal } from "$lib/data/types";
   import { sampleBox } from "$lib/data/sampleBox";
-  import { ref } from "$lib/data/refdata.svelte";
   import { ui } from "$lib/stores/ui.svelte";
   import { box, selectSlot } from "$lib/stores/box.svelte";
-  import type { BoxTileDto } from "$lib/data/engine";
+  import { palToBoxPal, tileDtoToBoxPal } from "$lib/data/mapper";
   import BoxTile from "./BoxTile.svelte";
 
-  function tileToBoxPal(t: BoxTileDto): BoxPal {
-    const sp = ref.speciesByCode[t.characterId];
-    return {
-      instanceId: String(t.slot),
-      species: t.characterId,
-      name: sp?.name ?? t.characterId,
-      level: t.level,
-      elements: (sp?.elements ?? []) as ElementName[],
-      alpha: t.isAlpha,
-      lucky: t.isLucky,
-    };
-  }
-  let source = $derived(box.open ? box.tiles.map(tileToBoxPal) : sampleBox);
+  let source: BoxPal[] = $derived(
+    box.open
+      ? box.tiles.map((tile) =>
+          tile.slot === box.selectedSlot && box.pal
+            ? palToBoxPal(box.pal, tile.slot)
+            : tileDtoToBoxPal(tile),
+        )
+      : sampleBox,
+  );
 
   function select(id: string) {
     if (box.open) selectSlot(Number(id));

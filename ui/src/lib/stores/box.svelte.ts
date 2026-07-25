@@ -31,7 +31,16 @@ export const box = $state({
 /** Persist the currently-loaded pal's edits into the in-memory box. */
 async function flush() {
   if (box.pal && box.selectedSlot >= 0) {
-    await updatePal(palToDto(box.pal, box.selectedSlot));
+    const updated = await updatePal(palToDto(box.pal, box.selectedSlot));
+    // Keep both box explorers in sync with unsaved main-card edits. The engine
+    // returns the canonical BOSS_ representation after Alpha/Lucky changes.
+    const tile = box.tiles.find((value) => value.slot === box.selectedSlot);
+    if (tile) {
+      tile.characterId = updated.characterId;
+      tile.level = updated.level;
+      tile.isLucky = updated.isLucky;
+      tile.isAlpha = updated.isAlpha;
+    }
   }
 }
 

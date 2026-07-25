@@ -20,8 +20,8 @@
 
 <button class="tile {size}" class:selected onclick={() => onselect?.(pal.instanceId)} title={pal.name}>
   <div class="badges">
-    {#if pal.alpha}<span class="bd alpha">A</span>{/if}
-    {#if pal.lucky}<span class="bd lucky">★</span>{/if}
+    {#if pal.alpha}<img class="emblem alpha" src="/icons/variants/alpha.webp" alt="Alpha" title="Alpha" />{/if}
+    {#if pal.lucky}<img class="emblem lucky" src="/icons/variants/lucky.webp" alt="Lucky" title="Lucky" />{/if}
   </div>
   <div class="port"><img src={iconSrc} alt="" loading="lazy" decoding="async" onerror={onPalIconError} /></div>
   <div class="name">{pal.name}</div>
@@ -55,20 +55,14 @@
     box-shadow: 0 0 16px rgba(176, 96, 224, 0.4);
     background: rgba(176, 96, 224, 0.14);
   }
-  .badges { position: absolute; top: 6px; left: 6px; display: flex; gap: 3px; }
-  .bd {
-    display: grid;
-    place-items: center;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 3px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 700;
-    font-family: var(--font-head);
+  .badges { position: absolute; z-index: 2; top: 5px; left: 5px; display: flex; align-items: center; gap: 2px; }
+  .emblem {
+    width: 25px;
+    height: 25px;
+    object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
   }
-  .bd.alpha { background: rgba(224, 90, 90, 0.85); color: #fff; }
-  .bd.lucky { background: rgba(245, 201, 122, 0.9); color: #2a2306; }
+  .emblem.lucky { width: 22px; height: 22px; }
   .port {
     border-radius: 50%;
     background: radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.35));
@@ -99,4 +93,6 @@
   .lg .port { width: 96px; height: 96px; }
   .lg .name { font-size: 16px; }
   .lg .lv { font-size: 13px; }
+  .lg .emblem { width: 34px; height: 34px; }
+  .lg .emblem.lucky { width: 30px; height: 30px; }
 </style>

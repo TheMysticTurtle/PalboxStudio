@@ -1,13 +1,13 @@
 // Map between the engine's raw PalDto (save values) and the UI's display `Pal`,
 // joining the species reference table. Combat-stat numbers are placeholders until
 // the stat formula lands; every editable field is faithful.
-import type { Pal, ElementName, Gender } from "./types";
-import type { PalDto } from "./engine";
-import { ref } from "./refdata.svelte";
+import type { Pal, BoxPal, ElementName, Gender } from "./types";
+import type { BoxTileDto, PalDto } from "./engine";
+import { resolveSpecies } from "./refdata.svelte";
 import { WORK_SUITS } from "./constants";
 
 export function dtoToPal(dto: PalDto): Pal {
-  const sp = ref.speciesByCode[dto.characterId];
+  const sp = resolveSpecies(dto.characterId);
   const elements = (sp?.elements ?? []) as ElementName[];
   const displayName = dto.nickname || sp?.name || dto.characterId;
   const workBase = sp?.work ?? {};
@@ -69,8 +69,8 @@ export function dtoToPal(dto: PalDto): Pal {
  *  species (i.e. no custom nickname) follows to the new species name. Persisted on
  *  save: palToDto sends the new characterId, and the engine's set_species writes it. */
 export function reSpecies(pal: Pal, code: string): void {
-  const oldSp = ref.speciesByCode[pal.species];
-  const sp = ref.speciesByCode[code];
+  const oldSp = resolveSpecies(pal.species);
+  const sp = resolveSpecies(code);
   if (!pal.name || pal.name === oldSp?.name) pal.name = sp?.name ?? code;
   pal.species = code;
   pal.elements = (sp?.elements ?? []) as ElementName[];
@@ -88,7 +88,7 @@ export function reSpecies(pal: Pal, code: string): void {
 
 /** Build the editable DTO back from the display `Pal` for saving. */
 export function palToDto(pal: Pal, slot: number): PalDto {
-  const sp = ref.speciesByCode[pal.species];
+  const sp = resolveSpecies(pal.species);
   const workBase = sp?.work ?? {};
   const work: Record<string, number> = {};
   for (const w of pal.workSuit) {
@@ -120,5 +120,35 @@ export function palToDto(pal: Pal, slot: number): PalDto {
     sanity: pal.stats.san,
     food: 0,
     friendship: 0,
+  };
+}
+
+/** Join a lightweight engine tile to the in-memory species reference table.
+ * `resolveSpecies` strips the BOSS_ storage prefix, so Alpha/Lucky tiles always
+ * show the real species name, elements, and portrait instead of a code name. */
+export function tileDtoToBoxPal(tile: BoxTileDto): BoxPal {
+  const sp = resolveSpecies(tile.characterId);
+  return {
+    instanceId: String(tile.slot),
+    species: tile.characterId,
+    name: sp?.name ?? tile.characterId,
+    level: tile.level,
+    elements: (sp?.elements ?? []) as ElementName[],
+    alpha: tile.isAlpha,
+    lucky: tile.isLucky,
+  };
+}
+
+/** Live tile projection for the Pal currently open on the main card. */
+export function palToBoxPal(pal: Pal, slot: number): BoxPal {
+  const sp = resolveSpecies(pal.species);
+  return {
+    instanceId: String(slot),
+    species: pal.species,
+    name: sp?.name ?? pal.species,
+    level: pal.level,
+    elements: pal.elements,
+    alpha: pal.alpha,
+    lucky: pal.lucky,
   };
 }

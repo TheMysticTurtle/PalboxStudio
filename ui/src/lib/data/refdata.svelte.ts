@@ -49,4 +49,10 @@ export async function loadRefData(): Promise<void> {
 // Resolvers — read `ref` so they stay reactive inside $derived once data loads.
 export const resolvePassive = (code: string): PassiveRef | undefined => ref.passives[code];
 export const resolveMove = (code: string): MoveRef | undefined => ref.moves[code];
-export const resolveSpecies = (code: string): SpeciesRow | undefined => ref.speciesByCode[code];
+
+/** Alpha and Lucky pals store `BOSS_<species>` in CharacterID, but all static
+ * reference rows and portrait assets are keyed by the base species code. */
+export const baseSpeciesCode = (code: string): string => code.replace(/^BOSS_/i, "");
+export const resolveSpecies = (code: string): SpeciesRow | undefined =>
+  ref.speciesByCode[baseSpeciesCode(code)];
+export const speciesDisplayName = (code: string): string => resolveSpecies(code)?.name ?? code;

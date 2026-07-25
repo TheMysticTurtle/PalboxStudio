@@ -16,11 +16,21 @@ export type Category = "Natural" | "TowerBoss" | "Unobtainable";
 // ---- Reference tables (static; from the SQLite reference DB via get_reference_data) ----
 
 /** passives.json: code -> this. */
+export interface PassiveEffectRef {
+  type: string;
+  value: number | null;
+  target: string | null;
+}
+
 export interface PassiveRef {
   name: string;
   /** -3..5 (no 0); 5 is the 1.0 top tier. */
   rating: number;
   description: string;
+  disabled: boolean;
+  availableNormalPal: boolean;
+  availableLuckyPal: boolean;
+  effects: PassiveEffectRef[];
 }
 
 /** moves.json: code -> this. */
@@ -85,6 +95,7 @@ export interface SpeciesRow {
   scaling: { hp: number; attack: number; defense: number };
   work: Record<string, number>;
   moves: string[];
+  passives: string[];
   partnerSkill: PartnerSkillRef | null;
   farmDrops: RanchDropRef[];
 }

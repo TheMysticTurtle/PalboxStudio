@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ref } from "$lib/data/refdata.svelte";
+  import { ref, baseSpeciesCode } from "$lib/data/refdata.svelte";
   import { ELEMENT_COLOR } from "$lib/data/constants";
   import { palIcon, onPalIconError } from "$lib/data/icons";
   import SpeciesFilter from "./SpeciesFilter.svelte";
@@ -34,7 +34,7 @@
   let filtered = $derived(filterSpecies(allSpecies, filter));
 
   // Match the pal's current species tolerant of a BOSS_ prefix.
-  const baseCode = $derived(current.replace(/^BOSS_/i, ""));
+  const baseCode = $derived(baseSpeciesCode(current));
 
   function choose(code: string) {
     onpick(code);
