@@ -64,6 +64,34 @@ Living log of where the build is and what's next. Read this first when resuming.
 3. **Left drawer opens by default** — done: `stores/ui.svelte.ts` `leftOpen: true` (pops out on
    load).
 
+## PSP pal field map — our "does it map cleanly?" checklist
+Source of truth for stats = PSP's `PalDto` (`PalEdit/psp-reference/psp-core/src/dto/pal.rs`).
+Our UI `Pal` model maps cleanly for most fields; fixes to make while wiring the core:
+- **Pal Souls are PER-STAT**: `rank_hp / rank_attack / rank_defense / rank_craftspeed` (each
+  0–10). Our model has a single `souls` → change to `{hp,attack,defense,craftSpeed}`. (The
+  Advanced-drawer design already shows per-stat.)
+- **IVs/talents**: `talent_hp / talent_shot / talent_defense` (0–100 display, raw byte) — add
+  to the model (only placeholder in the Advanced drawer today).
+- **Trust** = `friendship_point` (raw i64) — derive our trust rank/pct from it (invented now).
+- **Condensation** = `rank` (0–4) ✓. **Nickname** is separate from `character_id` (species
+  codename) — split them (ties into the species-selector work).
+- **Identity/placement for save I/O** (mostly non-UI): `instance_id`, `character_id`,
+  `storage_slot`, `storage_id`.
+- **Moves**: `learned_skills` (learnset) is the REAL source for the bench "available moves";
+  `active_skills` (equipped) ✓, `passive_skills` ✓, `work_suitability` (map) ✓.
+- **Flags/status**: `is_lucky` ✓, `is_boss` (≈ our `alpha`), `is_tower` / `is_predator`
+  (NPC/boss buckets → feed the species selector's "storable in global box" filter), `is_sick`,
+  `owner_uid`, `group_id`. `stomach` (food, absolute) → foodPct, `sanity` → san, `hp`/`max_hp`
+  ✓, `exp` (raw; we keep only pct).
+Full DTO: instance_id · character_id · owner_uid · is_lucky · is_boss · is_tower · gender ·
+nickname · group_id · stomach · sanity · hp · level · exp · rank · rank_hp/attack/defense/
+craftspeed · talent_hp/shot/defense · max_hp · storage_slot · storage_id · learned/active/
+passive_skills · work_suitability · is_sick · friendship_point.
+
+## Trivial cleanup
+- 2 svelte a11y warnings: add `role="group"` to the two move drop-zone `<div>`s in PalCard
+  (`.moveslots` + `.bench`) — `a11y_no_static_element_interactions`.
+
 ## Deferred / loose ends
 - **App icon from the cropped logo**: owner swapped a cropped `assets/Palbox Studio Logo.png`,
   but `src-tauri/icons/*` and `ui/static/logo.png` are still from the ORIGINAL. Regenerate:
