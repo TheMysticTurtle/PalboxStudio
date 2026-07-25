@@ -4,6 +4,8 @@
   import Drawer from "$lib/components/Drawer.svelte";
   import PalCard from "$lib/components/PalCard.svelte";
   import AdvancedDrawer from "$lib/components/AdvancedDrawer.svelte";
+  import GlobalBoxDrawer from "$lib/components/GlobalBoxDrawer.svelte";
+  import BoxMatrix from "$lib/components/BoxMatrix.svelte";
   import { ui } from "$lib/stores/ui.svelte";
   import { samplePal } from "$lib/data/samplePal";
 
@@ -22,12 +24,16 @@
 </main>
 
 <Drawer side="left" tone="box" label="GLOBAL BOX" tabLabel="BOX" width={440} bind:open={ui.leftOpen}>
-  <p class="placeholder">Tiles, search / filter / sort, groups &amp; tags, add · clone · delete.</p>
+  <GlobalBoxDrawer />
 </Drawer>
 
 <Drawer side="right" tone="advanced" label="ADVANCED" tabLabel="IV / STATUE" width={420} bind:open={ui.rightOpen}>
   <AdvancedDrawer {pal} />
 </Drawer>
+
+{#if ui.boxExpanded}
+  <BoxMatrix />
+{/if}
 
 <style>
   .stage {
@@ -45,11 +51,5 @@
     padding: 1px;
     background: linear-gradient(150deg, rgba(176, 96, 224, 0.55), rgba(63, 199, 224, 0.18) 40%, rgba(176, 96, 224, 0.3));
     box-shadow: 0 0 60px rgba(176, 96, 224, 0.2), 0 24px 60px rgba(0, 0, 0, 0.55);
-  }
-  .placeholder {
-    margin: 0;
-    color: var(--text-2);
-    font-size: 13px;
-    line-height: 1.5;
   }
 </style>

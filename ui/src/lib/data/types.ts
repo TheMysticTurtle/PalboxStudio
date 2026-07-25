@@ -80,6 +80,21 @@ export interface Pal {
   activeSkills: Move[];
   /** Unequipped / available moves (bench). Placeholder until the core reads the pal's real learnset. */
   benchMoves: Move[];
-  /** All 12 work suitabilities, in canonical order. */
+  /** All 13 work suitabilities, in canonical order. */
   workSuit: WorkSuit[];
+}
+
+/** Lightweight summary for a pal shown in the Global Box explorer (tiles).
+ *  Only species that CAN live in the global box appear — humans/NPCs are excluded. */
+export interface BoxPal {
+  instanceId: string;
+  /** CodeName → icon T_<species>_icon_normal.png */
+  species: string;
+  name: string;
+  level: number;
+  elements: ElementName[];
+  alpha?: boolean;
+  lucky?: boolean;
+  /** Editor-side group tags (app metadata — NOT written to the save). */
+  groups?: string[];
 }

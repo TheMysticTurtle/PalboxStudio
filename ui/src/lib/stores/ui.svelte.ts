@@ -6,4 +6,8 @@ export const ui = $state({
   leftOpen: true,
   /** Right "Advanced" (IV / Statue) drawer open? */
   rightOpen: false,
+  /** Global box expanded to the full-screen matrix view? */
+  boxExpanded: false,
+  /** Currently-selected box pal instanceId. */
+  selectedId: "" as string,
 });
