@@ -1,20 +1,23 @@
 <script lang="ts">
   import type { ElementName, BoxPal } from "$lib/data/types";
-  import { ELEMENT_COLOR } from "$lib/data/constants";
   import { sampleBox } from "$lib/data/sampleBox";
   import { ref } from "$lib/data/refdata.svelte";
   import { ui } from "$lib/stores/ui.svelte";
-  import { box, openBoxFile, selectSlot } from "$lib/stores/box.svelte";
+  import { box, openBoxFile, selectSlot, addPal, clonePal, deletePal } from "$lib/stores/box.svelte";
   import type { BoxTileDto } from "$lib/data/engine";
   import BoxTile from "./BoxTile.svelte";
-
-  const elements: ElementName[] = [
-    "Neutral", "Fire", "Water", "Grass", "Electric", "Ice", "Ground", "Dark", "Dragon",
-  ];
+  import SpeciesFilter from "./SpeciesFilter.svelte";
+  import {
+    createSpeciesFilter,
+    speciesMatches,
+    activeFilterCount,
+  } from "$lib/data/speciesFilter.svelte";
 
   let search = $state("");
-  let selectedEls = $state<Set<ElementName>>(new Set());
   let activeGroup = $state("All");
+  // The shared species filter (elements / work / rideable / ranch / category),
+  // applied to each tile's species row — same control as the species selector.
+  const boxFilter = createSpeciesFilter();
 
   // Real box tiles (joined to species for name/elements) when a box is open;
   // otherwise the sample fixtures.
@@ -36,19 +39,14 @@
     ...Array.from(new Set(source.flatMap((p) => p.groups ?? []))),
   ]);
 
-  function toggleEl(el: ElementName) {
-    const s = new Set(selectedEls);
-    if (s.has(el)) s.delete(el);
-    else s.add(el);
-    selectedEls = s;
-  }
-
   let filtered = $derived(
     source.filter((p) => {
       if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
-      if (selectedEls.size && !p.elements.some((e) => selectedEls.has(e))) return false;
       if (activeGroup !== "All" && !(p.groups ?? []).includes(activeGroup)) return false;
-      return true;
+      // Structured facets run against the tile's species reference row.
+      const sp = ref.speciesByCode[p.species.replace(/^BOSS_/i, "")];
+      if (sp) return speciesMatches(sp, boxFilter);
+      return activeFilterCount(boxFilter) === 0; // no species row -> only the plain facets pass
     }),
   );
 
@@ -75,6 +73,35 @@
   }
   const isSelected = (id: string) =>
     box.open ? box.selectedSlot === Number(id) : ui.selectedId === id;
+
+  // Reveal the selected tile (e.g. a just-added pal that landed off-screen).
+  let matrixEl: HTMLDivElement | undefined = $state();
+  $effect(() => {
+    const s = box.selectedSlot;
+    if (s < 0 || !matrixEl) return;
+    requestAnimationFrame(() =>
+      matrixEl?.querySelector(".tile.selected")?.scrollIntoView({ block: "nearest" }),
+    );
+  });
+
+  async function onDelete() {
+    if (!box.open || box.selectedSlot < 0) return;
+    const t = box.tiles.find((x) => x.slot === box.selectedSlot);
+    const name = t
+      ? ref.speciesByCode[t.characterId.replace(/^BOSS_/i, "")]?.name ?? t.characterId
+      : "this pal";
+    try {
+      const { ask } = await import("@tauri-apps/plugin-dialog");
+      const ok = await ask(
+        `Remove ${name} from the Global Palbox?\n\nTakes effect when you save; a backup is kept.`,
+        { title: "Delete Pal", kind: "warning" },
+      );
+      if (!ok) return;
+    } catch {
+      // Dialog is app-only; edits are in-memory + backed up on save, so proceed.
+    }
+    await deletePal(box.selectedSlot);
+  }
 </script>
 
 <div class="box">
@@ -95,12 +122,7 @@
     <button class="expand" onclick={() => (ui.boxExpanded = true)} title="Expand to full matrix">⤢ Expand</button>
   </div>
 
-  <div class="elfilter">
-    {#each elements as el (el)}
-      <button class="eltog" class:on={selectedEls.has(el)} style="--c:{ELEMENT_COLOR[el]}" onclick={() => toggleEl(el)} title={el} aria-label={el} aria-pressed={selectedEls.has(el)}><span class="d"></span></button>
-    {/each}
-    {#if selectedEls.size}<button class="clear" onclick={() => (selectedEls = new Set())}>clear</button>{/if}
-  </div>
+  <SpeciesFilter filter={boxFilter} showSearch={false} collapsible />
 
   <div class="groupsrow">
     {#each groups as g (g)}
@@ -109,17 +131,19 @@
     <button class="gchip add" title="Create a group (coming soon)">+ Group</button>
   </div>
 
-  <div class="matrix">
+  <div class="matrix" bind:this={matrixEl}>
     {#each filtered as p (p.instanceId)}
       <BoxTile pal={p} size="sm" selected={isSelected(p.instanceId)} onselect={select} />
     {/each}
     {#if !filtered.length}<div class="empty">{box.open ? "No pals match." : "Open a box to load your pals."}</div>{/if}
   </div>
 
+  {#if box.hint}<div class="hint">{box.hint}</div>{/if}
+
   <div class="footer">
-    <button class="fa add">+ Add</button>
-    <button class="fa">⧉ Clone</button>
-    <button class="fa del">🗑 Delete</button>
+    <button class="fa add" onclick={() => addPal()} disabled={!box.open} title="Add a new turtle to a free slot">+ Add</button>
+    <button class="fa" onclick={() => clonePal(box.selectedSlot)} disabled={!box.open || box.selectedSlot < 0} title="Clone the selected pal">⧉ Clone</button>
+    <button class="fa del" onclick={onDelete} disabled={!box.open || box.selectedSlot < 0} title="Remove the selected pal">🗑 Delete</button>
   </div>
 </div>
 
@@ -143,13 +167,6 @@
   .expand { padding: 8px 11px; border-radius: 9px; border: 1px solid rgba(176, 96, 224, 0.4); background: rgba(176, 96, 224, 0.12); color: #d6bef2; cursor: pointer; font-size: 12.5px; white-space: nowrap; }
   .expand:hover { background: rgba(176, 96, 224, 0.22); }
 
-  .elfilter { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-  .eltog { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 7px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
-  .eltog .d { width: 11px; height: 11px; transform: rotate(45deg); background: var(--c); opacity: 0.55; }
-  .eltog.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); }
-  .eltog.on .d { opacity: 1; box-shadow: 0 0 6px var(--c); }
-  .clear { background: none; border: 0; color: #8b7c99; cursor: pointer; font-size: 12px; }
-
   .groupsrow { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
   .gchip { padding: 6px 13px; border-radius: 16px; cursor: pointer; font-size: 12.5px; color: #b0a0be; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
   .gchip.on { color: #f5c97a; background: rgba(245, 166, 35, 0.16); border-color: rgba(245, 166, 35, 0.5); font-weight: 600; }
@@ -158,9 +175,12 @@
   .matrix { flex: 1; overflow: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-content: start; padding-right: 4px; }
   .empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 24px; font-size: 13px; }
 
+  .hint { font-size: 11.5px; line-height: 1.35; color: #c9b98a; padding: 8px 11px; border-radius: 8px; background: rgba(245, 166, 35, 0.1); border: 1px solid rgba(245, 166, 35, 0.28); }
+
   .footer { display: flex; gap: 9px; padding-top: 4px; }
   .fa { flex: 1; padding: 11px; border-radius: 9px; cursor: pointer; font-family: var(--font-cond); font-weight: 600; font-size: 14px; color: #cbd3db; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); }
   .fa.add { color: #9fd8e6; border-color: rgba(63, 199, 224, 0.4); background: rgba(63, 199, 224, 0.12); }
   .fa.del { color: #e89090; border-color: rgba(224, 90, 90, 0.35); background: rgba(224, 90, 90, 0.1); }
-  .fa:hover { filter: brightness(1.15); }
+  .fa:hover:not(:disabled) { filter: brightness(1.15); }
+  .fa:disabled { opacity: 0.4; cursor: default; }
 </style>

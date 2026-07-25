@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { BoxPal } from "$lib/data/types";
   import { ELEMENT_COLOR } from "$lib/data/constants";
+  import { palIcon, onPalIconError } from "$lib/data/icons";
 
   let {
     pal,
@@ -14,8 +15,7 @@
     onselect?: (id: string) => void;
   } = $props();
 
-  const iconSrc = $derived(`/pals/T_${pal.species}_icon_normal.png`);
-  const onErr = (e: Event) => ((e.currentTarget as HTMLImageElement).src = "/pals/%23ERROR.png");
+  const iconSrc = $derived(palIcon(pal.species));
 </script>
 
 <button class="tile {size}" class:selected onclick={() => onselect?.(pal.instanceId)} title={pal.name}>
@@ -23,7 +23,7 @@
     {#if pal.alpha}<span class="bd alpha">A</span>{/if}
     {#if pal.lucky}<span class="bd lucky">★</span>{/if}
   </div>
-  <div class="port"><img src={iconSrc} alt="" onerror={onErr} /></div>
+  <div class="port"><img src={iconSrc} alt="" loading="lazy" decoding="async" onerror={onPalIconError} /></div>
   <div class="name">{pal.name}</div>
   <div class="meta">
     {#each pal.elements as el}<span class="dia" style="--c:{ELEMENT_COLOR[el]}"></span>{/each}

@@ -59,9 +59,23 @@ export interface PassivePreset {
   passiveCodes: string[];
 }
 
+/** Result of a box add/clone/delete: refreshed tiles + the slot to select. */
+export interface BoxMutation {
+  pals: BoxTileDto[];
+  slot: number | null;
+}
+
 export const openBox = (path: string) => invoke<OpenResult>("open_box", { path });
 export const getPal = (slot: number) => invoke<PalDto>("get_pal", { slot });
 export const updatePal = (dto: PalDto) => invoke<PalDto>("update_pal", { dto });
+
+/** Add a new pal (default: the turtle CubeTurtle) to a free slot. */
+export const addBoxPal = (species: string | null = null) =>
+  invoke<BoxMutation>("add_box_pal", { species });
+/** Deep-copy the pal at `slot` into a free slot with a fresh identity. */
+export const cloneBoxPal = (slot: number) => invoke<BoxMutation>("clone_box_pal", { slot });
+/** Remove the pal at `slot`, restoring a vacancy. */
+export const deleteBoxPal = (slot: number) => invoke<BoxMutation>("delete_box_pal", { slot });
 /** Backup the original + atomic-write the edited box. Returns the backup path. */
 export const saveBox = () => invoke<string>("save_box");
 
