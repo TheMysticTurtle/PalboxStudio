@@ -3,6 +3,7 @@
   import TopBar from "$lib/components/TopBar.svelte";
   import Drawer from "$lib/components/Drawer.svelte";
   import PalCard from "$lib/components/PalCard.svelte";
+  import AdvancedDrawer from "$lib/components/AdvancedDrawer.svelte";
   import { ui } from "$lib/stores/ui.svelte";
   import { samplePal } from "$lib/data/samplePal";
 
@@ -25,7 +26,7 @@
 </Drawer>
 
 <Drawer side="right" tone="advanced" label="ADVANCED" tabLabel="IV / STATUE" width={420} bind:open={ui.rightOpen}>
-  <p class="placeholder">IV / breeding traits, Statue of Power (Pal Souls), Condensation.</p>
+  <AdvancedDrawer {pal} />
 </Drawer>
 
 <style>

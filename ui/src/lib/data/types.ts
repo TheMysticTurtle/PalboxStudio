@@ -53,10 +53,12 @@ export interface Pal {
   favorite: boolean;
   alpha: boolean;
   lucky: boolean;
-  /** Condensation rank, 0..4 stars. */
+  /** Condensation rank, 0..4 stars (save: `rank`). */
   condensation: number;
-  /** Pal Souls rank (per-stat later), 0..10. */
-  souls: number;
+  /** IV / breeding talents, 0..100 display (save: Talent_HP/Shot/Defense; raw byte 0..255). */
+  ivs: { hp: number; shot: number; defense: number };
+  /** Pal Souls rank per stat, 0..10 (Statue of Power; save: Rank_HP/Attack/Defence/CraftSpeed). */
+  soulRanks: { hp: number; attack: number; defense: number; craftSpeed: number };
   stats: {
     hp: number;
     hpMax: number;

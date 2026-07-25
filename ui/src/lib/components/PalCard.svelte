@@ -10,6 +10,9 @@
 
   const genderSymbol = $derived(pal.gender === "Male" ? "♂" : pal.gender === "Female" ? "♀" : "–");
   const hpPct = $derived(Math.min(100, (pal.stats.hp / pal.stats.hpMax) * 100));
+  const soulTotal = $derived(
+    pal.soulRanks.hp + pal.soulRanks.attack + pal.soulRanks.defense + pal.soulRanks.craftSpeed,
+  );
 
   function setLevel(v: number) {
     const n = Math.round(v);
@@ -132,7 +135,7 @@
           </div>
           <div class="soulcol">
             <div class="olabel">PAL SOULS</div>
-            <div class="soulval">+{pal.souls}</div>
+            <div class="soulval">+{soulTotal}</div>
           </div>
         </div>
       </div>
