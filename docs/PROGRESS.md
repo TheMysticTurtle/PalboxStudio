@@ -20,6 +20,17 @@ move/passive legality, the 13 work suits, per-pal save fields.
 - **RULE — humans/NPCs are EXCLUDED entirely** (can't live in a global box). Base filter on
   every species/box list is `Human !== true`; never show them as clutter or a filter bucket.
 
+**Passives/moves now RESOLVE FROM CODES (fixed):** a pal stores passive/move codes;
+`refdata.svelte.ts` loads the reference tables once and resolvers turn codes → name/rating/
+description/element/power. `PassiveChip` takes a code; `PalCard` resolves moves; `samplePal`
+uses real codes (`Legend`/`PAL_ALLAttack_up2`/`PAL_Sanity_Down_2`, learnset move codes). Verified.
+Data audit: "Lunker" IS present (code `Nushi`); vendored PSP snapshot = v1.2.0 (2026-07-19).
+
+**Engine + data-flow plan = ADR 0002** (`docs/decisions/0002-...md`): three data planes (static
+reference JSON / editable save model / mutable app-data SQLite), the Tauri command contract,
+the `PalDto` (raw-editable vs engine-computed stats), the backup→atomic-write save flow, and the
+SQLite schema for groups/tags/presets. Build the UI against those DTO shapes so the engine drops in.
+
 **Reference dataset DONE:** `ui/static/data/{species,moves,passives,elements,schema}.json`
 via `scripts/gen_species.py` — 406 storable pals + 351 moves + 420 passives + 9 elements,
 validated (0 dangling), provenance in each `_meta`. Docs in DATA-AND-ASSETS.md. Static reference
