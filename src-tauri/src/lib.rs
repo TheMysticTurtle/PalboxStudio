@@ -4,6 +4,7 @@
 //! `save_box`, which **backs up the original, then atomically writes**. Real
 //! logic lives in `palbox_core`; this layer just marshals + owns the session.
 
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -11,7 +12,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use palbox_core::globalbox::{list_pals, pal_param_mut, read_pal_at, slot_count, PalSummary};
 use palbox_core::pal::{self, PalDto};
 use palbox_core::reference::{
-    PassiveOption, PassivePreset, ReferenceBundle, ReferenceDatabase, UserDatabase,
+    validate_passive_codes, PassiveOption, PassivePreset, ReferenceBundle, ReferenceDatabase,
+    UserDatabase,
 };
 use palbox_core::save::{read_sav, write_sav, PalSave};
 use palbox_core::ue::Properties;
@@ -29,6 +31,14 @@ struct AppState(Mutex<Option<BoxSession>>);
 struct DatabasePaths {
     reference: PathBuf,
     user: PathBuf,
+}
+
+/// The read-only reference materialized into memory once at startup, so reference
+/// commands never re-open the bundled 17 MB DB.
+struct ReferenceCache {
+    bundle: ReferenceBundle,
+    passive_options: Vec<PassiveOption>,
+    passive_codes: HashSet<String>,
 }
 
 #[derive(Serialize)]
@@ -101,25 +111,30 @@ fn list_passive_options(
     search: Option<String>,
     include_disabled: Option<bool>,
     include_unavailable: Option<bool>,
-    databases: State<DatabasePaths>,
-) -> Result<Vec<PassiveOption>, String> {
-    ReferenceDatabase::open(&databases.reference)
-        .and_then(|reference| {
-            reference.list_passives(
-                search.as_deref().unwrap_or(""),
-                include_disabled.unwrap_or(false),
-                include_unavailable.unwrap_or(false),
-            )
+    cache: State<ReferenceCache>,
+) -> Vec<PassiveOption> {
+    let query = search.unwrap_or_default().trim().to_lowercase();
+    let include_disabled = include_disabled.unwrap_or(false);
+    let include_unavailable = include_unavailable.unwrap_or(false);
+    cache
+        .passive_options
+        .iter()
+        .filter(|option| {
+            (include_disabled || !option.disabled)
+                && (include_unavailable || option.available_normal_pal)
+                && (query.is_empty()
+                    || option.name.to_lowercase().contains(&query)
+                    || option.code.to_lowercase().contains(&query)
+                    || option.description.to_lowercase().contains(&query))
         })
-        .map_err(|error| error.to_string())
+        .cloned()
+        .collect()
 }
 
 /// The normalized reference tables shaped for the existing UI model.
 #[tauri::command]
-fn get_reference_data(databases: State<DatabasePaths>) -> Result<ReferenceBundle, String> {
-    ReferenceDatabase::open(&databases.reference)
-        .and_then(|reference| reference.load_ui_bundle())
-        .map_err(|error| error.to_string())
+fn get_reference_data(cache: State<ReferenceCache>) -> ReferenceBundle {
+    cache.bundle.clone()
 }
 
 #[tauri::command]
@@ -136,13 +151,12 @@ fn save_passive_preset(
     id: Option<i64>,
     name: String,
     passive_codes: Vec<String>,
+    cache: State<ReferenceCache>,
     databases: State<DatabasePaths>,
 ) -> Result<PassivePreset, String> {
-    let reference =
-        ReferenceDatabase::open(&databases.reference).map_err(|error| error.to_string())?;
     let mut user =
         UserDatabase::open_or_create(&databases.user).map_err(|error| error.to_string())?;
-    user.save_preset(&reference, id, &name, &passive_codes)
+    user.save_preset(&cache.passive_codes, id, &name, &passive_codes)
         .map_err(|error| error.to_string())
 }
 
@@ -160,16 +174,14 @@ fn apply_passive_preset(
     slot: usize,
     preset_id: i64,
     box_state: State<AppState>,
+    cache: State<ReferenceCache>,
     databases: State<DatabasePaths>,
 ) -> Result<PalDto, String> {
-    let reference =
-        ReferenceDatabase::open(&databases.reference).map_err(|error| error.to_string())?;
     let user = UserDatabase::open_or_create(&databases.user).map_err(|error| error.to_string())?;
     let preset = user
         .get_preset(preset_id)
         .map_err(|error| error.to_string())?;
-    reference
-        .validate_passive_codes(&preset.passive_codes)
+    validate_passive_codes(&preset.passive_codes, &cache.passive_codes)
         .map_err(|error| error.to_string())?;
 
     let mut guard = box_state.0.lock().unwrap();
@@ -236,6 +248,16 @@ pub fn run() {
         .manage(AppState::default())
         .setup(|app| {
             let paths = database_paths(app)?;
+            // Materialize the read-only reference DB into memory once; commands
+            // then serve from RAM instead of re-opening the bundled DB per call.
+            let reference = ReferenceDatabase::open(&paths.reference)?;
+            let cache = ReferenceCache {
+                bundle: reference.load_ui_bundle()?,
+                passive_options: reference.list_passives("", true, true)?,
+                passive_codes: reference.passive_code_set()?,
+            };
+            drop(reference);
+            app.manage(cache);
             app.manage(paths);
             Ok(())
         })

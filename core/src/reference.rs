@@ -250,34 +250,17 @@ impl ReferenceDatabase {
     }
 
     pub fn validate_passive_codes(&self, codes: &[String]) -> Result<()> {
-        if codes.len() > crate::limits::PASSIVES_MAX {
-            return Err(DatabaseError::Invalid(format!(
-                "a passive preset can contain at most {} entries",
-                crate::limits::PASSIVES_MAX
-            )));
-        }
-        let mut seen = HashSet::new();
-        let mut exists = self
-            .connection
-            .prepare_cached("SELECT EXISTS(SELECT 1 FROM passive WHERE code = ?1)")?;
-        for code in codes {
-            if code.trim().is_empty() {
-                return Err(DatabaseError::Invalid(
-                    "passive codes cannot be blank".to_string(),
-                ));
-            }
-            if !seen.insert(code) {
-                return Err(DatabaseError::Invalid(format!(
-                    "passive {code:?} appears more than once"
-                )));
-            }
-            if !exists.query_row([code], |row| row.get::<_, bool>(0))? {
-                return Err(DatabaseError::Invalid(format!(
-                    "unknown passive code {code:?}"
-                )));
-            }
-        }
-        Ok(())
+        validate_passive_codes(codes, &self.passive_code_set()?)
+    }
+
+    /// Every passive code, for building the in-memory cache (validate without
+    /// re-querying the DB on each preset write/apply).
+    pub fn passive_code_set(&self) -> Result<HashSet<String>> {
+        let mut statement = self.connection.prepare("SELECT code FROM passive")?;
+        let codes = statement
+            .query_map([], |row| row.get::<_, String>(0))?
+            .collect::<rusqlite::Result<HashSet<String>>>()?;
+        Ok(codes)
     }
 
     /// Materialize the compact UI-facing reference bundle from normalized
@@ -551,6 +534,37 @@ impl ReferenceDatabase {
     }
 }
 
+/// Validate preset passive codes against a known-valid set (<=4, unique,
+/// non-blank, all present). Used with the in-memory reference cache so preset
+/// writes/applies never re-query the reference DB.
+pub fn validate_passive_codes(codes: &[String], valid: &HashSet<String>) -> Result<()> {
+    if codes.len() > crate::limits::PASSIVES_MAX {
+        return Err(DatabaseError::Invalid(format!(
+            "a passive preset can contain at most {} entries",
+            crate::limits::PASSIVES_MAX
+        )));
+    }
+    let mut seen = HashSet::new();
+    for code in codes {
+        if code.trim().is_empty() {
+            return Err(DatabaseError::Invalid(
+                "passive codes cannot be blank".to_string(),
+            ));
+        }
+        if !seen.insert(code) {
+            return Err(DatabaseError::Invalid(format!(
+                "passive {code:?} appears more than once"
+            )));
+        }
+        if !valid.contains(code) {
+            return Err(DatabaseError::Invalid(format!(
+                "unknown passive code {code:?}"
+            )));
+        }
+    }
+    Ok(())
+}
+
 pub struct UserDatabase {
     connection: Connection,
 }
@@ -619,7 +633,7 @@ impl UserDatabase {
 
     pub fn save_preset(
         &mut self,
-        reference: &ReferenceDatabase,
+        valid_codes: &HashSet<String>,
         id: Option<i64>,
         name: &str,
         passive_codes: &[String],
@@ -631,7 +645,7 @@ impl UserDatabase {
                 "preset name must contain 1 to 80 characters".to_string(),
             ));
         }
-        reference.validate_passive_codes(passive_codes)?;
+        validate_passive_codes(passive_codes, valid_codes)?;
 
         let transaction = self.connection.transaction()?;
         let preset_id = if let Some(id) = id {
@@ -767,14 +781,15 @@ mod tests {
             .take(5)
             .map(|passive| passive.code)
             .collect::<Vec<_>>();
+        let valid = reference.passive_code_set().unwrap();
         let path = unique_user_path();
         let mut user = UserDatabase::open_or_create(&path).unwrap();
         let preset = user
-            .save_preset(&reference, None, "Worker", &codes[..4])
+            .save_preset(&valid, None, "Worker", &codes[..4])
             .unwrap();
         assert_eq!(preset.passive_codes, codes[..4]);
         assert!(user
-            .save_preset(&reference, Some(preset.id), "Too many", &codes)
+            .save_preset(&valid, Some(preset.id), "Too many", &codes)
             .is_err());
         assert_eq!(user.list_presets().unwrap().len(), 1);
         drop(user);
