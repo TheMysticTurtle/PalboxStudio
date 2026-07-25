@@ -45,5 +45,13 @@ export const samplePal: Pal = {
     { id: "DarkLaser", name: "Dark Laser", element: "Dark", power: 450 },
     { id: "PowerBomb", name: "Power Bomb", element: "Neutral", power: 90 },
   ],
+  benchMoves: [
+    { id: "FlareStorm", name: "Flare Storm", element: "Fire", power: 90 },
+    { id: "SpiritFire", name: "Spirit Fire", element: "Fire", power: 55 },
+    { id: "IcicleThrow", name: "Icicle Throw", element: "Ice", power: 40 },
+    { id: "SandBlast", name: "Sand Blast", element: "Ground", power: 35 },
+    { id: "TriLightning", name: "Tri-Lightning", element: "Electric", power: 90 },
+    { id: "GrassTornado", name: "Grass Tornado", element: "Grass", power: 75 },
+  ],
   workSuit: WORK_SUITS.map((name) => ({ name, level: workSuitLevels[name] ?? 0 })),
 };

@@ -74,6 +74,8 @@ export interface Pal {
   passives: Passive[];
   /** Equipped Active Skills (moves), up to 3. */
   activeSkills: Move[];
+  /** Unequipped / available moves (bench). Placeholder until the core reads the pal's real learnset. */
+  benchMoves: Move[];
   /** All 12 work suitabilities, in canonical order. */
   workSuit: WorkSuit[];
 }

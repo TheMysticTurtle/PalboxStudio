@@ -15,6 +15,41 @@
     const n = Math.round(v);
     pal.level = Math.max(LIMITS.levelMin, Math.min(LIMITS.levelMax, Number.isFinite(n) ? n : LIMITS.levelMin));
   }
+
+  // Moves: click or drag between the equipped zone and the bench.
+  let emptySlots = $derived(Math.max(0, LIMITS.equippedMovesMax - pal.activeSkills.length));
+
+  function equip(id: string) {
+    const i = pal.benchMoves.findIndex((m) => m.id === id);
+    if (i < 0) return;
+    const [m] = pal.benchMoves.splice(i, 1);
+    if (pal.activeSkills.length >= LIMITS.equippedMovesMax) {
+      const dropped = pal.activeSkills.shift();
+      if (dropped) pal.benchMoves.push(dropped); // swap the oldest out
+    }
+    pal.activeSkills.push(m);
+  }
+  function unequip(id: string) {
+    const i = pal.activeSkills.findIndex((m) => m.id === id);
+    if (i < 0) return;
+    const [m] = pal.activeSkills.splice(i, 1);
+    pal.benchMoves.push(m);
+  }
+  function onDragStart(e: DragEvent, id: string) {
+    e.dataTransfer?.setData("text/plain", id);
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+  }
+  const allowDrop = (e: DragEvent) => e.preventDefault();
+  function dropEquip(e: DragEvent) {
+    e.preventDefault();
+    const id = e.dataTransfer?.getData("text/plain");
+    if (id) equip(id);
+  }
+  function dropBench(e: DragEvent) {
+    e.preventDefault();
+    const id = e.dataTransfer?.getData("text/plain");
+    if (id) unequip(id);
+  }
 </script>
 
 <div class="card">
@@ -108,17 +143,32 @@
 
       <div class="moves">
         <SectionHeader title="ACTIVE SKILLS">
-          {#snippet right()}{pal.activeSkills.length} / {LIMITS.equippedMovesMax}{/snippet}
+          {#snippet right()}tap or drag · {pal.activeSkills.length} / {LIMITS.equippedMovesMax}{/snippet}
         </SectionHeader>
-        <div class="moveslots">
+        <div class="moveslots" ondragover={allowDrop} ondrop={dropEquip}>
           {#each pal.activeSkills as m (m.id)}
-            <div class="move">
+            <button type="button" class="move equipped" draggable="true" ondragstart={(e) => onDragStart(e, m.id)} onclick={() => unequip(m.id)} title="Click or drag to unequip">
               <span class="mgrip">⠿</span>
               <span class="mdia" style="--c:{ELEMENT_COLOR[m.element]}"></span>
               <span class="mname">{m.name}</span>
               <span class="mpwrcap">PWR</span>
               <span class="mpwr">{m.power}</span>
-            </div>
+            </button>
+          {/each}
+          {#each Array(emptySlots) as _, i (i)}
+            <div class="emptyslot">empty slot — drag a move here</div>
+          {/each}
+        </div>
+        <div class="bench-label">AVAILABLE MOVES</div>
+        <div class="bench" ondragover={allowDrop} ondrop={dropBench}>
+          {#each pal.benchMoves as m (m.id)}
+            <button type="button" class="move bench-move" draggable="true" ondragstart={(e) => onDragStart(e, m.id)} onclick={() => equip(m.id)} title="Click or drag to equip">
+              <span class="mgrip">⠿</span>
+              <span class="mdia small" style="--c:{ELEMENT_COLOR[m.element]}"></span>
+              <span class="mname">{m.name}</span>
+              <span class="mpwrcap">PWR</span>
+              <span class="mpwr">{m.power}</span>
+            </button>
           {/each}
         </div>
       </div>
@@ -329,12 +379,22 @@
   /* Moves */
   .moves { flex: none; }
   .moveslots { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 12px; background: rgba(63, 199, 224, 0.06); border: 1px solid rgba(63, 199, 224, 0.22); }
-  .move { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 9px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); }
+  .move { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; padding: 10px 12px; border-radius: 9px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: inherit; font: inherit; cursor: grab; }
+  .move:active { cursor: grabbing; }
+  .move:hover { border-color: rgba(63, 199, 224, 0.5); }
+  .move.equipped { background: rgba(63, 199, 224, 0.05); border-color: rgba(63, 199, 224, 0.18); }
+  .emptyslot { display: flex; align-items: center; justify-content: center; padding: 11px; border-radius: 9px; border: 1px dashed rgba(255, 255, 255, 0.14); color: #6e7a86; font-size: 13px; }
+  .bench-label { font-family: var(--font-head); font-weight: 600; font-size: 11.5px; letter-spacing: 0.14em; color: #6e7a86; margin: 12px 2px 7px; }
+  .bench { display: flex; flex-direction: column; gap: 7px; }
+  .bench-move { padding: 9px 12px; }
   .mgrip { color: #7c8894; font-size: 15px; letter-spacing: -2px; }
   .mdia { width: 11px; height: 11px; flex: none; transform: rotate(45deg); background: var(--c); box-shadow: 0 0 6px var(--c); }
+  .mdia.small { width: 10px; height: 10px; box-shadow: none; }
   .mname { flex: 1; font-family: var(--font-cond); font-weight: 600; font-size: 15px; color: #ede7df; }
+  .bench-move .mname { font-size: 14px; color: #c6cfd7; }
   .mpwrcap { font-size: 11px; color: #8fa0ac; }
   .mpwr { font-family: var(--font-head); font-weight: 700; font-size: 17px; color: #b7c0c8; min-width: 30px; text-align: right; }
+  .bench-move .mpwr { font-size: 15px; }
 
   /* Stats */
   .stats { display: flex; flex-direction: column; gap: 12px; }
