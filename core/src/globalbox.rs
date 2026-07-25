@@ -8,11 +8,14 @@ use crate::ue::{self, Save, StructValue};
 
 /// A pal read from a box slot. `character_id` is the species CodeName (joins the
 /// UI's species table + icon); `slot` is the array index.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PalSummary {
     pub slot: usize,
     pub character_id: String,
     pub level: u8,
+    pub is_lucky: bool,
+    pub is_alpha: bool,
 }
 
 /// Total fixed slot count of the box (occupied or not). `None` if the save has no
@@ -44,7 +47,9 @@ pub fn list_pals(save: &Save) -> Vec<PalSummary> {
         };
         // Level is written only when > 1; absent means level 1.
         let level = ue::prop(param, "Level").and_then(ue::as_byte).unwrap_or(1);
-        pals.push(PalSummary { slot, character_id, level });
+        let is_lucky = ue::prop(param, "IsRarePal").and_then(ue::as_bool).unwrap_or(false);
+        let is_alpha = character_id.to_uppercase().starts_with("BOSS_") && !is_lucky;
+        pals.push(PalSummary { slot, character_id, level, is_lucky, is_alpha });
     }
     pals
 }
