@@ -2,8 +2,8 @@
 // Import `{ ui }` anywhere and read/mutate its fields reactively — keeps drawer
 // state out of any single component so edge tabs, headers, and shortcuts agree.
 export const ui = $state({
-  /** Left "Global Box" drawer open? */
-  leftOpen: false,
+  /** Left "Global Box" drawer open? Starts open — it pops out on load. */
+  leftOpen: true,
   /** Right "Advanced" (IV / Statue) drawer open? */
   rightOpen: false,
 });

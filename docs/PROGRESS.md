@@ -46,6 +46,24 @@ Living log of where the build is and what's next. Read this first when resuming.
    data, make editors persist (backup-before-write). Expose `core::limits` via a Tauri command
    so `LIMITS` isn't duplicated on the TS side.
 
+## New requests (2026-07-24, late) — top of next session
+1. **Window won't drag** (frameless; resize works, drag doesn't). Cause: `data-tauri-drag-region`
+   needs the window permission `core:window:allow-start-dragging`; the min/max/close buttons
+   need `allow-minimize` / `allow-toggle-maximize` / `allow-close`. **Added to
+   `src-tauri/capabilities/default.json` this session — VERIFY in `npm run tauri dev`.** If still
+   stuck: ensure the title-bar element (incl. its empty/spacer areas) carries
+   `data-tauri-drag-region` and no child overlays it.
+2. **Species selector popup** (change a pal's species). Clicking the **species name on the card**
+   opens a filterable/searchable list of every species/entity that CAN live in the Global
+   Palbox. **EXCLUDE human NPCs** — the game does not allow storing humans in the global box
+   (filter out Human/NPC entities; the species data has a human flag — see PalEdit
+   `update_data.py` `Human = not is_pal`). Selecting one changes the species. Needs: a distinct,
+   clickable **species label** on the card (separate from the editable nickname input), a
+   species list source (psp `data/json/pals.json` + l10n names), and the picker component
+   (reuse for the box filter later). Owner suggested clicking the species name to trigger it.
+3. **Left drawer opens by default** — done: `stores/ui.svelte.ts` `leftOpen: true` (pops out on
+   load).
+
 ## Deferred / loose ends
 - **App icon from the cropped logo**: owner swapped a cropped `assets/Palbox Studio Logo.png`,
   but `src-tauri/icons/*` and `ui/static/logo.png` are still from the ORIGINAL. Regenerate:
