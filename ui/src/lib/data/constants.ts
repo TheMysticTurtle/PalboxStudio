@@ -33,7 +33,7 @@ export const ELEMENT_COLOR: Record<ElementName, string> = {
 };
 
 // The 13 Work Suitabilities in canonical order (official UI name + icon basename in
-// /icons/work). NOTE: 13, not 12 — the data + icons include Oil Extraction. See
+// /icons/work). NOTE: 13, not 12 — the data + icons include Crude Oil Extraction. See
 // docs/DATA-AND-ASSETS.md for the internal-codename mapping.
 export const WORK_SUITS = [
   { name: "Kindling", icon: "kindling" },
@@ -44,7 +44,7 @@ export const WORK_SUITS = [
   { name: "Gathering", icon: "gathering" },
   { name: "Lumbering", icon: "deforesting" },
   { name: "Mining", icon: "mining" },
-  { name: "Oil Extraction", icon: "extracting" },
+  { name: "Crude Oil Extraction", icon: "extracting" },
   { name: "Medicine Production", icon: "production" },
   { name: "Cooling", icon: "cooling" },
   { name: "Transporting", icon: "transporting" },

@@ -25,7 +25,7 @@ const WORK: [(&str, &str); 13] = [
     ("Collection", "Gathering"),
     ("Deforest", "Lumbering"),
     ("Mining", "Mining"),
-    ("OilExtraction", "Oil Extraction"),
+    ("OilExtraction", "Crude Oil Extraction"),
     ("ProductMedicine", "Medicine Production"),
     ("Cool", "Cooling"),
     ("Transport", "Transporting"),

@@ -9,6 +9,7 @@
 
 pub mod globalbox;
 pub mod pal;
+pub mod reference;
 pub mod save;
 pub mod ue;
 

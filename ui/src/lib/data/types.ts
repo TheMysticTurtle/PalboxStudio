@@ -40,10 +40,25 @@ export interface ElementInfo {
 export interface SchemaColumn {
   key: string;
   label: string;
-  type: "text" | "enum" | "multi" | "number" | "bool" | "map";
+  type: "text" | "enum" | "multi" | "number" | "bool" | "map" | "relation";
   filterable: boolean;
   displayable: boolean;
   values?: string[];
+}
+
+export interface PartnerSkillRef {
+  name: string;
+  description: string;
+  category: string | null;
+  element: ElementName | null;
+  gearName: string | null;
+  technologyLevel: number | null;
+}
+
+export interface RanchDropRef {
+  itemCode: string | null;
+  itemName: string;
+  notes: string | null;
 }
 
 /** species.json: one row per box-storable pal. */
@@ -70,8 +85,16 @@ export interface SpeciesRow {
   scaling: { hp: number; attack: number; defense: number };
   work: Record<string, number>;
   moves: string[];
-  partnerSkill: string | null;
-  farmDrops: string[];
+  partnerSkill: PartnerSkillRef | null;
+  farmDrops: RanchDropRef[];
+}
+
+export interface ReferenceBundle {
+  passives: Record<string, PassiveRef>;
+  moves: Record<string, MoveRef>;
+  species: SpeciesRow[];
+  elements: Record<string, ElementInfo>;
+  schema: SchemaColumn[];
 }
 
 // ---- Editable per-instance data (from the save) ----
