@@ -20,7 +20,16 @@ move/passive legality, the 13 work suits, per-pal save fields.
 - **RULE — humans/NPCs are EXCLUDED entirely** (can't live in a global box). Base filter on
   every species/box list is `Human !== true`; never show them as clutter or a filter bucket.
 
-**Next:** wire the Rust engine (load `GlobalPalStorage.sav` → real box + computed pal stats;
+**Reference dataset DONE:** `ui/static/data/{species,moves,passives,elements,schema}.json`
+via `scripts/gen_species.py` — 406 storable pals + 351 moves + 420 passives + 9 elements,
+validated (0 dangling), provenance in each `_meta`. Docs in DATA-AND-ASSETS.md. Static reference
+= JSON-in-git; mutable user data (groups/tags/presets) = **SQLite later** (like psp-db).
+
+**Next:** (a) wire the **data-driven filters** — feed `GlobalBoxDrawer` + a new species-selector
+off `species.json` + `schema.json` (generate filter controls from the schema; replace the
+hardcoded element/group filters); (b) scrape **partnerSkill + farmDrops** (the two GAP columns)
+from a wiki into the generator; (c) SQLite store for groups/tags/presets. Then wire the Rust
+engine (load `GlobalPalStorage.sav` → real box + computed pal stats;
 expose `core::limits` + game data via Tauri commands); species selector popup (click the
 species name → filterable **storable-species** list w/ icons); real groups/tags create/rename;
 central-card glow goals. NOTE: the open-file button needs a `tauri dev` rebuild to work
