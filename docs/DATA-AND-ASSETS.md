@@ -37,9 +37,11 @@ The source order is deliberate: the Palworld Save Pal 1.0 game-data extract is a
 codes and fields it exposes; retained web snapshots only fill Partner Skill and Ranch relationships.
 See `data/reference-sources/README.md` and ADR 0003.
 
-`ui/static/data/*.json` remains temporarily as a browser-only visual-development fallback because a
-plain browser has no Tauri command bridge. Packaged desktop use goes through `get_reference_data`
-and the SQLite DB.
+The SQLite reference DB is now the **sole** source: the old `ui/static/data/*.json` and its
+`gen_species.py` generator have been removed. The UI loads the bundle once via `get_reference_data`,
+which the engine materializes into memory at startup (`ReferenceCache`) so no command re-opens the
+DB. A plain browser has no engine bridge, so browser-only preview no longer carries reference data —
+verify in the app (`npm run tauri dev`).
 
 ## User metadata — `palbox-user.db`
 

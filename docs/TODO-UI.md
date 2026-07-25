@@ -1,6 +1,6 @@
 # UI TODO — remaining work to "UI ready"
 
-Ordered roughly by priority. The reference tables (`ui/static/data/*.json`) + engine are the
+Ordered roughly by priority. The reference tables (SQLite reference DB) + engine are the
 data sources; the UI should resolve everything from **codes**, not carry denormalized strings.
 
 ## 1. Data-driven wiring (make the UI read real traits, not hardcoded samples)
@@ -46,7 +46,8 @@ Gather real game-texture icons as bundled assets where they exist; keep coloured
 ## 5. Engine + data (parallel track)
 - [ ] Rust core: load/write `GlobalPalStorage.sav`; compute displayed stats from
       scaling + level + IV + souls + condensation; expose via Tauri commands.
-- [ ] Scrape **partnerSkill + farmDrops** (the two GAP columns) into `gen_species.py`.
+- [x] Scrape **partnerSkill + farmDrops** — DONE: now in the reference DB (348 partner skills,
+      Ranch products) via `scripts/scrape_*.py`; see ADR 0003.
 - [ ] **SQLite** store for groups / tags / presets / settings (mutable user data).
 
 ## 6. Polish / correctness

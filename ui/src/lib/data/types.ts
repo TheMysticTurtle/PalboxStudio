@@ -13,7 +13,7 @@ export type ElementName =
 export type Gender = "Male" | "Female" | "Unknown";
 export type Category = "Natural" | "TowerBoss" | "Unobtainable";
 
-// ---- Reference tables (static; generated into ui/static/data/) ----
+// ---- Reference tables (static; from the SQLite reference DB via get_reference_data) ----
 
 /** passives.json: code -> this. */
 export interface PassiveRef {

@@ -1,9 +1,8 @@
-// Static reference tables (generated into ui/static/data/) loaded once and shared.
-// Components resolve codes -> info through here so display always matches the game
-// data and is never hand-written onto a pal.
+// Static reference tables, loaded once from the engine's SQLite reference DB and
+// shared. Components resolve codes -> info through here so display always matches
+// the game data and is never hand-written onto a pal.
 import type { PassiveRef, MoveRef, SpeciesRow, ElementInfo, SchemaColumn } from "./types";
 import { getReferenceData } from "./engine";
-import { isTauri } from "@tauri-apps/api/core";
 
 interface RefData {
   loaded: boolean;
@@ -27,7 +26,8 @@ export const ref = $state<RefData>({
 
 let started = false;
 
-/** Load the SQLite reference bundle (idempotent). Call once at app start. */
+/** Load the reference bundle from the engine (SQLite, in-memory cached). Idempotent.
+ *  Only resolves inside the app; a plain browser has no engine bridge. */
 export async function loadRefData(): Promise<void> {
   if (started) return;
   started = true;
@@ -41,34 +41,8 @@ export async function loadRefData(): Promise<void> {
     ref.schema = bundle.schema;
     ref.loaded = true;
   } catch (e) {
-    if (isTauri()) {
-      started = false;
-      console.error("Failed to load SQLite reference data", e);
-      return;
-    }
-    // Browser-only visual development has no Tauri bridge. Keep the generated
-    // JSON as an explicit preview fallback; packaged desktop use always takes
-    // the SQLite path above.
-    try {
-      const get = (f: string) => fetch(`/data/${f}`).then((r) => r.json());
-      const [passives, moves, species, elements, schema] = await Promise.all([
-        get("passives.json"),
-        get("moves.json"),
-        get("species.json"),
-        get("elements.json"),
-        get("schema.json"),
-      ]);
-      ref.passives = passives.passives;
-      ref.moves = moves.moves;
-      ref.species = species.species;
-      ref.speciesByCode = Object.fromEntries((species.species as SpeciesRow[]).map((s) => [s.code, s]));
-      ref.elements = elements.elements;
-      ref.schema = schema.schema;
-      ref.loaded = true;
-    } catch (fallbackError) {
-      started = false; // allow a retry
-      console.error("Failed to load reference data", e, fallbackError);
-    }
+    started = false; // allow a retry
+    console.error("Failed to load reference data from the engine", e);
   }
 }
 
