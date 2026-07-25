@@ -1,0 +1,326 @@
+{
+  "_meta": {
+    "source_url": "https://palworld.wiki.gg/api.php?action=parse&page=Template%3AFarming+Table&prop=wikitext&format=json&formatversion=2",
+    "retrieved_at": "2026-07-25T08:58:00+00:00",
+    "normalized_at": "2026-07-25T09:34:17+00:00",
+    "raw_sha256": "22e4db88de518ae4eca85fef077d0e4da567f18154291674e88865dd9ac51fe9",
+    "claimed_game_version": "Palworld 1.0",
+    "record_count": 30,
+    "generator": "scripts/scrape_ranch_drops.py"
+  },
+  "ranch_rows": [
+    {
+      "species_name": "Lamball",
+      "paldeck_no": "001",
+      "item_names": [
+        "Wool"
+      ],
+      "drop_cell": "{{i|Wool}}",
+      "food": 1,
+      "notes": ""
+    },
+    {
+      "species_name": "Chikipi",
+      "paldeck_no": "003",
+      "item_names": [
+        "Egg"
+      ],
+      "drop_cell": "{{i|Egg}}",
+      "food": 1,
+      "notes": ""
+    },
+    {
+      "species_name": "Vixy",
+      "paldeck_no": "006",
+      "item_names": [
+        "Arrow",
+        "Bone",
+        "Gold Coin",
+        "Pal Sphere",
+        "Mega Sphere",
+        "Giga Sphere",
+        "Hyper Sphere"
+      ],
+      "drop_cell": "{{i|Arrow}}, {{i|Bone}}, {{i|Gold Coin}}, {{i|Pal Sphere}}, {{i|Mega Sphere}}, {{i|Giga Sphere}}, {{i|Hyper Sphere}}",
+      "food": 1,
+      "notes": "Vixy will drop one item out of the list at random"
+    },
+    {
+      "species_name": "Cremis",
+      "paldeck_no": "008",
+      "item_names": [
+        "Wool"
+      ],
+      "drop_cell": "{{i|Wool}}",
+      "food": 2,
+      "notes": ""
+    },
+    {
+      "species_name": "Depresso",
+      "paldeck_no": "016",
+      "item_names": [
+        "Venom Gland"
+      ],
+      "drop_cell": "{{i|Venom Gland}}",
+      "food": 1,
+      "notes": ""
+    },
+    {
+      "species_name": "Melpaca",
+      "paldeck_no": "020",
+      "item_names": [
+        "Wool"
+      ],
+      "drop_cell": "{{i|Wool}}",
+      "food": 2,
+      "notes": ""
+    },
+    {
+      "species_name": "Flambelle",
+      "paldeck_no": "025",
+      "item_names": [
+        "Flame Organ"
+      ],
+      "drop_cell": "{{i|Flame Organ}}",
+      "food": 2,
+      "notes": ""
+    },
+    {
+      "species_name": "Rooby",
+      "paldeck_no": "026",
+      "item_names": [
+        "Flame Organ"
+      ],
+      "drop_cell": "{{i|Flame Organ}}",
+      "food": null,
+      "notes": ""
+    },
+    {
+      "species_name": "Mau",
+      "paldeck_no": "027",
+      "item_names": [
+        "Gold Coin"
+      ],
+      "drop_cell": "{{i|Gold Coin}} (x10)",
+      "food": 1,
+      "notes": ""
+    },
+    {
+      "species_name": "Mau Cryst",
+      "paldeck_no": "027B",
+      "item_names": [
+        "Ice Organ"
+      ],
+      "drop_cell": "{{i|Ice Organ}}",
+      "food": 1,
+      "notes": ""
+    },
+    {
+      "species_name": "Caprity",
+      "paldeck_no": "034",
+      "item_names": [
+        "Red Berries"
+      ],
+      "drop_cell": "{{i|Red Berries}}",
+      "food": 2,
+      "notes": ""
+    },
+    {
+      "species_name": "Caprity Noct",
+      "paldeck_no": "034B",
+      "item_names": [
+        "Venom Gland"
+      ],
+      "drop_cell": "{{i|Venom Gland}}",
+      "food": 2,
+      "notes": ""
+    },
+    {
+      "species_name": "Woolipop",
+      "paldeck_no": "039",
+      "item_names": [
+        "Cotton Candy"
+      ],
+      "drop_cell": "{{i|Cotton Candy}}",
+      "food": 1,
+      "notes": ""
+    },
+    {
+      "species_name": "Woolipop Terra",
+      "paldeck_no": "039B",
+      "item_names": [
+        "Caramel Cotton Candy"
+      ],
+      "drop_cell": "{{i|Caramel Cotton Candy}}",
+      "food": null,
+      "notes": ""
+    },
+    {
+      "species_name": "Mozzarina",
+      "paldeck_no": "040",
+      "item_names": [
+        "Milk"
+      ],
+      "drop_cell": "{{i|Milk}}",
+      "food": 2,
+      "notes": ""
+    },
+    {
+      "species_name": "Sparkit",
+      "paldeck_no": "042",
+      "item_names": [
+        "Electric Organ"
+      ],
+      "drop_cell": "{{i|Electric Organ}}",
+      "food": 1,
+      "notes": ""
+    },
+    {
+      "species_name": "Kelpsea",
+      "paldeck_no": "043",
+      "item_names": [
+        "Pal Fluids"
+      ],
+      "drop_cell": "{{i|Pal Fluids}}",
+      "food": 1,
+      "notes": ""
+    },
+    {
+      "species_name": "Kelpsea Ignis",
+      "paldeck_no": "043B",
+      "item_names": [
+        "Flame Organ"
+      ],
+      "drop_cell": "{{i|Flame Organ}}",
+      "food": 1,
+      "notes": ""
+    },
+    {
+      "species_name": "Beegarde",
+      "paldeck_no": "067",
+      "item_names": [
+        "Honey"
+      ],
+      "drop_cell": "{{i|Honey}}",
+      "food": 3,
+      "notes": ""
+    },
+    {
+      "species_name": "Cawgnito",
+      "paldeck_no": "057",
+      "item_names": [
+        "Bone"
+      ],
+      "drop_cell": "{{i|Bone}}",
+      "food": 3,
+      "notes": ""
+    },
+    {
+      "species_name": "Vaelet",
+      "paldeck_no": "066",
+      "item_names": [
+        "Tomato Seeds",
+        "Wheat Seeds",
+        "Potato Seeds",
+        "Carrot Seeds",
+        "Onion Seeds",
+        "Lettuce Seeds"
+      ],
+      "drop_cell": "{{i|Tomato Seeds}}, {{i|Wheat Seeds}}, {{i|Potato Seeds}}, {{i|Carrot Seeds}}, {{i|Onion Seeds}}, {{i|Lettuce Seeds}}",
+      "food": 5,
+      "notes": ""
+    },
+    {
+      "species_name": "Surfent",
+      "paldeck_no": "075",
+      "item_names": [
+        "Leather"
+      ],
+      "drop_cell": "{{i|Leather}}",
+      "food": 5,
+      "notes": ""
+    },
+    {
+      "species_name": "Sibelyx",
+      "paldeck_no": "079",
+      "item_names": [
+        "High Quality Cloth"
+      ],
+      "drop_cell": "{{i|High Quality Cloth}}",
+      "food": 5,
+      "notes": ""
+    },
+    {
+      "species_name": "Foxcicle",
+      "paldeck_no": "095",
+      "item_names": [
+        "Ice Organ"
+      ],
+      "drop_cell": "{{i|Ice Organ}}",
+      "food": 4,
+      "notes": ""
+    },
+    {
+      "species_name": "Dumud",
+      "paldeck_no": "109",
+      "item_names": [
+        "High Quality Pal Oil"
+      ],
+      "drop_cell": "{{i|High Quality Pal Oil}}",
+      "food": 3,
+      "notes": ""
+    },
+    {
+      "species_name": "Dumud Gild",
+      "paldeck_no": "109B",
+      "item_names": [
+        "High Quality Pal Oil",
+        "Gold Coin"
+      ],
+      "drop_cell": "{{i|High Quality Pal Oil}} (80%), {{i|Gold Coin}} (20%) (x100)",
+      "food": 3,
+      "notes": "Dumud Gild will occasionally drop Gold Coins instead of its usual High Quality Pal Oil"
+    },
+    {
+      "species_name": "Sibelyx",
+      "paldeck_no": "116",
+      "item_names": [
+        "High Quality Cloth"
+      ],
+      "drop_cell": "{{i|High Quality Cloth}}",
+      "food": 5,
+      "notes": ""
+    },
+    {
+      "species_name": "Sibelyx Primo",
+      "paldeck_no": "116B",
+      "item_names": [
+        "High Quality Cloth"
+      ],
+      "drop_cell": "{{i|High Quality Cloth}}",
+      "food": 5,
+      "notes": ""
+    },
+    {
+      "species_name": "Shroomer",
+      "paldeck_no": "118",
+      "item_names": [
+        "Mushroom",
+        "Cavern Mushroom"
+      ],
+      "drop_cell": "{{i|Mushroom}}, {{i|Cavern Mushroom}}",
+      "food": 5,
+      "notes": ""
+    },
+    {
+      "species_name": "Sootseer",
+      "paldeck_no": "135",
+      "item_names": [
+        "Bone"
+      ],
+      "drop_cell": "{{i|Bone}}",
+      "food": 7,
+      "notes": ""
+    }
+  ]
+}

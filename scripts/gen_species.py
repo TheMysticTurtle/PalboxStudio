@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Generate the Palbox Studio reference dataset (static game data).
+"""Generate the legacy browser-preview reference JSON.
 
-Source of truth: the actively-maintained Palworld Save Pal dumps
-(`PalEdit/psp-reference/data/json/`) + PalEdit's en-GB display names. This script
-is the ONLY way the files under `ui/static/data/` should change — never hand-edit
-the output; edit this generator and re-run so every change is reproducible and
-reviewable in git.
+The packaged desktop app uses data/palbox-reference.db, built by
+scripts/build_reference_db.py. These smaller JSON files remain only so the UI can
+be previewed in a plain browser without the Tauri command bridge.
+
+Source: the actively-maintained Palworld Save Pal dumps
+(`PalEdit/psp-reference/data/json/`) + PalEdit's en-GB display names. Never
+hand-edit `ui/static/data/`; regenerate it here when the preview fallback changes.
 
 Emits (each with a `_meta` provenance block):
   species.json   one row per box-storable pal (is_pal == true; humans/NPCs and
@@ -16,9 +18,8 @@ Emits (each with a `_meta` provenance block):
   schema.json    self-describing column metadata for `species` (drives the UI
                  filters + result columns).
 
-Known gaps (not present in the dumps — need a wiki scrape later): a pal's
-Partner Skill (special ability) and ranch/farm drops. Columns are stubbed
-(`partnerSkill: null`, `farmDrops: []`) so adding them later is non-breaking.
+Known preview-only gaps: Partner Skills and Ranch drops stay stubbed. Complete
+current values live in the SQLite database and retained-source pipeline.
 
 Run:  python scripts/gen_species.py     (from the PalboxStudio repo root)
 """
@@ -36,7 +37,7 @@ ELEMENT = {"Normal": "Neutral", "Fire": "Fire", "Water": "Water", "Electricity":
 WORK = {"EmitFlame": "Kindling", "Watering": "Watering", "Seeding": "Planting",
         "GenerateElectricity": "Generating Electricity", "Handcraft": "Handiwork",
         "Collection": "Gathering", "Deforest": "Lumbering", "Mining": "Mining",
-        "OilExtraction": "Oil Extraction", "ProductMedicine": "Medicine Production",
+        "OilExtraction": "Crude Oil Extraction", "ProductMedicine": "Medicine Production",
         "Cool": "Cooling", "Transport": "Transporting", "MonsterFarm": "Farming"}
 WAZA = "EPalWazaID::"
 
@@ -86,7 +87,8 @@ def prettify(code):
 def category(code, r):
     if code.startswith("GYM_") or r.get("is_tower_boss"):
         return "TowerBoss"
-    if code.startswith(("RAID_", "SUMMON_", "PREDATOR_")) or r.get("is_raid_boss") or r.get("predator"):
+    if (code.startswith(("RAID_", "SUMMON_", "PREDATOR_")) or code.endswith("_Oilrig")
+            or code == "WorldTreeDragon" or r.get("is_raid_boss") or r.get("predator")):
         return "Unobtainable"
     if (r.get("pal_deck_index", -1) or -1) >= 0:
         return "Natural"

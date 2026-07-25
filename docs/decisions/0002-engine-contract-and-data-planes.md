@@ -4,6 +4,11 @@
 - **Date:** 2026-07-24
 - **Purpose:** lock how data flows so the UI wires onto the engine cleanly with no rework.
 
+> **2026-07-25 amendment:** ADR 0003 replaces the storage choices below. The reference
+> plane is now generated read-only SQLite, and the first user DB schema uses normalized
+> passive-preset tables rather than JSON payloads. The three-plane separation and rule
+> against duplicating per-Pal save state remain unchanged.
+
 ## The three data planes
 
 Everything in the app is one of three kinds of data. Keeping them separate is the whole design.

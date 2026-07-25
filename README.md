@@ -15,6 +15,8 @@ for the architecture rationale.
   mutations, verified 1.0 limits. No UI, no Tauri; unit-tested.
 - `src-tauri/` — the Tauri desktop shell (`palbox`); depends on `core`, bridges it to the UI.
 - `ui/` — the Svelte + Vite frontend (SvelteKit static/SPA).
+- `database/` + `data/` — normalized static-reference/user schemas, generated SQLite DBs,
+  and retained evidence for externally supplemented 1.0 facts.
 - `design/` — design source-of-truth (the State A prototype + notes).
 
 ## Develop
@@ -25,7 +27,8 @@ npm install && npm --prefix ui install   # one-time
 npm run tauri dev                          # run the app (hot-reloads the UI)
 ```
 
-`npm run build` builds the frontend; `cargo test` runs the core tests.
+`npm run build` builds the frontend; `cargo test` runs the core tests. Rebuild and verify
+the reference/user database templates with `python scripts/build_reference_db.py --check`.
 
 ## Principles
 - Palworld's visual language; official in-game terminology throughout.

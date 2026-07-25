@@ -2,6 +2,37 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Session 3 (2026-07-25) — normalized 1.0 reference database
+
+**Static SQLite is live.** `scripts/build_reference_db.py --check` generates
+`data/palbox-reference.db` from the local PSP 1.0 extract plus retained source snapshots.
+Schema: `database/reference-schema.sql`. Current rows: 406 species, 351 moves, 420 passives,
+2,372 items, 348 species-to-Partner-Skill records (287 direct cards plus 61 audited
+same-name/same-tribe engine variants), 42 Ranch-product links across 29 species, and 59,192
+localizations. The builder records source hashes/provenance and 94 non-fatal audit findings,
+including 27 game-dump learnset moves without definitions, two blank external descriptions,
+two corrected source-image codes, 61 inherited variant relationships, the stale Wiki Sibelyx
+079 row, and the old “Pal Fluids” label. Integrity, foreign-key, source-hash, and
+expected-count checks pass.
+
+**Reference material is retained.** Raw HTML/API responses and normalized derivatives live in
+`data/reference-sources/`, documented with authority rules and hashes. They are not temporary
+scrape files.
+
+**Desktop data path switched from JSON to SQLite.** The generated DB is a Tauri resource,
+opened read-only by `palbox-core`; `get_reference_data` returns the UI bundle. Partner Skill
+names/descriptions and Ranch products now reach the UI. `ui/static/data` remains only as a
+plain-browser visual-preview fallback.
+
+**Passive preset foundation is wired end-to-end.** `database/user-schema.sql` enforces ordered
+slots 0–3; the real `palbox-user.db` is created in app data and contains no per-Pal state.
+Rust validates every passive code against the reference DB. Tauri commands list choices, list/
+save/delete presets, and apply a preset directly to the addressed in-memory Pal. Saving the box
+is still a separate explicit backed-up operation. ADR 0003 records the split.
+
+**Verification:** `python scripts/build_reference_db.py --check` passes; `cargo test --workspace`
+passes 7 tests; `npm run check` passes with 0 errors / 0 warnings.
+
 ## Session 2 (2026-07-24 pt.2) — UI build-out
 **New reference (use it):** `../palworld-reference/` (sibling to PalboxStudio) —
 `pal-data.md`, `save-and-file-format.md`, `paledit-code-map.md`, README. Filter categories,
@@ -9,7 +40,7 @@ move/passive legality, the 13 work suits, per-pal save fields.
 
 **Done this session:**
 - Real assets + data: 379 pal icons + 13 work icons in `ui/static`; card renders the real
-  Incineram (CodeName Baphomet) + real work-suit icons. WORK_SUITS → **13** (added Oil Extraction).
+  Incineram (CodeName Baphomet) + real work-suit icons. WORK_SUITS → **13** (added Crude Oil Extraction).
 - **Advanced drawer complete**: IV sliders (0–100), Statue of Power per-stat souls
   HP/ATK/DEF/WS (0–10, ±/clickable pips), condensation stars (0–4). Model gained `ivs` +
   `soulRanks` (per the PSP DTO map).
