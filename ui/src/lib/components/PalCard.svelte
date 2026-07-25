@@ -150,6 +150,7 @@
         <SectionHeader title="ACTIVE SKILLS">
           {#snippet right()}tap or drag · {pal.activeSkills.length} / {LIMITS.equippedMovesMax}{/snippet}
         </SectionHeader>
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="moveslots" ondragover={allowDrop} ondrop={dropEquip}>
           {#each pal.activeSkills as m (m.id)}
             <button type="button" class="move equipped" draggable="true" ondragstart={(e) => onDragStart(e, m.id)} onclick={() => unequip(m.id)} title="Click or drag to unequip">
@@ -165,6 +166,7 @@
           {/each}
         </div>
         <div class="bench-label">AVAILABLE MOVES</div>
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="bench" ondragover={allowDrop} ondrop={dropBench}>
           {#each pal.benchMoves as m (m.id)}
             <button type="button" class="move bench-move" draggable="true" ondragstart={(e) => onDragStart(e, m.id)} onclick={() => equip(m.id)} title="Click or drag to equip">
