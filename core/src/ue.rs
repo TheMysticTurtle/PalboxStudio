@@ -99,6 +99,39 @@ pub fn struct_props_mut(p: &mut Property) -> Option<&mut Properties> {
         _ => None,
     }
 }
+/// Nested properties of a struct *value* (an array-of-structs element).
+pub fn struct_value_props(sv: &StructValue) -> Option<&Properties> {
+    match sv {
+        StructValue::Struct(props) => Some(props),
+        _ => None,
+    }
+}
+/// Mutable nested properties of a struct *value*.
+pub fn struct_value_props_mut(sv: &mut StructValue) -> Option<&mut Properties> {
+    match sv {
+        StructValue::Struct(props) => Some(props),
+        _ => None,
+    }
+}
+/// The `FGuid` of a Guid struct property (e.g. an InstanceId / ContainerId ID).
+pub fn as_guid(p: &Property) -> Option<uesave::FGuid> {
+    match p {
+        Property::Struct(StructValue::Guid(g)) => Some(*g),
+        _ => None,
+    }
+}
+/// A Guid struct property carrying `g`.
+pub fn guid_prop(g: uesave::FGuid) -> Property {
+    Property::Struct(StructValue::Guid(g))
+}
+/// A fresh random GUID (v4), for a new box pal's InstanceId.
+pub fn new_guid() -> uesave::FGuid {
+    uesave::FGuid::parse_str(&uuid::Uuid::new_v4().to_string()).expect("uuid v4 is a valid GUID")
+}
+/// The all-zero GUID the game writes for a vacant slot.
+pub fn nil_guid() -> uesave::FGuid {
+    uesave::FGuid::nil()
+}
 /// A `FixedPoint64` stat field: the bare struct `{ Value: Int64(n) }` (e.g. Hp).
 pub fn fixed_point64(p: &Property) -> Option<i64> {
     let inner = struct_props(p)?;

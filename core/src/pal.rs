@@ -197,6 +197,28 @@ pub fn set_lucky(sp: &mut Properties, lucky: bool) {
         ue::remove_prop(sp, "IsRarePal");
     }
 }
+/// Change the pal's species by rewriting `CharacterID`, mirroring PalEdit's
+/// `SetType`: keep an alpha/lucky `BOSS_` prefix (the game stores the boss
+/// variant for those) and preserve the property's on-disk variant (Name/Str/
+/// Enum) so the save round-trips byte-for-byte. The new species' stats, work
+/// suitability and natural learnset are derived by the game from `CharacterID`,
+/// so no other field needs writing here.
+pub fn set_species(sp: &mut Properties, code: &str) {
+    let current = ue::prop(sp, "CharacterID").and_then(ue::as_str).unwrap_or("");
+    let prefix = if current.to_uppercase().starts_with("BOSS_") { "BOSS_" } else { "" };
+    // Strip any prefix the caller passed; we re-apply the pal's own.
+    let base = code
+        .strip_prefix("BOSS_")
+        .or_else(|| code.strip_prefix("boss_"))
+        .unwrap_or(code);
+    let value = format!("{prefix}{base}");
+    let variant = match ue::prop(sp, "CharacterID") {
+        Some(crate::ue::Property::Name(_)) => ue::name_prop(&value),
+        Some(crate::ue::Property::Enum(_)) => ue::enum_prop(&value),
+        _ => ue::str_prop(&value),
+    };
+    ue::set_prop(sp, "CharacterID", variant);
+}
 pub fn set_passives(sp: &mut Properties, codes: Vec<String>) {
     ue::set_prop(sp, "PassiveSkillList", ue::name_array_prop(codes));
 }

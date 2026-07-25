@@ -9,7 +9,9 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use palbox_core::globalbox::{list_pals, pal_param_mut, read_pal_at, slot_count, PalSummary};
+use palbox_core::globalbox::{
+    add_pal, clone_pal, delete_pal, list_pals, pal_param_mut, read_pal_at, slot_count, PalSummary,
+};
 use palbox_core::pal::{self, PalDto};
 use palbox_core::reference::{
     validate_passive_codes, PassiveOption, PassivePreset, ReferenceBundle, ReferenceDatabase,
@@ -82,6 +84,43 @@ fn update_pal(dto: PalDto, state: State<AppState>) -> Result<PalDto, String> {
     let sp = pal_param_mut(&mut session.save, dto.slot).ok_or("no pal at slot")?;
     apply_dto(sp, &dto);
     read_pal_at(&session.save, dto.slot).ok_or_else(|| "re-read failed".to_string())
+}
+
+/// Result of a box add/clone/delete: the refreshed tiles and the slot the UI
+/// should select+reveal (the new pal for add/clone; `None` after a delete).
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BoxMutation {
+    pals: Vec<PalSummary>,
+    slot: Option<usize>,
+}
+
+/// Add a brand-new pal (default: the turtle CubeTurtle) to a free box slot.
+#[tauri::command]
+fn add_box_pal(species: Option<String>, state: State<AppState>) -> Result<BoxMutation, String> {
+    let mut guard = state.0.lock().unwrap();
+    let session = guard.as_mut().ok_or("no box open")?;
+    let species = species.unwrap_or_else(|| "CubeTurtle".to_string());
+    let slot = add_pal(&mut session.save, &species)?;
+    Ok(BoxMutation { pals: list_pals(&session.save), slot: Some(slot) })
+}
+
+/// Deep-copy the pal at `slot` into a free slot with a fresh identity.
+#[tauri::command]
+fn clone_box_pal(slot: usize, state: State<AppState>) -> Result<BoxMutation, String> {
+    let mut guard = state.0.lock().unwrap();
+    let session = guard.as_mut().ok_or("no box open")?;
+    let new_slot = clone_pal(&mut session.save, slot)?;
+    Ok(BoxMutation { pals: list_pals(&session.save), slot: Some(new_slot) })
+}
+
+/// Remove the pal at `slot`, restoring the slot to a vacancy.
+#[tauri::command]
+fn delete_box_pal(slot: usize, state: State<AppState>) -> Result<BoxMutation, String> {
+    let mut guard = state.0.lock().unwrap();
+    let session = guard.as_mut().ok_or("no box open")?;
+    delete_pal(&mut session.save, slot)?;
+    Ok(BoxMutation { pals: list_pals(&session.save), slot: None })
 }
 
 /// Back up the original, then atomically write the edited box. Returns backup path.
@@ -194,6 +233,10 @@ fn apply_passive_preset(
 /// Apply every implemented edit port from a DTO. (Work-suitability list setter
 /// is the one field still pending — see pal.rs.)
 fn apply_dto(sp: &mut Properties, dto: &PalDto) {
+    // Species first: the game derives stats/work/learnset from CharacterID, so a
+    // species change must land before the other edits. set_species keeps the
+    // pal's own BOSS_ prefix, so writing the current species is a no-op.
+    pal::set_species(sp, &dto.character_id);
     pal::set_level(sp, dto.level);
     if let Some(name) = &dto.nickname {
         pal::set_nickname(sp, name);
@@ -266,6 +309,9 @@ pub fn run() {
             open_box,
             get_pal,
             update_pal,
+            add_box_pal,
+            clone_box_pal,
+            delete_box_pal,
             save_box,
             get_reference_data,
             list_passive_options,

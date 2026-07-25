@@ -2367,6 +2367,7 @@ dependencies = [
  "serde",
  "serde_json",
  "uesave",
+ "uuid",
 ]
 
 [[package]]

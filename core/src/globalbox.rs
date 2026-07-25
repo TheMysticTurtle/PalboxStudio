@@ -74,6 +74,173 @@ pub fn pal_param_mut(save: &mut Save, slot: usize) -> Option<&mut crate::ue::Pro
     ue::prop_mut(slot_props, "SaveParameter").and_then(ue::struct_props_mut)
 }
 
+// ---- box mutations: add / clone / delete -----------------------------------
+//
+// The box is a flat SaveParameterArray of up to 960 slots; an empty slot is a
+// complete, valid skeleton with CharacterID "None", nil InstanceId, and
+// SlotIndex -1. So: clone = deepcopy an occupied slot into an empty one with a
+// fresh identity; add = claim an empty slot and give it a species; delete =
+// restore a slot to a pristine vacancy. Mirrors the proven PalEdit path.
+//
+// NOTE: GlobalPalStorage.sav has no authoritative Slots array (SlotIndex is
+// non-authoritative and duplicated in real boxes), so an added/cloned pal will
+// not appear in the in-game box until it is dragged onto an empty slot. Editing
+// it here and saving is safe; the UI surfaces the "drag to a slot" caveat.
+
+/// Whether a slot value is an empty vacancy (`CharacterID` None/absent/"").
+fn is_empty_slot(sv: &StructValue) -> bool {
+    let Some(props) = ue::struct_value_props(sv) else { return false };
+    let cid = ue::prop(props, "SaveParameter")
+        .and_then(ue::struct_props)
+        .and_then(|p| ue::prop(p, "CharacterID"))
+        .and_then(ue::as_str);
+    matches!(cid, None | Some("None") | Some(""))
+}
+
+/// Index of the first empty slot, if any.
+fn first_empty(slots: &[StructValue]) -> Option<usize> {
+    slots.iter().position(is_empty_slot)
+}
+
+fn slot_slotid<'a>(sv: &'a StructValue) -> Option<&'a crate::ue::Properties> {
+    let props = ue::struct_value_props(sv)?;
+    ue::prop(props, "SaveParameter")
+        .and_then(ue::struct_props)
+        .and_then(|p| ue::prop(p, "SlotId"))
+        .and_then(ue::struct_props)
+}
+
+fn slotid_container(slotid: &crate::ue::Properties) -> Option<uesave::FGuid> {
+    ue::prop(slotid, "ContainerId")
+        .and_then(ue::struct_props)
+        .and_then(|c| ue::prop(c, "ID"))
+        .and_then(ue::as_guid)
+}
+
+/// The ContainerId shared by pals already in the box, or a fresh one if empty.
+fn box_container(slots: &[StructValue]) -> uesave::FGuid {
+    for sv in slots {
+        if is_empty_slot(sv) {
+            continue;
+        }
+        if let Some(g) = slot_slotid(sv).and_then(slotid_container) {
+            return g;
+        }
+    }
+    ue::new_guid()
+}
+
+/// Lowest SlotIndex not yet used within `container`.
+fn next_free_slot_index(slots: &[StructValue], container: &uesave::FGuid) -> i32 {
+    let mut used = std::collections::HashSet::new();
+    for sv in slots {
+        let Some(slotid) = slot_slotid(sv) else { continue };
+        if slotid_container(slotid) != Some(*container) {
+            continue;
+        }
+        if let Some(i) = ue::prop(slotid, "SlotIndex").and_then(ue::as_i32) {
+            if i >= 0 {
+                used.insert(i);
+            }
+        }
+    }
+    let mut idx = 0;
+    while used.contains(&idx) {
+        idx += 1;
+    }
+    idx
+}
+
+/// Stamp a slot's identity: InstanceId GUID + SlotId (container + index).
+fn stamp_identity(
+    sv: &mut StructValue,
+    instance: uesave::FGuid,
+    container: uesave::FGuid,
+    slot_index: i32,
+) -> Result<(), String> {
+    let props = ue::struct_value_props_mut(sv).ok_or("slot is not a struct")?;
+    let iid = ue::prop_mut(props, "InstanceId")
+        .and_then(ue::struct_props_mut)
+        .ok_or("slot has no InstanceId")?;
+    ue::set_prop(iid, "InstanceId", ue::guid_prop(instance));
+    let param = ue::prop_mut(props, "SaveParameter")
+        .and_then(ue::struct_props_mut)
+        .ok_or("slot has no SaveParameter")?;
+    let slotid = ue::prop_mut(param, "SlotId")
+        .and_then(ue::struct_props_mut)
+        .ok_or("slot has no SlotId")?;
+    let container_s = ue::prop_mut(slotid, "ContainerId")
+        .and_then(ue::struct_props_mut)
+        .ok_or("SlotId has no ContainerId")?;
+    ue::set_prop(container_s, "ID", ue::guid_prop(container));
+    ue::set_prop(slotid, "SlotIndex", ue::int_prop(slot_index));
+    Ok(())
+}
+
+fn slots_mut(save: &mut Save) -> Result<&mut Vec<StructValue>, String> {
+    ue::prop_mut(&mut save.root.properties, "SaveParameterArray")
+        .and_then(ue::array_structs_mut)
+        .ok_or_else(|| "not a Global Palbox (no SaveParameterArray)".to_string())
+}
+
+/// Add a brand-new pal of `species` to the first empty slot; returns its slot.
+/// The empty slot is already a clean level-1 skeleton — we claim it, give it a
+/// fresh identity, and set the species/level/gender.
+pub fn add_pal(save: &mut Save, species: &str) -> Result<usize, String> {
+    let slots = slots_mut(save)?;
+    let dst = first_empty(slots).ok_or("The Global Palbox has no free slots.")?;
+    let container = box_container(slots);
+    let idx = next_free_slot_index(slots, &container);
+    stamp_identity(&mut slots[dst], ue::new_guid(), container, idx)?;
+    let param = ue::struct_value_props_mut(&mut slots[dst])
+        .and_then(|p| ue::prop_mut(p, "SaveParameter"))
+        .and_then(ue::struct_props_mut)
+        .ok_or("new slot has no SaveParameter")?;
+    crate::pal::set_species(param, species);
+    crate::pal::set_level(param, 1);
+    crate::pal::set_gender(param, "Male");
+    Ok(dst)
+}
+
+/// Deep-copy the pal at `src` into the first empty slot with a fresh identity;
+/// returns the new slot. `src` must be an occupied slot.
+pub fn clone_pal(save: &mut Save, src: usize) -> Result<usize, String> {
+    let slots = slots_mut(save)?;
+    let source = slots.get(src).ok_or("no pal at source slot")?;
+    if is_empty_slot(source) {
+        return Err("source slot is empty".to_string());
+    }
+    let source = source.clone();
+    let dst = first_empty(slots).ok_or("The Global Palbox has no free slots.")?;
+    let container = box_container(slots);
+    let idx = next_free_slot_index(slots, &container);
+    slots[dst] = source;
+    stamp_identity(&mut slots[dst], ue::new_guid(), container, idx)?;
+    Ok(dst)
+}
+
+/// Restore a slot to a pristine vacancy. Prefers copying a real empty slot's
+/// structure; otherwise clears the identity fields in place.
+pub fn delete_pal(save: &mut Save, slot: usize) -> Result<(), String> {
+    let slots = slots_mut(save)?;
+    if slot >= slots.len() {
+        return Err("no pal at slot".to_string());
+    }
+    // Prefer an actual game-produced empty slot as the template.
+    if let Some(tmpl) = slots.iter().position(|sv| is_empty_slot(sv)).filter(|&i| i != slot) {
+        let blank = slots[tmpl].clone();
+        slots[slot] = blank;
+    } else {
+        stamp_identity(&mut slots[slot], ue::nil_guid(), ue::nil_guid(), -1)?;
+        let param = ue::struct_value_props_mut(&mut slots[slot])
+            .and_then(|p| ue::prop_mut(p, "SaveParameter"))
+            .and_then(ue::struct_props_mut)
+            .ok_or("slot has no SaveParameter")?;
+        crate::pal::set_species(param, "None");
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -121,5 +288,97 @@ mod tests {
 
         assert_eq!(after.level, 80, "level edit must survive a save round-trip");
         eprintln!("edited {} level {} -> {}", after.character_id, before.level, after.level);
+    }
+
+    #[test]
+    fn change_species_round_trip() {
+        let Ok(path) = std::env::var("PALBOX_TEST_SAV") else {
+            eprintln!("skip: set PALBOX_TEST_SAV");
+            return;
+        };
+        let bytes = std::fs::read(path).expect("read fixture");
+        let mut save = read_sav(&bytes).expect("decode");
+        let slot = list_pals(&save)[0].slot;
+
+        let before = read_pal_at(&save, slot).expect("read pal dto");
+        let was_alpha = before.character_id.to_uppercase().starts_with("BOSS_");
+
+        crate::pal::set_species(pal_param_mut(&mut save, slot).expect("mut param"), "CubeTurtle");
+        let out = write_sav(&save).expect("encode");
+        let reloaded = read_sav(&out).expect("re-decode");
+        let after = read_pal_at(&reloaded, slot).expect("re-read pal");
+
+        // Base species changed; an alpha/lucky BOSS_ prefix is preserved.
+        let expected = if was_alpha { "BOSS_CubeTurtle" } else { "CubeTurtle" };
+        assert_eq!(after.character_id, expected, "species edit must survive round-trip");
+        assert_eq!(after.is_alpha, was_alpha, "changing species must not toggle alpha");
+    }
+
+    #[test]
+    fn add_clone_delete_round_trip() {
+        let Ok(path) = std::env::var("PALBOX_TEST_SAV") else {
+            eprintln!("skip: set PALBOX_TEST_SAV");
+            return;
+        };
+        let bytes = std::fs::read(path).expect("read fixture");
+        let mut save = read_sav(&bytes).expect("decode");
+        let before = list_pals(&save).len();
+
+        // Add a default turtle.
+        let added = add_pal(&mut save, "CubeTurtle").expect("add");
+        // Clone the first existing pal.
+        let src = list_pals(&save)[0].slot;
+        let cloned = clone_pal(&mut save, src).expect("clone");
+        assert_ne!(added, cloned, "add and clone must land in different slots");
+
+        // Persist + reload: both new pals survive with unique, non-nil InstanceIds.
+        let out = write_sav(&save).expect("encode");
+        let mut reloaded = read_sav(&out).expect("re-decode");
+        let after_add = list_pals(&reloaded);
+        assert_eq!(after_add.len(), before + 2, "add + clone => two more pals");
+        assert_eq!(
+            read_pal_at(&reloaded, added).expect("added pal").character_id,
+            "CubeTurtle",
+            "added pal is the default turtle",
+        );
+        // Unique InstanceIds across the box (no dup identity from clone).
+        let ids = collect_instance_ids(&reloaded);
+        let unique: std::collections::HashSet<_> = ids.iter().collect();
+        assert_eq!(ids.len(), unique.len(), "every occupied pal has a unique InstanceId");
+
+        // Delete the cloned pal: count drops by one, slot is a vacancy again.
+        delete_pal(&mut reloaded, cloned).expect("delete");
+        let out2 = write_sav(&reloaded).expect("re-encode");
+        let final_save = read_sav(&out2).expect("re-decode 2");
+        let final_pals = list_pals(&final_save);
+        assert_eq!(final_pals.len(), before + 1, "delete removes one pal");
+        assert!(
+            !final_pals.iter().any(|p| p.slot == cloned),
+            "deleted slot is no longer an occupied pal",
+        );
+    }
+
+    /// InstanceId GUID strings for every occupied slot (for uniqueness checks).
+    fn collect_instance_ids(save: &Save) -> Vec<String> {
+        let mut ids = Vec::new();
+        let Some(slots) =
+            ue::prop(&save.root.properties, "SaveParameterArray").and_then(ue::array_structs)
+        else {
+            return ids;
+        };
+        for sv in slots {
+            if is_empty_slot(sv) {
+                continue;
+            }
+            if let Some(iid) = ue::struct_value_props(sv)
+                .and_then(|p| ue::prop(p, "InstanceId"))
+                .and_then(ue::struct_props)
+                .and_then(|i| ue::prop(i, "InstanceId"))
+                .and_then(ue::as_guid)
+            {
+                ids.push(format!("{iid:?}"));
+            }
+        }
+        ids
     }
 }
