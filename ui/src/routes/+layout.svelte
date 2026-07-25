@@ -8,7 +8,14 @@
   import "@fontsource/barlow/600.css";
   import "@fontsource/barlow-semi-condensed/600.css";
   import "$lib/styles/tokens.css";
+  import { loadRefData } from "$lib/data/refdata.svelte";
+
   let { children } = $props();
+
+  // Load the static reference tables (passives/moves/species/elements/schema) once.
+  $effect(() => {
+    loadRefData();
+  });
 </script>
 
 {@render children()}

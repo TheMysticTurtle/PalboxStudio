@@ -1,10 +1,9 @@
 import type { Pal } from "./types";
 import { WORK_SUITS } from "./constants";
 
-// Real Incineram (CodeName "Baphomet"), built from PalEdit's game data
-// (resources/data/pals/Baphomet.json) so the card shows real structure + icon.
-// Stats (hp/attack/…) are still placeholder numbers until the engine computes them
-// from scaling + level + IV + souls + condensation.
+// Real Incineram (CodeName "Baphomet"), from PalEdit's game data. Passives and
+// moves are stored as **codes** and resolved for display via the reference tables
+// (passives.json / moves.json). Stats are placeholder until the engine computes them.
 const workLevels: Record<string, number> = {
   Kindling: 3, // EmitFlame
   Handiwork: 2, // Handcraft
@@ -13,8 +12,8 @@ const workLevels: Record<string, number> = {
 };
 
 export const samplePal: Pal = {
-  species: "Baphomet", // CodeName → icon T_Baphomet_icon_normal.png
-  name: "Incineram", // display name (en-GB)
+  species: "Baphomet",
+  name: "Incineram",
   paldexNo: "No. 095",
   gender: "Male",
   elements: ["Fire", "Dark"],
@@ -37,23 +36,10 @@ export const samplePal: Pal = {
       "When activated, attacks the targeted enemy with Hellfire Claw. When this Pal uses Hellfire Claw, it deals bonus damage.",
     element: "Fire",
   },
-  passives: [
-    { id: "Legend", name: "Legend", rating: 4, effects: "+20% Attack · +20% Defense · +15% Move Speed" },
-    { id: "Ferocious", name: "Ferocious", rating: 3, effects: "+20% Attack" },
-    { id: "Workaholic", name: "Workaholic", rating: 2, effects: "Slows SAN loss while working" },
-  ],
-  // Equipped (max 3) + bench, drawn from Baphomet's real Moveset. Powers are placeholder.
-  activeSkills: [
-    { id: "FireBall", name: "Fire Ball", element: "Fire", power: 45 },
-    { id: "Inferno", name: "Inferno", element: "Fire", power: 150 },
-    { id: "DarkLegion", name: "Dark Legion", element: "Dark", power: 150 },
-  ],
-  benchMoves: [
-    { id: "FireBlast", name: "Fire Blast", element: "Fire", power: 30 },
-    { id: "FireSeed", name: "Fire Seed", element: "Fire", power: 30 },
-    { id: "FlareArrow", name: "Flare Arrow", element: "Fire", power: 55 },
-    { id: "SwallowKite", name: "Swallow Kite", element: "Fire", power: 90 },
-    { id: "DarkWave", name: "Dark Wave", element: "Dark", power: 110 },
-  ],
+  // Passive CODES (resolved via passives.json): Legend, Ferocious, Workaholic.
+  passives: ["Legend", "PAL_ALLAttack_up2", "PAL_Sanity_Down_2"],
+  // Move CODES from Baphomet's real learnset (resolved via moves.json).
+  activeSkills: ["FireBall", "Inferno", "DarkLegion"],
+  benchMoves: ["FireBlast", "FireSeed", "FlareArrow", "Unique_Baphomet_SwallowKite", "DarkWave"],
   workSuit: WORK_SUITS.map((w) => ({ name: w.name, icon: w.icon, level: workLevels[w.name] ?? 0 })),
 };

@@ -1,6 +1,7 @@
 <script lang="ts">
-  import type { Pal } from "$lib/data/types";
+  import type { Pal, ElementName } from "$lib/data/types";
   import { LIMITS, ELEMENT_COLOR } from "$lib/data/constants";
+  import { resolveMove } from "$lib/data/refdata.svelte";
   import SectionHeader from "./SectionHeader.svelte";
   import ElementPill from "./ElementPill.svelte";
   import PassiveChip from "./PassiveChip.svelte";
@@ -22,37 +23,46 @@
   // Moves: click or drag between the equipped zone and the bench.
   let emptySlots = $derived(Math.max(0, LIMITS.equippedMovesMax - pal.activeSkills.length));
 
-  function equip(id: string) {
-    const i = pal.benchMoves.findIndex((m) => m.id === id);
+  function equip(code: string) {
+    const i = pal.benchMoves.indexOf(code);
     if (i < 0) return;
-    const [m] = pal.benchMoves.splice(i, 1);
+    pal.benchMoves.splice(i, 1);
     if (pal.activeSkills.length >= LIMITS.equippedMovesMax) {
       const dropped = pal.activeSkills.shift();
       if (dropped) pal.benchMoves.push(dropped); // swap the oldest out
     }
-    pal.activeSkills.push(m);
+    pal.activeSkills.push(code);
   }
-  function unequip(id: string) {
-    const i = pal.activeSkills.findIndex((m) => m.id === id);
+  function unequip(code: string) {
+    const i = pal.activeSkills.indexOf(code);
     if (i < 0) return;
-    const [m] = pal.activeSkills.splice(i, 1);
-    pal.benchMoves.push(m);
+    pal.activeSkills.splice(i, 1);
+    pal.benchMoves.push(code);
   }
-  function onDragStart(e: DragEvent, id: string) {
-    e.dataTransfer?.setData("text/plain", id);
+  function onDragStart(e: DragEvent, code: string) {
+    e.dataTransfer?.setData("text/plain", code);
     if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
   }
   const allowDrop = (e: DragEvent) => e.preventDefault();
   function dropEquip(e: DragEvent) {
     e.preventDefault();
-    const id = e.dataTransfer?.getData("text/plain");
-    if (id) equip(id);
+    const c = e.dataTransfer?.getData("text/plain");
+    if (c) equip(c);
   }
   function dropBench(e: DragEvent) {
     e.preventDefault();
-    const id = e.dataTransfer?.getData("text/plain");
-    if (id) unequip(id);
+    const c = e.dataTransfer?.getData("text/plain");
+    if (c) unequip(c);
   }
+
+  // Resolve move codes -> display info from moves.json.
+  const elColor = (el: string) => ELEMENT_COLOR[el as ElementName] ?? "var(--el-neutral)";
+  const asMove = (code: string) => {
+    const m = resolveMove(code);
+    return { code, name: m?.name ?? code, element: m?.element ?? "", power: m?.power ?? 0 };
+  };
+  let equipped = $derived(pal.activeSkills.map(asMove));
+  let bench = $derived(pal.benchMoves.map(asMove));
 
   // Real pal portrait from PalEdit's icons; fall back to the #ERROR placeholder.
   const iconSrc = $derived(`/pals/T_${pal.species}_icon_normal.png`);
@@ -110,7 +120,7 @@
           {#snippet right()}{pal.passives.length} / {LIMITS.passivesMax}{/snippet}
         </SectionHeader>
         <div class="passives">
-          {#each pal.passives as p (p.id)}<PassiveChip passive={p} />{/each}
+          {#each pal.passives as code (code)}<PassiveChip {code} />{/each}
           {#if pal.passives.length < LIMITS.passivesMax}
             <button class="add">+ Add passive</button>
           {/if}
@@ -155,10 +165,10 @@
         </SectionHeader>
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="moveslots" ondragover={allowDrop} ondrop={dropEquip}>
-          {#each pal.activeSkills as m (m.id)}
-            <button type="button" class="move equipped" draggable="true" ondragstart={(e) => onDragStart(e, m.id)} onclick={() => unequip(m.id)} title="Click or drag to unequip">
+          {#each equipped as m (m.code)}
+            <button type="button" class="move equipped" draggable="true" ondragstart={(e) => onDragStart(e, m.code)} onclick={() => unequip(m.code)} title="Click or drag to unequip">
               <span class="mgrip">⠿</span>
-              <span class="mdia" style="--c:{ELEMENT_COLOR[m.element]}"></span>
+              <span class="mdia" style="--c:{elColor(m.element)}"></span>
               <span class="mname">{m.name}</span>
               <span class="mpwrcap">PWR</span>
               <span class="mpwr">{m.power}</span>
@@ -171,10 +181,10 @@
         <div class="bench-label">AVAILABLE MOVES</div>
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="bench" ondragover={allowDrop} ondrop={dropBench}>
-          {#each pal.benchMoves as m (m.id)}
-            <button type="button" class="move bench-move" draggable="true" ondragstart={(e) => onDragStart(e, m.id)} onclick={() => equip(m.id)} title="Click or drag to equip">
+          {#each bench as m (m.code)}
+            <button type="button" class="move bench-move" draggable="true" ondragstart={(e) => onDragStart(e, m.code)} onclick={() => equip(m.code)} title="Click or drag to equip">
               <span class="mgrip">⠿</span>
-              <span class="mdia small" style="--c:{ELEMENT_COLOR[m.element]}"></span>
+              <span class="mdia small" style="--c:{elColor(m.element)}"></span>
               <span class="mname">{m.name}</span>
               <span class="mpwrcap">PWR</span>
               <span class="mpwr">{m.power}</span>
