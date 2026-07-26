@@ -27,7 +27,6 @@
   onclick={() => onselect?.(card.slot)}
   aria-label={`Select ${card.title}, ${card.speciesName}, level ${card.level}`}
 >
-  <span class="accent"></span>
   <span class="identity">
     <PalPortrait {card} size={76} />
     <span class="copy">
@@ -128,14 +127,6 @@
     box-shadow:
       0 0 0 1px color-mix(in srgb, var(--secondary) 30%, transparent),
       0 0 22px color-mix(in srgb, var(--primary) 24%, transparent);
-  }
-  .accent {
-    position: absolute;
-    inset: 0 0 auto;
-    height: 2px;
-    border-radius: 13px 13px 0 0;
-    background: linear-gradient(90deg, var(--primary), var(--secondary));
-    box-shadow: 0 0 10px color-mix(in srgb, var(--primary) 38%, transparent);
   }
   .identity { position: relative; display: flex; align-items: center; gap: 11px; min-width: 0; }
   .copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }

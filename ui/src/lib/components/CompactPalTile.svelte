@@ -66,15 +66,6 @@
     box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
     transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, transform 0.15s;
   }
-  .tile::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto;
-    height: 2px;
-    border-radius: 12px 12px 0 0;
-    background: linear-gradient(90deg, var(--primary), var(--secondary));
-    opacity: 0.72;
-  }
   .tile:hover {
     transform: translateY(-1px);
     border-color: color-mix(in srgb, var(--primary) 55%, var(--secondary));
