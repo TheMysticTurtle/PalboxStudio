@@ -13,16 +13,17 @@ export interface MoveSlotState {
 
 export interface MoveSlotResult extends MoveSlotState {
   moved: boolean;
-  /** Active move evicted from slot three when a bench move is inserted into a full set. */
+  /** Retained for API compatibility; always null now that drops swap in place. */
   displaced: string | null;
 }
 
 /**
- * Move one skill between (or within) the active and bench lists.
+ * Move a skill by swapping it with whatever occupies the drop slot.
  *
- * This is intentionally independent of the DOM and Svelte state. Native drag
- * events, pointer input, and keyboard controls can all use the same tested
- * ordering rules without duplicating mutation logic.
+ * Dropping onto an occupied slot exchanges the two entries in place, so the rest
+ * of the list never shifts; dropping onto an empty active slot or the end of a
+ * list simply moves the skill there. Independent of the DOM and Svelte state, so
+ * pointer, native drag, and keyboard input all share one rule set.
  */
 export function moveSkill(
   state: MoveSlotState,
@@ -40,28 +41,30 @@ export function moveSkill(
 
   if (expectedIndex < 0) return { active, bench, moved: false, displaced: null };
 
-  sourceItems.splice(expectedIndex, 1);
-  let targetIndex = Number.isFinite(rawTargetIndex) ? Math.trunc(rawTargetIndex) : 0;
-  if (source.list === targetList && expectedIndex < targetIndex) targetIndex -= 1;
+  const targetItems = targetList === "active" ? active : bench;
+  const targetIndex = Number.isFinite(rawTargetIndex)
+    ? Math.trunc(rawTargetIndex)
+    : targetItems.length;
+  const targetOccupied = targetIndex >= 0 && targetIndex < targetItems.length;
 
-  let displaced: string | null = null;
-  if (targetList === "active") {
-    const lastInsertIndex = source.list === "bench" && active.length >= activeLimit
-      ? Math.max(0, activeLimit - 1)
-      : active.length;
-    targetIndex = Math.max(0, Math.min(lastInsertIndex, targetIndex));
-    active.splice(targetIndex, 0, source.code);
-
-    if (active.length > activeLimit) {
-      displaced = active.pop() ?? null;
-      if (displaced && displaced !== source.code && !bench.includes(displaced)) {
-        bench.push(displaced);
-      }
-    }
-  } else {
-    targetIndex = Math.max(0, Math.min(bench.length, targetIndex));
-    if (!bench.includes(source.code)) bench.splice(targetIndex, 0, source.code);
+  // Dropped onto its own slot: nothing to do.
+  if (source.list === targetList && targetOccupied && targetIndex === expectedIndex) {
+    return { active, bench, moved: false, displaced: null };
   }
 
-  return { active, bench, moved: true, displaced };
+  if (targetOccupied) {
+    // Swap the two entries in place, keeping both positions — nothing else shifts.
+    const targetCode = targetItems[targetIndex];
+    sourceItems[expectedIndex] = targetCode;
+    targetItems[targetIndex] = source.code;
+    return { active, bench, moved: true, displaced: null };
+  }
+
+  // Empty target slot (an unused active slot, or the end of a list): move it there.
+  if (targetList === "active" && active.length >= activeLimit) {
+    return { active, bench, moved: false, displaced: null };
+  }
+  sourceItems.splice(expectedIndex, 1);
+  if (!targetItems.includes(source.code)) targetItems.push(source.code);
+  return { active, bench, moved: true, displaced: null };
 }

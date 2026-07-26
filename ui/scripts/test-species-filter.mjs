@@ -109,27 +109,27 @@ test("bench moves can be dragged into any open active slot", () => {
   assert.equal(result.displaced, null);
 });
 
-test("active skills reorder without duplicating or losing a move", () => {
+test("dragging one active skill onto another swaps their slots", () => {
   const result = moveSkill(
     { active: ["FireBall", "WindCutter", "DarkLaser"], bench: ["StoneBlast"] },
     { code: "DarkLaser", list: "active", index: 2 },
     "active",
     0,
   );
-  assert.deepEqual(result.active, ["DarkLaser", "FireBall", "WindCutter"]);
+  assert.deepEqual(result.active, ["DarkLaser", "WindCutter", "FireBall"]);
   assert.deepEqual(result.bench, ["StoneBlast"]);
 });
 
-test("dropping onto a full active set returns the displaced third skill to the bench", () => {
+test("dropping a bench move onto an occupied active slot swaps the two", () => {
   const result = moveSkill(
     { active: ["FireBall", "WindCutter", "DarkLaser"], bench: ["StoneBlast"] },
     { code: "StoneBlast", list: "bench", index: 0 },
     "active",
     1,
   );
-  assert.deepEqual(result.active, ["FireBall", "StoneBlast", "WindCutter"]);
-  assert.deepEqual(result.bench, ["DarkLaser"]);
-  assert.equal(result.displaced, "DarkLaser");
+  assert.deepEqual(result.active, ["FireBall", "StoneBlast", "DarkLaser"]);
+  assert.deepEqual(result.bench, ["WindCutter"]);
+  assert.equal(result.displaced, null);
 });
 
 test("group filters require membership in every selected group", () => {
