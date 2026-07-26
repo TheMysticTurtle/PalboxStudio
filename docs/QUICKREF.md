@@ -38,6 +38,9 @@ Practical pointers for building the global-box editor. The two authoritative sou
   [SPECS-1.0.md](SPECS-1.0.md) — the authoritative source for all value ranges** (don't trust
   our pre-1.0 numbers).
 - `IsPlayer` is written `False` on every pal — detect players by *value*, not key-presence.
+- The game-data dump's `is_pal` flag means “Pal-shaped engine actor,” not “ownable Pal.”
+  Keep all 406 rows for decoding, but offer only the 287 `palbox_selectable` canonical species.
+  `species_alias` maps 73 encounter/appearance codes back to their owned species.
 
 ## Corruption traps to AVOID (we caused these in PalEdit; do NOT repeat)
 - **Never write `CraftSpeeds`** — real 1.0 pals don't have it; it broke work calc.

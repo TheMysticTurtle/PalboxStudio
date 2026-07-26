@@ -2,6 +2,28 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Feature branch checkpoint — canonical Palbox roster and application identity
+
+Branch: `feature/pal-image-filter-polish`.
+
+The full 1.0 species source was audited end to end. Its 406 `is_pal` rows include real species plus
+raid body parts, summon/predator/oil-rig encounters, tower actors, quest helpers, appearance
+variants, retired models, and uncatchable bosses. Reference schema v2 retains all 406 for decoding
+but marks exactly 287 unique owned-Pal species as `palbox_selectable`; the species selector shows
+only those rows. Seventy-three variant codes map to canonical owned species through
+`species_alias`, so loaded oddities still receive the correct name, data, and portrait.
+
+The generator now fails if selectable names duplicate, if canonical Xenovader/Xenogard/Xenolord
+are absent, or if Boltmane, Astralym, or Moon Lord leak into the chooser. Xenovader, Xenogard,
+Xenolord, and the other normal Paldeck rows are classified Natural even when the game data also
+marks that species as eligible for predator encounters.
+
+`assets/Palbox Studio Logo.png` is now the authored identity source. The clean artwork was used to
+regenerate the complete desktop Tauri icon set plus the deployed web logo and favicon. Runtime
+components resolve it through `APP_LOGO_ART`; the checkerboard-backed predecessor is no longer used.
+Because reference data is cached at startup, a running development app must restart after a DB
+regeneration to see roster changes.
+
 ## Feature branch checkpoint — Pal artwork, match-all filters, and Soul percentages
 
 Branch: `feature/pal-image-filter-polish`.
@@ -107,7 +129,7 @@ passes.
 
 **Static SQLite is live.** `scripts/build_reference_db.py --check` generates
 `data/palbox-reference.db` from the local PSP 1.0 extract plus retained source snapshots.
-Schema: `database/reference-schema.sql`. Current rows: 406 species, 351 moves, 420 passives,
+Schema: `database/reference-schema.sql`. Source rows: 406 Pal-shaped engine actors, 351 moves, 420 passives,
 2,372 items, 348 species-to-Partner-Skill records (287 direct cards plus 61 audited
 same-name/same-tribe engine variants), 42 Ranch-product links across 29 species, and 59,192
 localizations. The builder records source hashes/provenance and 94 non-fatal audit findings,
@@ -185,8 +207,9 @@ persist yet), the computed combat-stat FORMULA (Attack/Def/WorkSpeed + max HP sh
 placeholders = base scaling), groups/tags SQLite, schema-driven filters + species selector,
 nickname-clear edge, in-game icon assets. `samplePal`/`sampleBox` are now fallback fixtures only.
 
-**Reference dataset DONE:** `ui/static/data/{species,moves,passives,elements,schema}.json`
-via `scripts/gen_species.py` — 406 storable pals + 351 moves + 420 passives + 9 elements,
+**Historical JSON checkpoint (superseded by SQLite):**
+`ui/static/data/{species,moves,passives,elements,schema}.json` via `scripts/gen_species.py` —
+406 Pal-shaped engine rows + 351 moves + 420 passives + 9 elements,
 validated (0 dangling), provenance in each `_meta`. Docs in DATA-AND-ASSETS.md. Static reference
 = JSON-in-git; mutable user data (groups/tags/presets) = **SQLite later** (like psp-db).
 
@@ -254,9 +277,9 @@ central-card glow goals. NOTE: the open-file button needs a `tauri dev` rebuild 
    `data-tauri-drag-region` and no child overlays it.
 2. **Species selector popup** (change a pal's species). Clicking the **species name on the card**
    opens a filterable/searchable list of every species/entity that CAN live in the Global
-   Palbox. **EXCLUDE human NPCs** — the game does not allow storing humans in the global box
-   (filter out Human/NPC entities; the species data has a human flag — see PalEdit
-   `update_data.py` `Human = not is_pal`). Selecting one changes the species. Needs: a distinct,
+   Palbox. **Superseded rule:** excluding humans alone proved insufficient; use reference-schema
+   v2's audited `palbox_selectable` value so encounter actors and uncatchable bosses are excluded
+   as well. Selecting one changes the species. Needs: a distinct,
    clickable **species label** on the card (separate from the editable nickname input), a
    species list source (psp `data/json/pals.json` + l10n names), and the picker component
    (reuse for the box filter later). Owner suggested clicking the species name to trigger it.
@@ -306,10 +329,6 @@ passive_skills · work_suitability · is_sick · friendship_point.
   (`.moveslots` + `.bench`) — `a11y_no_static_element_interactions`.
 
 ## Deferred / loose ends
-- **App icon from the cropped logo**: owner swapped a cropped `assets/Palbox Studio Logo.png`,
-  but `src-tauri/icons/*` and `ui/static/logo.png` are still from the ORIGINAL. Regenerate:
-  `npm run tauri -- icon "assets/Palbox Studio Logo.png"`, then remove the ios/android sets and
-  copy `src-tauri/icons/128x128@2x.png`→`ui/static/logo.png`, `128x128.png`→`ui/static/favicon.png`.
 - If frameless window isn't wanted, revert `decorations:false` in `src-tauri/tauri.conf.json`.
 
 ## How to run / verify

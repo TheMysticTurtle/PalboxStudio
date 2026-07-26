@@ -6,6 +6,7 @@ import { ref } from "./refdata.svelte";
 // strip a RAID_/BOSS_ prefix and a trailing _2, and special-case PlantSlime.
 // Alpha pals store `BOSS_<Code>` but share the base icon, so we strip BOSS_ too.
 export const PAL_ICON_FALLBACK = "/pals/%23ERROR.png";
+export const APP_LOGO_ART = "/logo.png";
 
 // Save/reference codes and PalEdit asset basenames are normally identical.
 // Lamball is the known exception: `Sheepball` in game data, `SheepBall` on disk.
@@ -14,7 +15,9 @@ const PAL_ICON_CODE_ALIASES: Record<string, string> = {
 };
 
 export function palIcon(code: string): string {
-  const normalized = (code.includes("PlantSlime") ? "PlantSlime" : code)
+  const withoutVariant = code.replace(/^BOSS_/i, "");
+  const canonical = ref.speciesAliases[withoutVariant] ?? withoutVariant;
+  const normalized = (canonical.includes("PlantSlime") ? "PlantSlime" : canonical)
     .replace(/^(RAID_|BOSS_)/i, "")
     .replace(/_2$/i, "");
   const c = PAL_ICON_CODE_ALIASES[normalized] ?? normalized;

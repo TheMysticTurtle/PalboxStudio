@@ -23,10 +23,10 @@
 
   const filter = createSpeciesFilter();
 
-  // Storable species (the DB already excludes Human NPCs): Natural first by
-  // Paldex order, then the rest alphabetically.
+  // The reference bundle retains every engine row so unusual saves can still
+  // be decoded. The selector exposes only the audited canonical Palbox roster.
   let allSpecies = $derived(
-    [...ref.species].sort((a, b) => {
+    ref.species.filter((species) => species.palboxSelectable).sort((a, b) => {
       const ai = a.deckIndex >= 0 ? a.deckIndex : 1e9;
       const bi = b.deckIndex >= 0 ? b.deckIndex : 1e9;
       return ai !== bi ? ai - bi : a.name.localeCompare(b.name);
@@ -59,7 +59,7 @@
     </header>
 
     <div class="filterbar">
-      <SpeciesFilter {filter} placeholder="Search species…" />
+      <SpeciesFilter {filter} showCategories={false} placeholder="Search species…" />
     </div>
 
     <div class="grid">

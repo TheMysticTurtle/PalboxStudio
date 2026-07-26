@@ -334,7 +334,6 @@ def classify_species(code: str, row: dict[str, Any]) -> str:
         or code.endswith("_Oilrig")
         or code == "WorldTreeDragon"
         or row.get("is_raid_boss")
-        or row.get("predator")
     ):
         return "Unobtainable"
     if as_int(row.get("pal_deck_index"), -1) >= 0:
@@ -349,6 +348,85 @@ def english_name(localization: dict[str, Any], code: str) -> str:
     if isinstance(value, str):
         return value
     return prettify(code)
+
+
+def is_palbox_candidate(code: str, row: dict[str, Any]) -> bool:
+    """Whether an engine row can represent an owned, transferable Pal species.
+
+    The game-data dump contains encounter actors, raid body parts, tower models,
+    quest helpers, retired models, and appearance variants alongside real Pals.
+    `is_pal` only distinguishes Pal-shaped actors from humans; it is not an
+    ownership guarantee.
+    """
+    if as_int(row.get("pal_deck_index"), -1) < 0 or row.get("disabled"):
+        return False
+    if (
+        row.get("is_boss")
+        or row.get("is_tower_boss")
+        or row.get("is_raid_boss")
+        or code == "WorldTreeDragon"
+    ):
+        return False
+    if code.startswith(("RAID_", "SUMMON_", "PREDATOR_", "GYM_", "Quest_")):
+        return False
+    if (
+        code.endswith(("_Oilrig", "_Tower", "_Avatar", "_Otomo"))
+        or "_Quest_" in code
+    ):
+        return False
+    return True
+
+
+def build_palbox_species_index(
+    species_rows: dict[str, dict[str, Any]],
+    localization: dict[str, Any],
+) -> tuple[set[str], dict[str, str]]:
+    """Choose one safe canonical row and map engine variants back to it."""
+    candidates = [
+        code
+        for code, row in species_rows.items()
+        if is_palbox_candidate(code, row)
+    ]
+    identities: dict[tuple[int, str, str | None], list[str]] = {}
+    for code in candidates:
+        row = species_rows[code]
+        identity = (
+            as_int(row.get("pal_deck_index"), -1),
+            english_name(localization, code).casefold(),
+            row.get("tribe"),
+        )
+        identities.setdefault(identity, []).append(code)
+
+    def canonical_score(code: str) -> tuple[int, int, int, str]:
+        row = species_rows[code]
+        return (
+            0 if code == row.get("tribe") else 1,
+            0 if row.get("icon") else 1,
+            len(code),
+            code,
+        )
+
+    selectable = {
+        min(identity_codes, key=canonical_score)
+        for identity_codes in identities.values()
+    }
+    canonical_by_identity: dict[tuple[str, str | None], list[str]] = {}
+    for code in selectable:
+        identity = (
+            english_name(localization, code).casefold(),
+            species_rows[code].get("tribe"),
+        )
+        canonical_by_identity.setdefault(identity, []).append(code)
+
+    aliases: dict[str, str] = {}
+    for code, row in species_rows.items():
+        if code in selectable:
+            continue
+        identity = (english_name(localization, code).casefold(), row.get("tribe"))
+        matches = canonical_by_identity.get(identity, [])
+        if len(matches) == 1:
+            aliases[code] = matches[0]
+    return selectable, aliases
 
 
 def verify_derived_source(path: Path, raw_path: Path, hash_key: str) -> dict[str, Any]:
@@ -466,6 +544,14 @@ def build_reference(destination: Path) -> dict[str, int]:
     en_items = load_json(en_dir / "items.json")
     en_elements = load_json(en_dir / "elements.json")
     en_work = load_json(en_dir / "work_suitability.json")
+    species_rows = {
+        code: row
+        for code, row in pals.items()
+        if row.get("is_pal") and not code.startswith("Quest_")
+    }
+    palbox_species, species_aliases = build_palbox_species_index(
+        species_rows, en_pals
+    )
 
     connection, temp_path = create_connection(REFERENCE_SCHEMA, destination)
     try:
@@ -479,11 +565,13 @@ def build_reference(destination: Path) -> dict[str, int]:
             "INSERT INTO metadata(key, value) VALUES (?, ?)",
             [
                 ("database_kind", "palbox-reference"),
-                ("schema_version", "1"),
+                ("schema_version", "2"),
                 ("game_version", "Palworld 1.0"),
                 ("generated_at", generated_at),
                 ("generator", "scripts/build_reference_db.py"),
                 ("per_pal_state_included", "false"),
+                ("palbox_selectable_species", str(len(palbox_species))),
+                ("species_aliases", str(len(species_aliases))),
             ],
         )
         psp_source = add_source(
@@ -549,11 +637,6 @@ def build_reference(destination: Path) -> dict[str, int]:
                 ),
             )
 
-        species_rows = {
-            code: row
-            for code, row in pals.items()
-            if row.get("is_pal") and not code.startswith("Quest_")
-        }
         for code, row in species_rows.items():
             scaling = row.get("scaling") or {}
             connection.execute(
@@ -568,11 +651,12 @@ def build_reference(destination: Path) -> dict[str, int]:
                     run_speed, ride_sprint_speed, transport_speed, is_alpha_species,
                     is_tower_boss, is_raid_boss, is_predator, nocturnal, edible,
                     max_stomach, food_amount, biological_grade, stamina,
-                    male_probability, breeding_rank, disabled, icon, source_id
+                    male_probability, breeding_rank, disabled,
+                    palbox_selectable, icon, source_id
                 ) VALUES (
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                    ?, ?, ?
+                    ?, ?, ?, ?
                 )
                 """,
                 (
@@ -617,6 +701,7 @@ def build_reference(destination: Path) -> dict[str, int]:
                     as_float(row.get("male_probability"), 50),
                     as_int(row.get("combi_rank")),
                     as_bool(row.get("disabled")),
+                    as_bool(code in palbox_species),
                     row.get("icon"),
                     psp_source,
                 ),
@@ -644,6 +729,14 @@ def build_reference(destination: Path) -> dict[str, int]:
                     for work_code in WORK_ORDER
                 ],
             )
+
+        connection.executemany(
+            """
+            INSERT INTO species_alias(alias_code, canonical_code, reason)
+            VALUES (?, ?, 'same-name/same-tribe engine variant')
+            """,
+            sorted(species_aliases.items()),
+        )
 
         move_rows: dict[str, dict[str, Any]] = {}
         for full_code, row in moves.items():
@@ -1232,6 +1325,7 @@ def build_reference(destination: Path) -> dict[str, int]:
             table: connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
             for table in (
                 "species",
+                "species_alias",
                 "move",
                 "passive",
                 "item",
@@ -1276,6 +1370,7 @@ def build_user_template(destination: Path) -> None:
 def validate_installed(reference_path: Path, user_path: Path) -> None:
     expected_counts = {
         "species": 406,
+        "species_alias": 73,
         "partner_skill": 348,
     }
     with sqlite3.connect(f"file:{reference_path.as_posix()}?mode=ro", uri=True) as connection:
@@ -1287,6 +1382,51 @@ def validate_installed(reference_path: Path, user_path: Path) -> None:
             actual = connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
             if actual != expected:
                 raise ValueError(f"{table}: expected {expected}, found {actual}")
+        selectable = connection.execute(
+            "SELECT COUNT(*) FROM species WHERE palbox_selectable = 1"
+        ).fetchone()[0]
+        if selectable != 287:
+            raise ValueError(
+                f"palbox-selectable species: expected 287, found {selectable}"
+            )
+        duplicate_selectable_names = connection.execute(
+            """
+            SELECT name
+            FROM species
+            WHERE palbox_selectable = 1
+            GROUP BY name COLLATE NOCASE
+            HAVING COUNT(*) > 1
+            """
+        ).fetchall()
+        if duplicate_selectable_names:
+            raise ValueError(
+                "palbox-selectable species contain duplicate display names: "
+                + ", ".join(row[0] for row in duplicate_selectable_names)
+            )
+        required_selectable = {"DarkAlien", "WhiteAlienDragon", "DarkMechaDragon"}
+        actual_selectable = {
+            row[0]
+            for row in connection.execute(
+                "SELECT code FROM species WHERE palbox_selectable = 1"
+            )
+        }
+        missing = required_selectable - actual_selectable
+        if missing:
+            raise ValueError(
+                "expected canonical Palbox species are missing: "
+                + ", ".join(sorted(missing))
+            )
+        forbidden_selectable = {
+            "ElecLion",
+            "WorldTreeDragon",
+            "RAID_YakushimaBoss002",
+        }
+        leaked = forbidden_selectable & actual_selectable
+        if leaked:
+            raise ValueError(
+                "non-transferable engine rows leaked into the Palbox selector: "
+                + ", ".join(sorted(leaked))
+            )
         unresolved_ranch = connection.execute(
             "SELECT COUNT(*) FROM ranch_drop WHERE item_code IS NULL"
         ).fetchone()[0]

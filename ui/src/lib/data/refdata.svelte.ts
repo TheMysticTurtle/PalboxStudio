@@ -10,6 +10,7 @@ interface RefData {
   moves: Record<string, MoveRef>;
   species: SpeciesRow[];
   speciesByCode: Record<string, SpeciesRow>;
+  speciesAliases: Record<string, string>;
   elements: Record<string, ElementInfo>;
   friendshipRanks: Record<string, number>;
   schema: SchemaColumn[];
@@ -21,6 +22,7 @@ export const ref = $state<RefData>({
   moves: {},
   species: [],
   speciesByCode: {},
+  speciesAliases: {},
   elements: {},
   friendshipRanks: {},
   schema: [],
@@ -39,6 +41,7 @@ export async function loadRefData(): Promise<void> {
     ref.moves = bundle.moves;
     ref.species = bundle.species;
     ref.speciesByCode = Object.fromEntries(bundle.species.map((s) => [s.code, s]));
+    ref.speciesAliases = bundle.speciesAliases;
     ref.elements = bundle.elements;
     ref.friendshipRanks = bundle.friendshipRanks;
     ref.schema = bundle.schema;
@@ -53,9 +56,11 @@ export async function loadRefData(): Promise<void> {
 export const resolvePassive = (code: string): PassiveRef | undefined => ref.passives[code];
 export const resolveMove = (code: string): MoveRef | undefined => ref.moves[code];
 
-/** Alpha and Lucky pals store `BOSS_<species>` in CharacterID, but all static
- * reference rows and portrait assets are keyed by the base species code. */
-export const baseSpeciesCode = (code: string): string => code.replace(/^BOSS_/i, "");
+/** Normalize a save/encounter code to the canonical owned-species reference row. */
+export const baseSpeciesCode = (code: string): string => {
+  const withoutVariant = code.replace(/^BOSS_/i, "");
+  return ref.speciesAliases[withoutVariant] ?? withoutVariant;
+};
 export const resolveSpecies = (code: string): SpeciesRow | undefined =>
   ref.speciesByCode[baseSpeciesCode(code)];
 export const speciesDisplayName = (code: string): string => resolveSpecies(code)?.name ?? code;

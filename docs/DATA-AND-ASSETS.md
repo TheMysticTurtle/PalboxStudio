@@ -4,6 +4,10 @@ Quick-reference map so we don't re-derive anything. The first build cleanly gath
 data, icons, and the filtering/legality logic — this catalogs where it all is and how it maps.
 
 ## Icons (copied into this repo)
+- **Palbox Studio identity** → authored source `assets/Palbox Studio Logo.png`; deployed web
+  surfaces use `ui/static/logo.png` through `APP_LOGO_ART`, the favicon uses the generated
+  128×128 asset, and `src-tauri/icons/` contains the generated desktop application/icon bundle.
+  The earlier image with a baked white/grey transparency grid is not a runtime asset.
 - **Pal portraits** → `ui/static/pals/T_<CodeName>_icon_normal.png` (379). Served at `/pals/…`.
   Lookup rule (PalEdit `GetImage`): strip a `RAID_` prefix and a trailing `_2` from the
   CharacterID; fall back to `#ERROR.png` when missing (~27 scrapped/quest entities have none —
@@ -30,6 +34,7 @@ All UI artwork paths resolve through `ui/src/lib/data/icons.ts`; components do n
 The element basename comes from the cached SQLite `element.icon` field, Work Suitability components
 pass their canonical basename to `workIcon`, and Alpha/Lucky use the shared variant registry.
 `palIcon` remains the only place that handles portrait aliases and the missing-art fallback.
+`APP_LOGO_ART` likewise keeps component code independent of the deployed logo filename.
 
 ## SQLite reference dataset — `data/palbox-reference.db`
 
@@ -43,7 +48,10 @@ python scripts/build_reference_db.py --check
 The schema is `database/reference-schema.sql`; provenance, checksums, and known source conflicts
 are stored in `data_source` and `data_quality_issue`. Current verified counts are:
 
-- **406** storable species: Natural 223 / Unobtainable 160 / TowerBoss 23.
+- **406** retained Pal-shaped engine rows: Natural 288 / Unobtainable 95 / TowerBoss 23.
+  Only **287** are canonical, owned-Pal species safe to offer in the species selector.
+  The other rows remain available for decoding unusual saves, and **73** same-name/same-tribe
+  encounter or appearance codes map through `species_alias` to a canonical species.
 - **351** moves, including 27 audited boss-only placeholder definitions needed by learnsets.
 - **420** passives with availability flags and structured effects.
 - **2,372** items, **348** species-to-Partner-Skill records (**287** direct source cards plus
@@ -55,6 +63,23 @@ are stored in `data_source` and `data_quality_issue`. Current verified counts ar
 The source order is deliberate: the Palworld Save Pal 1.0 game-data extract is authoritative for
 codes and fields it exposes; retained web snapshots only fill Partner Skill and Ranch relationships.
 See `data/reference-sources/README.md` and ADR 0003.
+
+### Palbox-selectable species audit
+
+`is_pal` is not sufficient: the engine marks raid body parts, summon actors, predator encounters,
+tower models, quest helpers, retired models, and uncatchable bosses as Pal-shaped actors too.
+`build_reference_db.py` derives `species.palbox_selectable` from ownership-oriented signals:
+
+- a valid Paldeck index, enabled data, and a normal owned-species actor;
+- no raid/summon/predator/tower/quest/oil-rig actor code;
+- no boss-only, raid-only, or tower-only flag;
+- explicit exclusion of uncatchable Astralym (`WorldTreeDragon`);
+- one canonical row per Paldeck/name/tribe identity.
+
+The installed-database check enforces 287 selectable rows, zero duplicate display names, and the
+presence of canonical Xenovader (`DarkAlien`), Xenogard (`WhiteAlienDragon`), and Xenolord
+(`DarkMechaDragon`). It also prevents Boltmane (`ElecLion`), Astralym, and Moon Lord raid actors
+from entering the chooser. Do not weaken this back to `is_pal` or “not human.”
 
 The SQLite reference DB is now the **sole** source: the old `ui/static/data/*.json` and its
 `gen_species.py` generator have been removed. The UI loads the bundle once via `get_reference_data`,
@@ -130,8 +155,8 @@ its **PalDto field list is mapped in [PROGRESS.md](PROGRESS.md)**.
   work-suit + name search; **category buckets** — Obtainable (`DeckIndex>=0`) / Boss·Tower
   (`TowerBoss` or `BOSS_/GYM_/RAID_`) / NPC (`Human=true`). Attack-picker tiers: learnset-only /
   +fruit-teachable / all.
-- **"Storable in the Global Palbox" filter** (for the species selector): **exclude Human NPCs**;
-  drive with DeckIndex / TowerBoss / Human. (Directly answers the species-selector request.)
+- **"Storable in the Global Palbox" filter**: use the generated `palbox_selectable` field.
+  Human exclusion alone is deliberately insufficient; see the audit above.
 - **Deep save analysis**: `PalEdit/docs/save-editing-analysis.md`.
 - **Value ranges + corruption traps**: `docs/SPECS-1.0.md`, `docs/QUICKREF.md`.
 

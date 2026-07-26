@@ -72,6 +72,7 @@ CREATE TABLE species (
     male_probability           REAL NOT NULL,
     breeding_rank              INTEGER NOT NULL,
     disabled                   INTEGER NOT NULL CHECK (disabled IN (0, 1)),
+    palbox_selectable          INTEGER NOT NULL CHECK (palbox_selectable IN (0, 1)),
     icon                       TEXT,
     source_id                  INTEGER NOT NULL REFERENCES data_source(id)
 ) STRICT;
@@ -80,6 +81,16 @@ CREATE INDEX species_name_idx ON species(name COLLATE NOCASE);
 CREATE INDEX species_paldeck_idx ON species(paldeck_index);
 CREATE INDEX species_category_idx ON species(category);
 CREATE INDEX species_breeding_rank_idx ON species(breeding_rank);
+CREATE INDEX species_palbox_selectable_idx ON species(palbox_selectable);
+
+CREATE TABLE species_alias (
+    alias_code      TEXT PRIMARY KEY REFERENCES species(code) ON DELETE CASCADE,
+    canonical_code  TEXT NOT NULL REFERENCES species(code) ON DELETE CASCADE,
+    reason          TEXT NOT NULL,
+    CHECK (alias_code <> canonical_code)
+) STRICT;
+
+CREATE INDEX species_alias_canonical_idx ON species_alias(canonical_code);
 
 CREATE TABLE species_element (
     species_code TEXT NOT NULL REFERENCES species(code) ON DELETE CASCADE,
@@ -318,6 +329,7 @@ SELECT
     s.genus,
     s.nocturnal,
     s.disabled,
+    s.palbox_selectable,
     s.hp_scaling,
     s.attack_scaling,
     s.defense_scaling,
@@ -328,5 +340,4 @@ LEFT JOIN species_element AS se ON se.species_code = s.code
 GROUP BY s.code;
 
 INSERT INTO schema_migrations(version, applied_at)
-VALUES (1, '2026-07-25');
-
+VALUES (2, '2026-07-25');

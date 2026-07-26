@@ -2,7 +2,7 @@
   import type { Pal, ElementName } from "$lib/data/types";
   import { LIMITS, soulBonusPercent } from "$lib/data/constants";
   import { resolveMove, resolveSpecies } from "$lib/data/refdata.svelte";
-  import { palIcon, variantIcon } from "$lib/data/icons";
+  import { APP_LOGO_ART, palIcon, variantIcon } from "$lib/data/icons";
   import {
     elementColor,
     genderSymbol as displayGenderSymbol,
@@ -213,7 +213,7 @@
   let bench = $derived(pal.benchMoves.map(asMove));
 
   // Real pal portrait from PalEdit's icons; fall back to the #ERROR placeholder.
-  const iconSrc = $derived(empty ? "/logo.png" : palIcon(pal.species));
+  const iconSrc = $derived(empty ? APP_LOGO_ART : palIcon(pal.species));
 </script>
 
 <div

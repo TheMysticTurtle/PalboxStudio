@@ -139,6 +139,7 @@ pub struct SpeciesRef {
     pub elements: Vec<String>,
     pub category: String,
     pub disabled: bool,
+    pub palbox_selectable: bool,
     pub rarity: i64,
     pub size: String,
     pub genus: String,
@@ -179,6 +180,7 @@ pub struct ReferenceBundle {
     pub passives: BTreeMap<String, PassiveRef>,
     pub moves: BTreeMap<String, MoveRef>,
     pub species: Vec<SpeciesRef>,
+    pub species_aliases: BTreeMap<String, String>,
     pub elements: BTreeMap<String, ElementRef>,
     pub friendship_ranks: BTreeMap<i64, i64>,
     pub schema: Vec<SchemaColumnRef>,
@@ -393,6 +395,21 @@ impl ReferenceDatabase {
             friendship_ranks.insert(rank, required_point);
         }
 
+        let mut species_aliases = BTreeMap::new();
+        let mut statement = self.connection.prepare(
+            r#"
+            SELECT alias_code, canonical_code
+            FROM species_alias
+            ORDER BY alias_code
+            "#,
+        )?;
+        for row in statement.query_map([], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+        })? {
+            let (alias, canonical) = row?;
+            species_aliases.insert(alias, canonical);
+        }
+
         let mut species_elements: HashMap<String, Vec<String>> = HashMap::new();
         let mut statement = self.connection.prepare(
             r#"
@@ -521,11 +538,11 @@ impl ReferenceDatabase {
         let mut statement = self.connection.prepare(
             r#"
             SELECT
-                code, name, category, disabled, rarity, COALESCE(size, ''),
-                COALESCE(genus, ''), nocturnal, is_alpha_species, paldeck_index,
-                breeding_rank, capture_rate, price, food_amount, max_stomach,
-                male_probability, run_speed, ride_sprint_speed, hp_scaling,
-                attack_scaling, defense_scaling
+                code, name, category, disabled, palbox_selectable, rarity,
+                COALESCE(size, ''), COALESCE(genus, ''), nocturnal,
+                is_alpha_species, paldeck_index, breeding_rank, capture_rate,
+                price, food_amount, max_stomach, male_probability, run_speed,
+                ride_sprint_speed, hp_scaling, attack_scaling, defense_scaling
             FROM species
             ORDER BY
                 CASE WHEN paldeck_index >= 0 THEN paldeck_index ELSE 99999 END,
@@ -540,24 +557,25 @@ impl ReferenceDatabase {
                     name: row.get(1)?,
                     category: row.get(2)?,
                     disabled: row.get::<_, i64>(3)? != 0,
-                    rarity: row.get(4)?,
-                    size: row.get(5)?,
-                    genus: row.get(6)?,
-                    nocturnal: row.get::<_, i64>(7)? != 0,
-                    alpha: row.get::<_, i64>(8)? != 0,
-                    deck_index: row.get(9)?,
-                    combi_rank: row.get(10)?,
-                    capture_rate: row.get(11)?,
-                    price: row.get(12)?,
-                    food_amount: row.get(13)?,
-                    max_stomach: row.get(14)?,
-                    male_probability: row.get(15)?,
-                    run_speed: row.get(16)?,
-                    ride_speed: row.get(17)?,
+                    palbox_selectable: row.get::<_, i64>(4)? != 0,
+                    rarity: row.get(5)?,
+                    size: row.get(6)?,
+                    genus: row.get(7)?,
+                    nocturnal: row.get::<_, i64>(8)? != 0,
+                    alpha: row.get::<_, i64>(9)? != 0,
+                    deck_index: row.get(10)?,
+                    combi_rank: row.get(11)?,
+                    capture_rate: row.get(12)?,
+                    price: row.get(13)?,
+                    food_amount: row.get(14)?,
+                    max_stomach: row.get(15)?,
+                    male_probability: row.get(16)?,
+                    run_speed: row.get(17)?,
+                    ride_speed: row.get(18)?,
                     scaling: ScalingRef {
-                        hp: row.get(18)?,
-                        attack: row.get(19)?,
-                        defense: row.get(20)?,
+                        hp: row.get(19)?,
+                        attack: row.get(20)?,
+                        defense: row.get(21)?,
                     },
                     elements: Vec::new(),
                     work: BTreeMap::new(),
@@ -618,6 +636,7 @@ impl ReferenceDatabase {
             passives,
             moves,
             species,
+            species_aliases,
             elements,
             friendship_ranks,
             schema,
@@ -829,6 +848,46 @@ mod tests {
 
         let bundle = reference.load_ui_bundle().unwrap();
         assert_eq!(bundle.species.len(), 406);
+        assert_eq!(
+            bundle
+                .species
+                .iter()
+                .filter(|species| species.palbox_selectable)
+                .count(),
+            287
+        );
+        assert_eq!(bundle.species_aliases.len(), 73);
+        assert_eq!(
+            bundle
+                .species_aliases
+                .get("SUMMON_DarkAlien_MAX")
+                .map(String::as_str),
+            Some("DarkAlien")
+        );
+        assert!(
+            bundle
+                .species
+                .iter()
+                .find(|species| species.code == "DarkAlien")
+                .unwrap()
+                .palbox_selectable
+        );
+        assert!(
+            !bundle
+                .species
+                .iter()
+                .find(|species| species.code == "ElecLion")
+                .unwrap()
+                .palbox_selectable
+        );
+        assert!(
+            !bundle
+                .species
+                .iter()
+                .find(|species| species.code == "RAID_YakushimaBoss002")
+                .unwrap()
+                .palbox_selectable
+        );
         assert_eq!(bundle.moves.len(), 351);
         assert_eq!(bundle.passives.len(), 420);
         assert!(bundle

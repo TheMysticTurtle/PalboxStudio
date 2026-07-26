@@ -82,6 +82,8 @@ export interface SpeciesRow {
   elements: ElementName[];
   category: Category;
   disabled: boolean;
+  /** Canonical species that can safely be created and transferred through a Palbox. */
+  palboxSelectable: boolean;
   rarity: number;
   size: string;
   genus: string;
@@ -108,6 +110,8 @@ export interface ReferenceBundle {
   passives: Record<string, PassiveRef>;
   moves: Record<string, MoveRef>;
   species: SpeciesRow[];
+  /** Encounter/appearance code -> canonical owned-species code. */
+  speciesAliases: Record<string, string>;
   elements: Record<string, ElementInfo>;
   /** Trust rank -> total FriendshipPoint required. */
   friendshipRanks: Record<string, number>;

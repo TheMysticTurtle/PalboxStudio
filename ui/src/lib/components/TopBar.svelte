@@ -1,5 +1,6 @@
 <script lang="ts">
   import { box, saveToFile } from "$lib/stores/box.svelte";
+  import { APP_LOGO_ART } from "$lib/data/icons";
 
   // Frameless custom title bar (window decorations are off in tauri.conf.json).
   // The bar is the drag handle; the controls drive the OS window.
@@ -18,7 +19,7 @@
 
 <header class="titlebar" data-tauri-drag-region>
   <div class="brand" data-tauri-drag-region>
-    <img class="mark" src="/logo.png" alt="" />
+    <img class="mark" src={APP_LOGO_ART} alt="" />
     <span class="word">PALBOX&nbsp;STUDIO</span>
   </div>
 

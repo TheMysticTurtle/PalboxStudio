@@ -19,7 +19,8 @@ Use two databases:
 
 1. `palbox-reference.db` is generated, bundled, normalized, and opened read-only.
    It contains only static Palworld 1.0 facts, localization, filter metadata, source
-   provenance, and explicit quality findings.
+   provenance, explicit quality findings, canonical Palbox eligibility, and aliases
+   from engine encounter codes to owned species.
 2. `palbox-user.db` is created in the platform app-data directory and opened
    read-write. It contains only user-authored Palbox Studio metadata.
 
@@ -29,7 +30,7 @@ Applying a preset modifies only the addressed in-memory Pal; persistence still g
 through the existing backed-up, atomic save workflow.
 
 The desktop UI obtains a compact reference bundle through a Tauri command backed by
-SQLite. The old JSON is retained only for plain-browser visual previews.
+SQLite. Components never query the database directly.
 
 ## Source authority
 
@@ -43,6 +44,8 @@ referential-integrity errors and records non-fatal corrections or omissions in
 
 - Filters can be generated from one relational schema without duplicating per-Pal
   state.
+- All 406 Pal-shaped engine rows remain resolvable while the mutation UI exposes only
+  the 287 audited, unique, transferable species.
 - Static updates are deterministic, checksummed, and reviewable.
 - User presets survive application upgrades without making the reference DB mutable.
 - The app carries a bundled SQLite dependency and a roughly 17 MB reference resource.

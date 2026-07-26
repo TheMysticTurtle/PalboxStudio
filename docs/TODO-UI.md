@@ -9,15 +9,15 @@ data sources; the UI should resolve everything from **codes**, not carry denorma
       the card resolves `name / rating / description` from `passives.json`. (This is the
       "passives aren't reading the pal's file traits" issue.) Same pattern for equipped/bench
       **moves** → resolve `name / element / power / category` from `moves.json`.
-- [ ] **Load the reference tables once** into a typed store (`species/moves/passives/elements`
+- [x] **Load the reference tables once** into a typed store (`species/moves/passives/elements`
       + `schema`), with a small resolver (code → row) the components use.
 - [ ] **Schema-driven filters.** Generate the box/species filter controls from `schema.json`
       (enum→chips, number→range, multi→any-of, bool→toggle); replace the hardcoded element/group
       filters in `GlobalBoxDrawer`. One generic `filter(rows, activeFilters)` over columns.
-- [ ] **Species selector.** Click the species name on the card → searchable/filterable list from
-      `species.json` (storable only) with icons → change species (updates type, learnset, etc.).
-- [ ] **Box tile → card.** Selecting a box tile loads that pal into the center card.
-- [ ] **Learnset/bench from data.** Bench "available moves" = the pal's real learnset
+- [x] **Species selector.** Click the species name on the card → searchable/filterable list from
+      the reference DB's audited `palbox_selectable` roster with icons → change species.
+- [x] **Box tile → card.** Selecting a box tile loads that pal into the center card.
+- [x] **Learnset/bench from data.** Bench "available moves" = the pal's real learnset
       (`species.moves`) resolved via `moves.json`, not the sample list.
 
 ## 2. In-game icons for "different stuff" (replace coloured blocks)
