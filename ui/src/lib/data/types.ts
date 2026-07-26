@@ -171,6 +171,7 @@ export interface BoxPal {
   level: number;
   condensation: number;
   ivs: { hp: number; shot: number; defense: number };
+  soulRanks: { hp: number; attack: number; defense: number; craftSpeed: number };
   elements: ElementName[];
   alpha?: boolean;
   lucky?: boolean;

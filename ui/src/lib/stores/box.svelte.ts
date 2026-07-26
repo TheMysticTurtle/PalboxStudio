@@ -42,6 +42,7 @@ async function flush() {
       tile.level = updated.level;
       tile.condensation = updated.condensation;
       tile.ivs = updated.ivs;
+      tile.souls = updated.souls;
       tile.work = updated.work;
       tile.isLucky = updated.isLucky;
       tile.isAlpha = updated.isAlpha;

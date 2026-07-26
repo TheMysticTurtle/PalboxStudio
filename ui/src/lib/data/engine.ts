@@ -40,6 +40,7 @@ export interface BoxTileDto {
   level: number;
   condensation: number;
   ivs: PalDtoIvs;
+  souls: PalDtoSouls;
   /** Official Work Suitability name -> per-instance AddRank bonus. */
   work: Record<string, number>;
   isLucky: boolean;

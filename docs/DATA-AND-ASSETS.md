@@ -72,6 +72,15 @@ Human (bool), InnatePassives[], DeckIndex (>=0 = obtainable), TowerBoss (bool)
 - **Attacks**: `data/attacks/<Waza>.json` → {element, power, category}. **Passives**:
   `data/passives.json`. Aggregates: `data/{pals,attacks,elements,passives}.json`.
 
+## Derived combat stats
+
+Global Palbox saves carry the inputs for Attack and Defense, not ready-made display values.
+`ui/src/lib/data/palStats.ts` is the shared calculator for every card density and the main editor:
+species scaling + level + IVs + Pal Soul ranks + condensation + the Alpha HP bonus + static
+self-targeted Max HP/Attack/Defense passive effects. It deliberately excludes party, riding,
+equipment, food, and server modifiers because those depend on runtime context outside the Global
+Palbox file. IVs remain separate editor metadata in the Advanced drawer.
+
 ## Work Suitability — **13** (internal → current 1.0 UI). We had 12; add **Crude Oil Extraction**.
 | internal key / icon file          | official UI name        |
 |-----------------------------------|-------------------------|

@@ -5,6 +5,7 @@ import type { Pal, BoxPal, ElementName, Gender } from "./types";
 import type { BoxTileDto, PalDto } from "./engine";
 import { ref, resolveSpecies } from "./refdata.svelte";
 import { WORK_SUITS } from "./constants";
+import { calculateCombatStats } from "./palStats";
 
 const FALLBACK_TRUST_RANKS = [
   0, 6_000, 13_000, 21_000, 30_000, 40_000, 55_000, 80_000, 110_000, 150_000, 200_000,
@@ -36,37 +37,11 @@ export function trustToFriendship(trust: Pal["trust"]): number {
   return Math.round(start + (end - start) * progress);
 }
 
-function calculateMaxHp(
-  hpScaling: number,
-  level: number,
-  hpIv: number,
-  hpSoulRank: number,
-  condensation: number,
-  boosted: boolean,
-): number {
-  const alphaRate = boosted ? 1.2 : 1;
-  const base = Math.floor(
-    500 + 5 * level + hpScaling * 0.5 * level * (1 + hpIv * 0.003) * alphaRate,
-  );
-  return Math.max(
-    1,
-    Math.floor(base * (1 + condensation * 0.05) * (1 + hpSoulRank * 0.03)),
-  );
-}
-
 export function maxHpForPal(pal: Pal): number {
-  const species = resolveSpecies(pal.species);
+  const stats = calculateCombatStats(pal);
   // The plain browser preview has no Tauri bridge/reference bundle. Preserve the
   // mapped/sample maximum there instead of collapsing the slider to a base-only value.
-  if (!species) return Math.max(1, pal.stats.hpMax);
-  return calculateMaxHp(
-    species.scaling.hp,
-    pal.level,
-    pal.ivs.hp,
-    pal.soulRanks.hp,
-    pal.condensation,
-    pal.alpha || pal.lucky,
-  );
+  return stats?.hp ?? Math.max(1, pal.stats.hpMax);
 }
 
 export function dtoToPal(dto: PalDto): Pal {
@@ -77,16 +52,7 @@ export function dtoToPal(dto: PalDto): Pal {
   const equipped = dto.equippedMoves;
   const learned = dto.learnedMoves;
   const hp = Math.max(0, Math.round(dto.hp / 1000));
-  const hpMax = calculateMaxHp(
-    sp?.scaling.hp ?? 0,
-    dto.level,
-    dto.ivs.hp,
-    dto.souls.hp,
-    dto.condensation,
-    dto.isAlpha || dto.isLucky,
-  );
-
-  return {
+  const pal: Pal = {
     instanceId: dto.instanceId,
     species: dto.characterId,
     name: displayName,
@@ -107,7 +73,7 @@ export function dtoToPal(dto: PalDto): Pal {
     },
     stats: {
       hp,
-      hpMax,
+      hpMax: 1,
       san: Math.round(dto.sanity),
       foodPct: sp?.maxStomach ? Math.min(1, dto.food / sp.maxStomach) : 0.5,
     },
@@ -134,6 +100,8 @@ export function dtoToPal(dto: PalDto): Pal {
         level: (workBase[work.name] ?? 0) + (dto.work[work.name] ?? 0),
       })),
   };
+  pal.stats.hpMax = maxHpForPal(pal);
+  return pal;
 }
 
 /** Change a loaded pal's species in place: rewrite the species code and re-derive
@@ -231,6 +199,7 @@ export function tileDtoToBoxPal(tile: BoxTileDto, groups: string[] = []): BoxPal
     level: tile.level,
     condensation: tile.condensation,
     ivs: { ...tile.ivs },
+    soulRanks: { ...tile.souls },
     elements: (sp?.elements ?? []) as ElementName[],
     alpha: tile.isAlpha,
     lucky: tile.isLucky,
@@ -264,6 +233,7 @@ export function palToBoxPal(pal: Pal, slot: number, groups: string[] = []): BoxP
     level: pal.level,
     condensation: pal.condensation,
     ivs: { ...pal.ivs },
+    soulRanks: { ...pal.soulRanks },
     elements: pal.elements,
     alpha: pal.alpha,
     lucky: pal.lucky,

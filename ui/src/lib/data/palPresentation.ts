@@ -1,6 +1,7 @@
 import type { BoxPal, ElementName, Gender, WorkSuit } from "./types";
 import { ELEMENT_COLOR } from "./constants";
 import { palIcon } from "./icons";
+import { calculateCombatStats, type CombatStats } from "./palStats";
 import { ref, resolveMove, resolvePassive } from "./refdata.svelte";
 
 export interface PresentedPassive {
@@ -29,7 +30,7 @@ export interface PalCardPresentation {
   genderSymbol: string;
   level: number;
   condensation: number;
-  ivs: BoxPal["ivs"];
+  stats: CombatStats;
   elements: ElementName[];
   primaryColor: string;
   secondaryColor: string;
@@ -60,6 +61,7 @@ export function normalizeElement(element: string | undefined): ElementName {
 }
 
 export function presentBoxPal(pal: BoxPal): PalCardPresentation {
+  const stats = calculateCombatStats(pal) ?? { hp: 0, attack: 0, defense: 0 };
   return {
     slot: pal.slot,
     title: pal.name,
@@ -69,7 +71,7 @@ export function presentBoxPal(pal: BoxPal): PalCardPresentation {
     genderSymbol: genderSymbol(pal.gender),
     level: pal.level,
     condensation: pal.condensation,
-    ivs: pal.ivs,
+    stats,
     elements: pal.elements,
     primaryColor: elementColor(pal.elements[0]),
     secondaryColor: elementColor(pal.elements[1] ?? pal.elements[0]),

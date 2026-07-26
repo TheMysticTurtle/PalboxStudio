@@ -19,6 +19,7 @@ pub struct PalSummary {
     pub level: u8,
     pub condensation: u8,
     pub ivs: crate::pal::Ivs,
+    pub souls: crate::pal::Souls,
     /// Official Work Suitability name -> per-instance AddRank bonus.
     pub work: std::collections::BTreeMap<String, i64>,
     pub is_lucky: bool,
@@ -74,6 +75,7 @@ pub fn list_pals(save: &Save) -> Vec<PalSummary> {
             level: dto.level,
             condensation: dto.condensation,
             ivs: dto.ivs,
+            souls: dto.souls,
             work: dto.work,
             is_lucky: dto.is_lucky,
             is_alpha: dto.is_alpha,

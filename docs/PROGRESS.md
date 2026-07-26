@@ -32,6 +32,11 @@ Both box grids use content-sized implicit rows. Compact tiles keep a stable mini
 expanded rows grow to the tallest card in that row so variable Work Suitability, move, and passive
 counts remain inside the card instead of being clipped.
 
+Expanded cards show calculated Max HP, Attack, and Defense instead of IVs. The shared
+`palStats.ts` calculator combines cached species scaling with the Pal's level, IVs, Soul ranks,
+condensation, Alpha HP bonus, and static self-targeted passives; runtime party/equipment/server
+modifiers are intentionally excluded. IVs remain editable in the Advanced drawer.
+
 ## Session 4 (2026-07-25) — real-save editing and editor controls
 
 **The save-editing path has completed its first real game test.** A Pal added through Palbox

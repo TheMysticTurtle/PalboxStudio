@@ -49,10 +49,10 @@
     {/if}
   </span>
 
-  <span class="section ivs" aria-label="Individual values">
-    <span><small>HP IV</small><b>{card.ivs.hp}</b></span>
-    <span><small>ATK IV</small><b>{card.ivs.shot}</b></span>
-    <span><small>DEF IV</small><b>{card.ivs.defense}</b></span>
+  <span class="section stats" aria-label="Calculated combat stats">
+    <span><small>HP</small><b>{card.stats.hp.toLocaleString()}</b></span>
+    <span><small>ATK</small><b>{card.stats.attack.toLocaleString()}</b></span>
+    <span><small>DEF</small><b>{card.stats.defense.toLocaleString()}</b></span>
   </span>
 
   <span class="section">
@@ -150,10 +150,10 @@
   .variants .lucky { color: #9fddff; background: rgba(70, 170, 255, 0.14); border: 1px solid rgba(70, 170, 255, 0.3); }
   .section { display: flex; flex-direction: column; gap: 5px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.065); }
   .label { color: #716b7a; font: 600 9px var(--font-head); letter-spacing: .1em; }
-  .ivs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-  .ivs > span { display: flex; align-items: baseline; justify-content: space-between; padding: 5px 7px; border-radius: 7px; background: rgba(255, 255, 255, 0.035); }
-  .ivs small { color: #756e7f; font: 600 8px var(--font-head); letter-spacing: .05em; }
-  .ivs b { color: #d8d1de; font: 700 13px var(--font-head); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .stats > span { display: flex; align-items: baseline; justify-content: space-between; padding: 5px 7px; border-radius: 7px; background: rgba(255, 255, 255, 0.035); }
+  .stats small { color: #756e7f; font: 600 8px var(--font-head); letter-spacing: .05em; }
+  .stats b { color: #d8d1de; font: 700 13px var(--font-head); }
   .work-list { display: flex; flex-wrap: wrap; gap: 4px; }
   .work { display: flex; align-items: center; gap: 3px; padding: 3px 5px; border-radius: 7px; background: rgba(245, 166, 35, 0.07); border: 1px solid rgba(245, 166, 35, 0.12); }
   .work b { color: #d5c8ab; font: 600 9px var(--font-head); white-space: nowrap; }
