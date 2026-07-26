@@ -78,7 +78,7 @@
   .tile {
     position: relative;
     min-width: 0;
-    min-height: 190px;
+    min-height: 212px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -153,7 +153,9 @@
   }
   .name {
     display: block;
+    flex: none;
     width: 100%;
+    min-height: 20px;
     overflow: hidden;
     color: #eee9f2;
     font: 600 var(--type-title)/1.08 var(--font-cond);
@@ -162,6 +164,7 @@
     white-space: nowrap;
   }
   .elements {
+    flex: none;
     min-height: 26px;
     display: flex;
     align-items: center;
@@ -177,6 +180,7 @@
     background: rgba(255, 255, 255, 0.045);
   }
   .work {
+    flex: none;
     width: 100%;
     min-height: 31px;
     display: flex;

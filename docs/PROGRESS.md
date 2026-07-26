@@ -22,6 +22,10 @@ groups stay readable without losing the trading-card layout.
 Browser QA covered the full species dialog at 950×655, both Global Palbox card densities, and a
 populated main editor at 1400×900. The temporary QA-only route was removed afterward.
 
+Selector card rows are content-sized and the localized species-name row is non-shrinking. This
+prevents the enlarged portrait, element, and Work Suitability content from collapsing the species
+name when the chooser contains the full 287-species production roster.
+
 ## Feature branch checkpoint — species mini-cards and reliable skill ordering
 
 Branch: `feature/pal-image-filter-polish`.

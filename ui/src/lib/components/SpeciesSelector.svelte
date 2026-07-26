@@ -107,8 +107,10 @@
     padding: 18px 22px 24px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+    grid-auto-rows: max-content;
     gap: 14px;
     align-content: start;
+    align-items: start;
   }
   .empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px; font-size: var(--type-body); }
 </style>
