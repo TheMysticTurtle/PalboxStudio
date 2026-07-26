@@ -1,8 +1,9 @@
 [package]
 name = "palbox"
-version = "0.1.0"
+version = "1.0.0"
 description = "Palbox Studio — a beautiful Palworld 1.0 Global Pal box editor (Tauri desktop shell)."
-authors = ["The Mystic Testudine"]
+authors = ["themysticturtle"]
+license = "PolyForm-Strict-1.0.0"
 edition = "2021"
 
 [lib]

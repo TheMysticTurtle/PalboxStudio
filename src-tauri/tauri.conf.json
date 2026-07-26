@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Palbox Studio",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "identifier": "com.turtle.palboxstudio",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -26,6 +26,8 @@
   },
   "bundle": {
     "active": true,
+    "publisher": "themysticturtle",
+    "copyright": "Copyright (c) 2026 themysticturtle",
     "targets": "all",
     "resources": {
       "../data/palbox-reference.db": "data/palbox-reference.db"

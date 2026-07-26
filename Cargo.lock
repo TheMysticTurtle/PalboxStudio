@@ -2348,7 +2348,7 @@ dependencies = [
 
 [[package]]
 name = "palbox"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "palbox-core",
  "serde",
@@ -2361,7 +2361,7 @@ dependencies = [
 
 [[package]]
 name = "palbox-core"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "rusqlite",
  "serde",

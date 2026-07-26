@@ -1,6 +1,6 @@
 {
   "name": "palbox-studio",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Palbox Studio — a beautiful Palworld 1.0 Global Pal box editor.",
   "scripts": {
