@@ -25,58 +25,62 @@ Pals.
 
 ---
 
-## Features
+## ✨ Features
 
-- **Full Pal editing** — species, nickname, gender, level, IVs, Pal Souls, condensation, passive
+- 🐾 **Full Pal editing** — species, nickname, gender, level, IVs, Pal Souls, condensation, passive
   skills, active and learned moves, work suitabilities, and the Lucky and Alpha flags.
-- **Box explorer** — a side panel listing every Pal in the box, or an expanded full-gallery view.
-- **Filtering and search** — by element, work suitability, ride/mount capability, ranch drops, and
+- 📦 **Box explorer** — a side panel listing every Pal in the box, or an expanded full-gallery view.
+- 🔍 **Filtering and search** — by element, work suitability, ride/mount capability, ranch drops, and
   obtainability, with a name and species search.
-- **Groups and tags** — user-defined groups for organizing and filtering Pals.
-- **Species selector** — a searchable, icon-based picker; changing species updates typing, Partner
-  Skill, and learnset automatically.
-- **Add, clone, and remove** Pals.
-- **Verified backups** — each save writes a checked backup, then replaces the original atomically.
+- 🏷️ **Groups and tags** — user-defined groups for organizing and filtering Pals.
+- 🔄 **Species selector** — easily change any Pal's species with a searchable, filterable picker.
+- ➕ **Add, clone, and remove** Pals.
+- 💾 **Verified backups** — each save writes a checked backup, then replaces the original atomically.
 
 All species, stats, moves, Partner Skills, and ranch products are rendered from a bundled game-data
 database, so displayed values match Palworld 1.0.
 
 ---
 
-## Overview
+## 🖼️ Overview
 
-### Editor
+### 📂 Open your box
+Click **Open Global Palbox** and choose your `GlobalPalStorage.sav`. Your whole box loads into the
+side panel, ready to browse and edit — and a verified backup is written before any save.
+
+### 📦 The Global Pal Box
+A side panel lists every Pal in the box with search, filters, and tags for quick navigation. Select a
+Pal to load it into the editor.
+
+<p align="center">
+  <img src="docs/screenshots/02-palbox-explorer.png" alt="Global Pal Box explorer" width="900">
+</p>
+
+### 🎴 The editor
 The selected Pal is presented on a single card: portrait, typing, stats, Partner Skill, passives,
 moves, and work suitabilities.
 
 <p align="center">
-  <img src="docs/screenshots/01-main-editor.png" alt="Main editor card" width="820">
+  <img src="docs/screenshots/01-main-editor.png" alt="Main editor card" width="900">
 </p>
 
-### Box explorer
-A side panel lists every Pal in the box with search, filters, and tags for quick navigation.
-
-<p align="center">
-  <img src="docs/screenshots/02-palbox-explorer.png" alt="Global Palbox explorer" width="360">
-</p>
-
-### Expanded view
+### 🔎 Expanded view
 The box expands into a full gallery, with each Pal shown as a card carrying its stats, moves, and
 passives.
 
 <p align="center">
-  <img src="docs/screenshots/03-expanded-explorer.png" alt="Expanded Palbox gallery" width="900">
+  <img src="docs/screenshots/03-expanded-explorer.png" alt="Expanded Pal Box gallery" width="900">
 </p>
 
-### Species selector
-Change a Pal's species from a searchable, icon-based picker, filtered by element, work, and more.
-Selecting a species updates the Pal's typing, Partner Skill, and learnset.
+### 🔄 Species selector
+Easily change any Pal's species with a searchable, filterable picker. Pick a new one and the card
+updates to match.
 
 <p align="center">
   <img src="docs/screenshots/04-species-selector.png" alt="Species selector" width="900">
 </p>
 
-### Editable stats
+### 📊 Editable stats
 IVs, Pal Souls, condensation, level, and work suitabilities, with clear readouts and support for the
 extended values reachable in Palworld 1.0.
 
@@ -84,14 +88,14 @@ extended values reachable in Palworld 1.0.
   <img src="docs/screenshots/05-stats.png" alt="Editable stats" width="900">
 </p>
 
-### Passive skills
+### ⚡ Passive skills
 Assign passive skills from a searchable, filterable list to find the exact passive you want.
 
 <p align="center">
   <img src="docs/screenshots/06-passive-filter.png" alt="Passive skill picker" width="900">
 </p>
 
-### Moves
+### 🎯 Moves
 Choose active skills from a filterable list, with each move's element and power shown.
 
 <p align="center">
@@ -100,7 +104,7 @@ Choose active skills from a filterable list, with each move's element and power 
 
 ---
 
-## Installation
+## ⬇️ Installation
 
 Download the latest build from the [Releases](../../releases) page or from Nexus Mods.
 
@@ -115,13 +119,13 @@ Download the latest build from the [Releases](../../releases) page or from Nexus
 Windows 11 includes the required WebView2 runtime. On earlier versions of Windows, install the
 Microsoft Edge WebView2 Runtime if the application does not start.
 
-### A note on antivirus / SmartScreen
+### 🛡️ A note on antivirus / SmartScreen
 Palbox Studio is not code-signed, so Windows SmartScreen or antivirus software may warn about it the
 first time you run it. This is expected for unsigned, independent software. The complete source is in
 this repository — you are welcome to review it, and to build the application yourself (see
 [Building from source](#building-from-source)) rather than run a prebuilt binary.
 
-### Save safety
+### 💾 Save safety
 - A verified backup is written before any save modifies your file.
 - Close Palworld before saving edits.
 - The Global Palbox is located at `%LOCALAPPDATA%\Pal\Saved\SaveGames\<id>\GlobalPalStorage.sav`.
@@ -147,7 +151,7 @@ To produce the installer and portable zip:
 powershell -ExecutionPolicy Bypass -File scripts/build-release.ps1
 ```
 
-## Architecture
+## 🧩 Architecture
 
 - **`core/`** — `palbox-core`, a headless Rust engine: the Palworld 1.0 save model, load/write,
   and edit operations, with verified 1.0 limits and unit tests against real save data.
@@ -159,13 +163,13 @@ powershell -ExecutionPolicy Bypass -File scripts/build-release.ps1
 
 Architecture decisions are documented in [`docs/decisions/`](docs/decisions).
 
-## Acknowledgements
+## 🙏 Acknowledgements
 
 Palbox Studio builds on prior Palworld 1.0 save-editing work by the community. Save serialization
 uses the [`uesave`](https://github.com/oMaN-Rod/uesave-rs) library. Palworld is a trademark of
 Pocketpair, Inc. Palbox Studio is an unofficial, independent tool.
 
-## License
+## 📄 License
 
 Palbox Studio is source-available under the [PolyForm Strict License 1.0.0](LICENSE). It is free to
 download and use. Redistribution, and modified or derivative versions, are not permitted without
