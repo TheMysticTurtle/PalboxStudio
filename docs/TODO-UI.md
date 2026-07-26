@@ -4,11 +4,9 @@ Ordered roughly by priority. The reference tables (SQLite reference DB) + engine
 data sources; the UI should resolve everything from **codes**, not carry denormalized strings.
 
 ## 1. Data-driven wiring (make the UI read real traits, not hardcoded samples)
-- [ ] **Passives read from the pal's actual codes.** Today the card shows hardcoded
-      `{name, rating, effects}` from `samplePal`. Instead a pal should hold passive **codes**;
-      the card resolves `name / rating / description` from `passives.json`. (This is the
-      "passives aren't reading the pal's file traits" issue.) Same pattern for equipped/bench
-      **moves** → resolve `name / element / power / category` from `moves.json`.
+- [x] **Passives and moves resolve from the Pal's actual codes.** The card resolves localized
+      names, ratings, descriptions, elements, power, and category through the startup reference
+      cache; no sample strings participate in save editing.
 - [x] **Load the reference tables once** into a typed store (`species/moves/passives/elements`
       + `schema`), with a small resolver (code → row) the components use.
 - [ ] **Schema-driven filters.** Generate the box/species filter controls from `schema.json`
@@ -22,21 +20,20 @@ data sources; the UI should resolve everything from **codes**, not carry denorma
 
 ## 2. In-game icons for "different stuff" (replace coloured blocks)
 Gather real game-texture icons as bundled assets where they exist; keep coloured fallbacks.
-- [ ] **Element icons** — psp `elements.json` already names them (`icon`, `badge_icon`,
-      e.g. `Dark_icon`). Source the PNGs (paldb CDN / game textures) → `ui/static/icons/elements/`.
-      Replace the CSS diamonds on pills/tiles/moves.
+- [x] **Element icons** — bundled game-style assets render through the shared `ElementIcon`
+      component on cards, filters, skills, and the species selector.
 - [ ] **Passive icons** — check whether per-passive or per-group (Attack/Defense/Work/…) icons
       exist; if only grouped, show a group icon + rating chevrons.
 - [ ] **Status / misc** — gender, condensation star, Pal Soul, SAN/food, alpha/lucky, skill
       fruit. Source what exists; document any gaps.
-- [ ] Reuse the existing **work-suit icons** (already in `ui/static/icons/work/`).
+- [x] Reuse the existing **work-suit icons** through `WorkIcon`, including selector mini-cards.
 
 ## 3. Central card polish (owner's "make it sweet" goals)
 - [ ] Portrait **glow tinted to primary element**; dual-type = top-half colour 1 / bottom-half
       colour 2. **Lucky → blue** emanating glow; **Alpha → red**.
 - [ ] Presets: apply + create/save (passives / full builds).
-- [ ] Move drag polish; passive add/remove picker (legality: rollable ∪ innate — see
-      DATA-AND-ASSETS.md / palworld-reference).
+- [x] Move drag/equip/reorder uses pointer events plus the tested `moveSlots.ts` engine; passive
+      add/remove uses the filtered reference-data picker.
 
 ## 4. Drawers / actions
 - [ ] Advanced: bind IV / per-stat souls / condensation to real save fields (engine).

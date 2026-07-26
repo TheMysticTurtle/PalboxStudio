@@ -5,6 +5,7 @@ import {
   toggleOnly,
 } from "../src/lib/data/speciesFilter.ts";
 import { soulBonusPercent } from "../src/lib/data/constants.ts";
+import { moveSkill } from "../src/lib/data/moveSlots.ts";
 
 function filter(overrides = {}) {
   return {
@@ -89,4 +90,39 @@ test("Pal Soul percentages share the rank-20, 60-percent cap", () => {
   assert.equal(soulBonusPercent(10), 30);
   assert.equal(soulBonusPercent(20), 60);
   assert.equal(soulBonusPercent(255), 60);
+});
+
+test("bench moves can be dragged into any open active slot", () => {
+  const result = moveSkill(
+    { active: ["FireBall"], bench: ["WindCutter", "DarkLaser"] },
+    { code: "DarkLaser", list: "bench", index: 1 },
+    "active",
+    1,
+  );
+  assert.deepEqual(result.active, ["FireBall", "DarkLaser"]);
+  assert.deepEqual(result.bench, ["WindCutter"]);
+  assert.equal(result.displaced, null);
+});
+
+test("active skills reorder without duplicating or losing a move", () => {
+  const result = moveSkill(
+    { active: ["FireBall", "WindCutter", "DarkLaser"], bench: ["StoneBlast"] },
+    { code: "DarkLaser", list: "active", index: 2 },
+    "active",
+    0,
+  );
+  assert.deepEqual(result.active, ["DarkLaser", "FireBall", "WindCutter"]);
+  assert.deepEqual(result.bench, ["StoneBlast"]);
+});
+
+test("dropping onto a full active set returns the displaced third skill to the bench", () => {
+  const result = moveSkill(
+    { active: ["FireBall", "WindCutter", "DarkLaser"], bench: ["StoneBlast"] },
+    { code: "StoneBlast", list: "bench", index: 0 },
+    "active",
+    1,
+  );
+  assert.deepEqual(result.active, ["FireBall", "StoneBlast", "WindCutter"]);
+  assert.deepEqual(result.bench, ["DarkLaser"]);
+  assert.equal(result.displaced, "DarkLaser");
 });

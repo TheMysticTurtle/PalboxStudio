@@ -18,6 +18,16 @@ export const LIMITS = {
   passivesMax: 4,
 } as const;
 
+/**
+ * Default keyboard/mouse controls for the three active-skill slots while
+ * mounted. Palworld allows rebinding, so the UI presents these as defaults.
+ */
+export const ACTIVE_SKILL_DEFAULT_CONTROLS = [
+  { short: "RMB", label: "Right Mouse Button", action: "Mounted Skill 1" },
+  { short: "E", label: "E", action: "Mounted Skill 2" },
+  { short: "C", label: "C", action: "Mounted Skill 3" },
+] as const;
+
 /** Statue of Power enhancement gained by each Pal Soul rank. */
 export const SOUL_BONUS_PERCENT_PER_RANK = 3;
 

@@ -2,6 +2,26 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Feature branch checkpoint — species mini-cards and reliable skill ordering
+
+Branch: `feature/pal-image-filter-polish`.
+
+The species selector now renders a dedicated `SpeciesMiniTile` from the same canonical
+`SpeciesRow`, portrait resolver, element theme colors, element emblems, and Work Suitability icon
+registry used by the rest of the application. Each tile shows only selection-relevant identity
+data: the portrait, localized species name, elements, and nonzero suitability levels.
+
+Active/inactive skill dragging no longer depends on HTML `DataTransfer`, which was advertised by
+the cursor but unreliable inside WebView2. `PalCard` now tracks a five-pixel pointer-drag gesture,
+resolves the row under the pointer, and passes every bench/equip/reorder operation through the pure,
+unit-tested `moveSlots.ts` ordering engine. Moving a bench skill into a full active set returns the
+displaced third skill to the bench without duplication or loss. Browser interaction QA verified
+bench-to-active movement and active-slot reordering; the temporary QA route was removed afterward.
+
+The three active rows also show their default mounted bindings: **RMB** for Mounted Skill 1,
+**E** for Mounted Skill 2, and **C** for Mounted Skill 3. They are explicitly presented as defaults
+because Palworld allows the player to rebind controls.
+
 ## Feature branch checkpoint — canonical Palbox roster and application identity
 
 Branch: `feature/pal-image-filter-polish`.

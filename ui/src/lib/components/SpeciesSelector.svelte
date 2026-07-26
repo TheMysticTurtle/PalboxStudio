@@ -1,13 +1,10 @@
 <script lang="ts">
   import { ref, baseSpeciesCode } from "$lib/data/refdata.svelte";
-  import { palIcon } from "$lib/data/icons";
-  import ElementIcon from "./ElementIcon.svelte";
-  import PalArtwork from "./PalArtwork.svelte";
   import SpeciesFilter from "./SpeciesFilter.svelte";
+  import SpeciesMiniTile from "./SpeciesMiniTile.svelte";
   import {
     createSpeciesFilter,
     filterSpecies,
-    isRideable,
   } from "$lib/data/speciesFilter.svelte";
 
   let {
@@ -64,19 +61,7 @@
 
     <div class="grid">
       {#each filtered as sp (sp.code)}
-        <button
-          class="cell" class:current={sp.code === baseCode}
-          onclick={() => choose(sp.code)}
-          title={sp.partnerSkill ? `${sp.partnerSkill.name} — ${sp.partnerSkill.description}` : sp.name}
-        >
-          {#if isRideable(sp)}<span class="mount" title="Rideable mount">🐎</span>{/if}
-          <div class="port"><PalArtwork src={palIcon(sp.code)} shape="circle" /></div>
-          <div class="nm">{sp.name}</div>
-          <div class="els">
-            {#each sp.elements as el}<ElementIcon element={el} size={16} decorative={false} />{/each}
-          </div>
-          {#if sp.partnerSkill}<div class="ps">{sp.partnerSkill.name}</div>{/if}
-        </button>
+        <SpeciesMiniTile species={sp} current={sp.code === baseCode} onselect={choose} />
       {/each}
       {#if !filtered.length}<div class="empty">No species match these filters.</div>{/if}
     </div>
@@ -121,36 +106,9 @@
     overflow: auto;
     padding: 16px 20px 22px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
     gap: 11px;
     align-content: start;
   }
-  .cell {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    padding: 11px 8px 9px;
-    border-radius: 12px;
-    cursor: pointer;
-    color: var(--text-1);
-    background: rgba(176, 96, 224, 0.05);
-    border: 1px solid rgba(176, 96, 224, 0.16);
-    transition: border-color 0.14s, background 0.14s, box-shadow 0.14s;
-  }
-  .cell:hover { border-color: rgba(176, 96, 224, 0.55); background: rgba(176, 96, 224, 0.12); }
-  .cell.current { border-color: var(--accent-cyan); box-shadow: 0 0 14px rgba(63, 199, 224, 0.35); background: rgba(63, 199, 224, 0.1); }
-  .mount { position: absolute; top: 6px; right: 6px; font-size: 12px; filter: saturate(0.9); }
-  .port {
-    width: 62px; height: 62px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.35));
-    border: 1px solid rgba(176, 96, 224, 0.3);
-    display: grid; place-items: center; overflow: hidden;
-  }
-  .nm { font-family: var(--font-cond); font-weight: 600; font-size: 13px; color: #eae2f2; text-align: center; line-height: 1.05; }
-  .els { display: flex; gap: 3px; height: 16px; }
-  .ps { font-size: 10.5px; color: #9a8bab; text-align: center; line-height: 1.1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
   .empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px; font-size: 13px; }
 </style>

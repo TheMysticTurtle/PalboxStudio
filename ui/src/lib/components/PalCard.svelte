@@ -1,6 +1,15 @@
 <script lang="ts">
   import type { Pal, ElementName } from "$lib/data/types";
-  import { LIMITS, soulBonusPercent } from "$lib/data/constants";
+  import {
+    ACTIVE_SKILL_DEFAULT_CONTROLS,
+    LIMITS,
+    soulBonusPercent,
+  } from "$lib/data/constants";
+  import {
+    moveSkill,
+    type MoveDrag,
+    type MoveList,
+  } from "$lib/data/moveSlots";
   import { resolveMove, resolveSpecies } from "$lib/data/refdata.svelte";
   import { APP_LOGO_ART, palIcon, variantIcon } from "$lib/data/icons";
   import {
@@ -92,15 +101,17 @@
   }
 
   // Moves: click or drag between/reorder the equipped and inactive zones.
-  type MoveList = "active" | "bench";
-  interface MoveDrag {
-    code: string;
-    list: MoveList;
-    index: number;
-  }
-
   let emptySlots = $derived(Math.max(0, LIMITS.equippedMovesMax - pal.activeSkills.length));
   let dragTarget = $state<{ list: MoveList; index: number } | null>(null);
+  let dragSource = $state<MoveDrag | null>(null);
+  let suppressMoveClick = $state(false);
+  let pointerDrag = $state<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    source: MoveDrag;
+    engaged: boolean;
+  } | null>(null);
 
   function isNaturalMove(code: string) {
     return resolveSpecies(pal.species)?.moves.includes(code) ?? false;
@@ -131,70 +142,87 @@
     rememberLearned(code);
     equip(code);
   }
-  function onDragStart(e: DragEvent, list: MoveList, index: number) {
+  function beginPointerDrag(e: PointerEvent, list: MoveList, index: number) {
+    if (e.button !== 0) return;
     const code = list === "active" ? pal.activeSkills[index] : pal.benchMoves[index];
-    if (!code || !e.dataTransfer) return;
-    const payload: MoveDrag = { code, list, index };
-    e.dataTransfer.setData("application/x-palbox-move", JSON.stringify(payload));
-    e.dataTransfer.setData("text/plain", code);
-    e.dataTransfer.effectAllowed = "move";
+    if (!code) return;
+    pointerDrag = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      source: { code, list, index },
+      engaged: false,
+    };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }
-  function allowDrop(e: DragEvent, list: MoveList, index: number) {
-    e.preventDefault();
-    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-    dragTarget = { list, index };
-  }
-  function readDrag(e: DragEvent): MoveDrag | null {
-    const raw = e.dataTransfer?.getData("application/x-palbox-move");
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw) as MoveDrag;
-    } catch {
-      return null;
-    }
-  }
-  function moveSkill(source: MoveDrag, targetList: MoveList, rawTargetIndex: number) {
-    const sourceItems = source.list === "active" ? pal.activeSkills : pal.benchMoves;
-    let sourceIndex = sourceItems[source.index] === source.code
-      ? source.index
-      : sourceItems.indexOf(source.code);
-    if (sourceIndex < 0) return;
 
-    let targetIndex = rawTargetIndex;
-    sourceItems.splice(sourceIndex, 1);
-    if (source.list === targetList && sourceIndex < targetIndex) targetIndex -= 1;
+  function pointerDropTarget(e: PointerEvent) {
+    const target = document
+      .elementFromPoint(e.clientX, e.clientY)
+      ?.closest<HTMLElement>("[data-move-drop-list]");
+    const list = target?.dataset.moveDropList;
+    const index = Number(target?.dataset.moveDropIndex);
+    dragTarget = (
+      (list === "active" || list === "bench")
+      && Number.isInteger(index)
+    )
+      ? { list, index }
+      : null;
+  }
 
-    if (targetList === "active") {
-      rememberLearned(source.code);
-      targetIndex = Math.max(
-        0,
-        Math.min(
-          source.list === "bench" && pal.activeSkills.length >= LIMITS.equippedMovesMax
-            ? LIMITS.equippedMovesMax - 1
-            : pal.activeSkills.length,
-          targetIndex,
-        ),
+  function movePointerDrag(e: PointerEvent) {
+    if (!pointerDrag || e.pointerId !== pointerDrag.pointerId) return;
+    if (!pointerDrag.engaged) {
+      const distance = Math.hypot(
+        e.clientX - pointerDrag.startX,
+        e.clientY - pointerDrag.startY,
       );
-      pal.activeSkills.splice(targetIndex, 0, source.code);
-      if (pal.activeSkills.length > LIMITS.equippedMovesMax) {
-        const displaced = pal.activeSkills.pop();
-        if (displaced && displaced !== source.code && !pal.benchMoves.includes(displaced)) {
-          rememberLearned(displaced);
-          pal.benchMoves.push(displaced);
-        }
-      }
-    } else {
-      rememberLearned(source.code);
-      targetIndex = Math.max(0, Math.min(pal.benchMoves.length, targetIndex));
-      if (!pal.benchMoves.includes(source.code)) pal.benchMoves.splice(targetIndex, 0, source.code);
+      if (distance < 5) return;
+      pointerDrag.engaged = true;
+      dragSource = pointerDrag.source;
+      suppressMoveClick = true;
     }
-  }
-  function dropMove(e: DragEvent, list: MoveList, index: number) {
     e.preventDefault();
-    e.stopPropagation();
-    const source = readDrag(e);
-    if (source) moveSkill(source, list, index);
+    pointerDropTarget(e);
+  }
+
+  function applyMove(source: MoveDrag, targetList: MoveList, targetIndex: number) {
+    const result = moveSkill(
+      { active: pal.activeSkills, bench: pal.benchMoves },
+      source,
+      targetList,
+      targetIndex,
+      LIMITS.equippedMovesMax,
+    );
+    if (!result.moved) return;
+    rememberLearned(source.code);
+    if (result.displaced) rememberLearned(result.displaced);
+    pal.activeSkills = result.active;
+    pal.benchMoves = result.bench;
+  }
+  function finishDrag() {
+    dragSource = null;
     dragTarget = null;
+    window.setTimeout(() => (suppressMoveClick = false), 0);
+  }
+
+  function endPointerDrag(e: PointerEvent, apply: boolean) {
+    if (!pointerDrag || e.pointerId !== pointerDrag.pointerId) return;
+    const { source, engaged } = pointerDrag;
+    if (engaged) {
+      e.preventDefault();
+      pointerDropTarget(e);
+      if (apply && dragTarget) applyMove(source, dragTarget.list, dragTarget.index);
+      finishDrag();
+    }
+    pointerDrag = null;
+    const element = e.currentTarget as HTMLElement;
+    if (element.hasPointerCapture(e.pointerId)) element.releasePointerCapture(e.pointerId);
+  }
+  function onMoveClick(code: string, list: MoveList) {
+    if (suppressMoveClick) return;
+    if (list === "active") unequip(code);
+    else equip(code);
   }
   function onMoveKey(e: KeyboardEvent, code: string, list: MoveList) {
     if (e.key !== "Enter" && e.key !== " ") return;
@@ -488,26 +516,35 @@
         role="group"
         aria-label="Equipped moves drop zone"
         class:dropzone={dragTarget?.list === "active"}
-        ondragover={(event) => allowDrop(event, "active", pal.activeSkills.length)}
-        ondragleave={() => (dragTarget = null)}
-        ondrop={(event) => dropMove(event, "active", pal.activeSkills.length)}
+        data-move-drop-list="active"
+        data-move-drop-index={pal.activeSkills.length}
       >
         {#each equipped as m, index (m.code)}
           <div
             class="move equipped"
+            class:dragging={dragSource?.list === "active" && dragSource.index === index}
             class:drop-target={dragTarget?.list === "active" && dragTarget.index === index}
-            draggable="true"
+            draggable="false"
+            data-move-code={m.code}
+            data-move-list="active"
+            data-move-index={index}
+            data-move-drop-list="active"
+            data-move-drop-index={index}
             role="button"
             tabindex="0"
             aria-label="{m.name}, equipped. Click or drag to move."
-            ondragstart={(event) => onDragStart(event, "active", index)}
-            ondragover={(event) => allowDrop(event, "active", index)}
-            ondrop={(event) => dropMove(event, "active", index)}
-            ondragend={() => (dragTarget = null)}
-            onclick={() => unequip(m.code)}
+            onpointerdown={(event) => beginPointerDrag(event, "active", index)}
+            onpointermove={movePointerDrag}
+            onpointerup={(event) => endPointerDrag(event, true)}
+            onpointercancel={(event) => endPointerDrag(event, false)}
+            onclick={() => onMoveClick(m.code, "active")}
             onkeydown={(event) => onMoveKey(event, m.code, "active")}
             title="Click to unequip, or drag to reorder"
           >
+            <span
+              class="slot-control"
+              title={`Default mounted control: ${ACTIVE_SKILL_DEFAULT_CONTROLS[index].label} (${ACTIVE_SKILL_DEFAULT_CONTROLS[index].action})`}
+            >{ACTIVE_SKILL_DEFAULT_CONTROLS[index].short}</span>
             <span class="mgrip">⠿</span>
             <ElementIcon element={displayElement(m.element)} size={19} decorative={false} />
             <span class="mname">{m.name}</span>
@@ -520,9 +557,15 @@
             class="emptyslot"
             role="group"
             aria-label="Empty equipped move slot"
-            ondragover={(event) => allowDrop(event, "active", pal.activeSkills.length)}
-            ondrop={(event) => dropMove(event, "active", pal.activeSkills.length)}
-          >empty slot — drag a move here</div>
+            data-move-drop-list="active"
+            data-move-drop-index={pal.activeSkills.length}
+          >
+            <span
+              class="slot-control"
+              title={`Default mounted control: ${ACTIVE_SKILL_DEFAULT_CONTROLS[pal.activeSkills.length + i].label} (${ACTIVE_SKILL_DEFAULT_CONTROLS[pal.activeSkills.length + i].action})`}
+            >{ACTIVE_SKILL_DEFAULT_CONTROLS[pal.activeSkills.length + i].short}</span>
+            <span>empty slot — drag a move here</span>
+          </div>
         {/each}
       </div>
       <div class="bench-head">
@@ -534,23 +577,28 @@
         role="group"
         aria-label="Inactive moves drop zone"
         class:dropzone={dragTarget?.list === "bench"}
-        ondragover={(event) => allowDrop(event, "bench", pal.benchMoves.length)}
-        ondragleave={() => (dragTarget = null)}
-        ondrop={(event) => dropMove(event, "bench", pal.benchMoves.length)}
+        data-move-drop-list="bench"
+        data-move-drop-index={pal.benchMoves.length}
       >
         {#each bench as m, index (m.code)}
           <div
             class="move bench-move"
+            class:dragging={dragSource?.list === "bench" && dragSource.index === index}
             class:drop-target={dragTarget?.list === "bench" && dragTarget.index === index}
-            draggable="true"
+            draggable="false"
+            data-move-code={m.code}
+            data-move-list="bench"
+            data-move-index={index}
+            data-move-drop-list="bench"
+            data-move-drop-index={index}
             role="button"
             tabindex="0"
             aria-label="{m.name}, inactive. Click or drag to equip."
-            ondragstart={(event) => onDragStart(event, "bench", index)}
-            ondragover={(event) => allowDrop(event, "bench", index)}
-            ondrop={(event) => dropMove(event, "bench", index)}
-            ondragend={() => (dragTarget = null)}
-            onclick={() => equip(m.code)}
+            onpointerdown={(event) => beginPointerDrag(event, "bench", index)}
+            onpointermove={movePointerDrag}
+            onpointerup={(event) => endPointerDrag(event, true)}
+            onpointercancel={(event) => endPointerDrag(event, false)}
+            onclick={() => onMoveClick(m.code, "bench")}
             onkeydown={(event) => onMoveKey(event, m.code, "bench")}
             title="Click to equip, or drag to equip/reorder"
           >
@@ -683,14 +731,29 @@
 
   /* Moves */
   .moveslots { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 12px; background: rgba(63, 199, 224, 0.06); border: 1px solid rgba(63, 199, 224, 0.22); }
-  .move { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; padding: 10px 12px; border-radius: 9px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: inherit; font: inherit; cursor: grab; }
+  .move { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; padding: 10px 12px; border-radius: 9px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: inherit; font: inherit; cursor: grab; touch-action: none; user-select: none; }
   .move:active { cursor: grabbing; }
   .move:focus-visible { outline: 2px solid rgba(63, 199, 224, 0.72); outline-offset: 2px; }
   .move:hover { border-color: rgba(63, 199, 224, 0.5); }
+  .move.dragging { opacity: 0.5; }
   .move.drop-target { border-top-color: #8fe3f2; box-shadow: 0 -3px 0 rgba(63, 199, 224, 0.78); }
   .moveslots.dropzone, .bench.dropzone { box-shadow: inset 0 0 0 1px rgba(63, 199, 224, 0.28); }
   .move.equipped { background: rgba(63, 199, 224, 0.05); border-color: rgba(63, 199, 224, 0.18); }
-  .emptyslot { display: flex; align-items: center; justify-content: center; padding: 11px; border-radius: 9px; border: 1px dashed rgba(255, 255, 255, 0.14); color: #6e7a86; font-size: 13px; }
+  .slot-control {
+    min-width: 37px;
+    height: 23px;
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    padding: 0 5px;
+    border-radius: 6px;
+    color: #b9f2fb;
+    background: rgba(63, 199, 224, 0.11);
+    border: 1px solid rgba(63, 199, 224, 0.3);
+    font: 700 10px var(--font-head);
+    letter-spacing: 0.04em;
+  }
+  .emptyslot { display: flex; align-items: center; justify-content: flex-start; gap: 10px; padding: 11px; border-radius: 9px; border: 1px dashed rgba(255, 255, 255, 0.14); color: #6e7a86; font-size: 13px; }
   .bench-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 2px 7px; }
   .bench-label { font-family: var(--font-head); font-weight: 600; font-size: 11.5px; letter-spacing: 0.14em; color: #6e7a86; }
   .browse-moves {
