@@ -48,6 +48,10 @@ Gather real game-texture icons as bundled assets where they exist; keep coloured
 - [ ] **SQLite** store for groups / tags / presets / settings (mutable user data).
 
 ## 6. Polish / correctness
+- [x] Establish a shared readability floor and resize species filters, mini tiles, compact cards,
+      expanded cards, main-editor metadata, skill/passive pickers, and work/stat controls as one
+      coordinated system. Gameplay information is at least 11px; primary names and controls are
+      larger, and responsive grids trade a little density for legibility.
 - [ ] Verify window drag + open-file dialog work after a `tauri dev` rebuild.
 - [ ] Empty/loading/error states; number formatting; reduced-motion pass.
 - [ ] `samplePal` / `sampleBox` become fixtures only; real data comes from the engine.

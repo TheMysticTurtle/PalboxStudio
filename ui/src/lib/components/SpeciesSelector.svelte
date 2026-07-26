@@ -82,8 +82,8 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: min(920px, 92vw);
-    height: min(78vh, 820px);
+    width: min(1120px, 95vw);
+    height: min(86vh, 900px);
     display: flex;
     flex-direction: column;
     border-radius: 16px;
@@ -92,23 +92,23 @@
     box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6), 0 0 50px rgba(176, 96, 224, 0.18);
     overflow: hidden;
   }
-  header { display: flex; align-items: center; gap: 11px; padding: 15px 20px; border-bottom: 1px solid rgba(176, 96, 224, 0.22); }
-  .diamond { width: 10px; height: 10px; transform: rotate(45deg); background: var(--accent-purple); box-shadow: 0 0 8px var(--accent-purple); }
-  h2 { margin: 0; font-family: var(--font-head); font-weight: 700; font-size: 17px; letter-spacing: 0.14em; color: #e7daf4; }
-  .count { color: #9782a8; font-size: 12.5px; font-variant-numeric: tabular-nums; }
-  .x { margin-left: auto; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; color: #b0a0be; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); font-size: 13px; }
+  header { display: flex; align-items: center; gap: 12px; padding: 17px 22px; border-bottom: 1px solid rgba(176, 96, 224, 0.22); }
+  .diamond { width: 11px; height: 11px; transform: rotate(45deg); background: var(--accent-purple); box-shadow: 0 0 8px var(--accent-purple); }
+  h2 { margin: 0; font-family: var(--font-head); font-weight: 700; font-size: 20px; letter-spacing: 0.14em; color: #e7daf4; }
+  .count { color: #9782a8; font-size: var(--type-body); font-variant-numeric: tabular-nums; }
+  .x { margin-left: auto; width: 36px; height: 36px; border-radius: 9px; cursor: pointer; color: #b0a0be; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); font-size: 16px; }
   .x:hover { color: #fff; background: rgba(224, 90, 90, 0.18); border-color: rgba(224, 90, 90, 0.4); }
 
-  .filterbar { padding: 14px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+  .filterbar { padding: 16px 22px; border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
 
   .grid {
     flex: 1;
     overflow: auto;
-    padding: 16px 20px 22px;
+    padding: 18px 22px 24px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
-    gap: 11px;
+    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+    gap: 14px;
     align-content: start;
   }
-  .empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px; font-size: 13px; }
+  .empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px; font-size: var(--type-body); }
 </style>

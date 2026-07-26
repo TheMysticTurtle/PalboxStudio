@@ -23,7 +23,7 @@
   </section>
 </main>
 
-<Drawer side="left" tone="box" label="GLOBAL BOX" tabLabel="BOX" width={440} bind:open={ui.leftOpen}>
+<Drawer side="left" tone="box" label="GLOBAL BOX" tabLabel="BOX" width={480} bind:open={ui.leftOpen}>
   <GlobalBoxDrawer />
 </Drawer>
 

@@ -19,12 +19,12 @@
   .sh {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 11px;
+    gap: 9px;
+    margin-bottom: 12px;
   }
   .bar {
     width: 3px;
-    height: 15px;
+    height: 18px;
     border-radius: 2px;
     background: var(--a);
     box-shadow: 0 0 8px color-mix(in srgb, var(--a) 60%, transparent);
@@ -33,13 +33,13 @@
     margin: 0;
     font-family: var(--font-head);
     font-weight: 600;
-    font-size: 14px;
+    font-size: 16px;
     letter-spacing: 0.16em;
     color: var(--c);
   }
   .right {
     margin-left: auto;
-    font-size: 12px;
+    font-size: var(--type-caption);
     color: var(--text-muted);
   }
 </style>

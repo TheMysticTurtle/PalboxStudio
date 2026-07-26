@@ -94,7 +94,7 @@
   .head { display: flex; align-items: center; gap: 11px; padding: 16px 30px; border-bottom: 1px solid rgba(176, 96, 224, 0.22); }
   .diamond { width: 11px; height: 11px; transform: rotate(45deg); background: var(--accent-purple); box-shadow: 0 0 8px var(--accent-purple); }
   h2 { margin: 0; font-family: var(--font-head); font-weight: 700; font-size: 20px; letter-spacing: 0.14em; color: #e7daf4; }
-  .count { color: #9782a8; font-size: 13px; }
+  .count { color: #9782a8; font-size: var(--type-body); }
   .collapse {
     margin-left: auto;
     padding: 9px 15px;
@@ -103,7 +103,7 @@
     background: rgba(176, 96, 224, 0.12);
     color: #d6bef2;
     cursor: pointer;
-    font-size: 13px;
+    font-size: var(--type-body);
   }
   .collapse:hover { background: rgba(176, 96, 224, 0.22); }
   .controls { display: flex; align-items: center; gap: 12px; padding: 12px 30px 0; }
@@ -118,16 +118,16 @@
     background: rgba(255, 255, 255, 0.045);
     border: 1px solid rgba(255, 255, 255, 0.09);
   }
-  .searchbox input { flex: 1; min-width: 0; color: #e6dfee; background: transparent; border: 0; outline: 0; font-size: 13px; }
-  .sort { display: flex; align-items: center; gap: 7px; color: #81758d; font-size: 11px; }
-  .sort select { padding: 8px 10px; border-radius: 8px; color: #c9bdd4; background: #1b1722; border: 1px solid rgba(255, 255, 255, 0.11); }
+  .searchbox input { flex: 1; min-width: 0; color: #e6dfee; background: transparent; border: 0; outline: 0; font-size: var(--type-control); }
+  .sort { display: flex; align-items: center; gap: 7px; color: #95889f; font-size: var(--type-caption); }
+  .sort select { min-height: var(--control-min); padding: 8px 10px; border-radius: 8px; color: #c9bdd4; background: #1b1722; border: 1px solid rgba(255, 255, 255, 0.11); font-size: var(--type-body); }
   .filters { padding: 10px 30px 0; }
   .grid {
     flex: 1;
     overflow: auto;
     padding: 24px 30px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(325px, 1fr));
     grid-auto-rows: max-content;
     gap: 14px;
     align-content: start;

@@ -8,6 +8,16 @@
   --font-body: "Barlow", system-ui, sans-serif; /* body / data */
   --font-cond: "Barlow Semi Condensed", system-ui, sans-serif; /* condensed labels */
 
+  /* Readability scale. Keep routine information at 12px or larger; reserve
+     micro text for genuinely secondary chrome rather than gameplay data. */
+  --type-micro: 11px;
+  --type-label: 12px;
+  --type-caption: 13px;
+  --type-body: 14px;
+  --type-control: 15px;
+  --type-title: 18px;
+  --control-min: 34px;
+
   /* Surfaces (frosted, semi-transparent over the atmospheric backdrop) */
   --surface-card-1: rgba(27, 39, 51, 0.9);
   --surface-card-2: rgba(15, 20, 27, 0.93);
@@ -58,7 +68,7 @@
 
   /* Layout */
   --topbar-h: 48px;
-  --drawer-box-w: 440px;
+  --drawer-box-w: 480px;
   --drawer-adv-w: 420px;
   --stage-pad-x: 50px; /* room for the edge tabs */
 

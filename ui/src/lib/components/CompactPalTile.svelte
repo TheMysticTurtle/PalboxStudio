@@ -26,12 +26,12 @@
   title={`${card.title} · ${card.speciesName} · Level ${card.level}`}
   aria-label={`Select ${card.title}, ${card.speciesName}, level ${card.level}`}
 >
-  <PalPortrait {card} size={58} />
+  <PalPortrait {card} size={68} />
   <span class="name">{card.title}</span>
   {#if card.showSpeciesSubtitle}<span class="species">{card.speciesName}</span>{/if}
   <span class="meta">
     <span class="elements">
-      {#each card.elements as element}<ElementIcon {element} size={15} />{/each}
+      {#each card.elements as element}<ElementIcon {element} size={18} />{/each}
     </span>
     <span class="level">Lv.{card.level}</span>
     <span class="gender" class:male={card.gender === "Male"} class:female={card.gender === "Female"}>{card.genderSymbol}</span>
@@ -48,12 +48,12 @@
   .tile {
     position: relative;
     min-width: 0;
-    min-height: 126px;
+    min-height: 158px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
-    padding: 12px 7px 9px;
+    gap: 6px;
+    padding: 13px 8px 10px;
     border-radius: 12px;
     cursor: pointer;
     font: inherit;
@@ -82,7 +82,7 @@
     width: 100%;
     overflow: hidden;
     color: #eee9f2;
-    font: 600 13.5px/1.05 var(--font-cond);
+    font: 600 16px/1.08 var(--font-cond);
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -92,29 +92,29 @@
     width: 100%;
     overflow: hidden;
     color: #8f829c;
-    font-size: 10px;
+    font-size: var(--type-label);
     line-height: 1;
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .meta { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 17px; }
+  .meta { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 21px; }
   .elements { display: flex; align-items: center; gap: 1px; }
-  .level { color: #b1a6bc; font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .level { color: #b1a6bc; font-size: var(--type-caption); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .gender {
     display: grid;
     place-items: center;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     color: #9099a3;
-    font: 700 11px var(--font-head);
+    font: 700 var(--type-caption) var(--font-head);
     background: rgba(255, 255, 255, 0.055);
   }
   .gender.male { color: #8fc8ff; background: rgba(63, 143, 224, 0.16); }
   .gender.female { color: #f2a0d8; background: rgba(224, 95, 192, 0.16); }
-  .foot { display: flex; align-items: center; justify-content: center; gap: 4px; max-width: 100%; min-height: 16px; }
-  .cond { color: #f2c968; font: 700 10px var(--font-head); }
+  .foot { display: flex; align-items: center; justify-content: center; gap: 5px; max-width: 100%; min-height: 20px; }
+  .cond { color: #f2c968; font: 700 var(--type-label) var(--font-head); }
   .group {
     max-width: 78px;
     overflow: hidden;
@@ -122,7 +122,7 @@
     border-radius: 8px;
     color: #cbb6de;
     background: rgba(176, 96, 224, 0.13);
-    font-size: 9px;
+    font-size: var(--type-micro);
     text-overflow: ellipsis;
     white-space: nowrap;
   }

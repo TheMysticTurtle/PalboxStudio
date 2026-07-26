@@ -488,7 +488,7 @@
         <SectionHeader title="PARTNER SKILL" />
         <div class="partner" style="--c:{elementColor(pal.partnerSkill.element ?? pal.elements[0] ?? 'Neutral')}">
           <div class="pname">
-            <ElementIcon element={pal.partnerSkill.element ?? pal.elements[0] ?? "Neutral"} size={20} decorative={false} />
+            <ElementIcon element={pal.partnerSkill.element ?? pal.elements[0] ?? "Neutral"} size={23} decorative={false} />
             {pal.partnerSkill.name} <span class="lv">Lv {pal.partnerSkill.level}</span>
           </div>
           <p class="pdesc">{pal.partnerSkill.description}</p>
@@ -546,7 +546,7 @@
               title={`Default mounted control: ${ACTIVE_SKILL_DEFAULT_CONTROLS[index].label} (${ACTIVE_SKILL_DEFAULT_CONTROLS[index].action})`}
             >{ACTIVE_SKILL_DEFAULT_CONTROLS[index].short}</span>
             <span class="mgrip">⠿</span>
-            <ElementIcon element={displayElement(m.element)} size={19} decorative={false} />
+            <ElementIcon element={displayElement(m.element)} size={22} decorative={false} />
             <span class="mname">{m.name}</span>
             <span class="mpwrcap">PWR</span>
             <span class="mpwr">{m.power}</span>
@@ -603,7 +603,7 @@
             title="Click to equip, or drag to equip/reorder"
           >
             <span class="mgrip">⠿</span>
-            <ElementIcon element={displayElement(m.element)} size={17} decorative={false} />
+            <ElementIcon element={displayElement(m.element)} size={20} decorative={false} />
             <span class="mname">{m.name}</span>
             <span class="mpwrcap">PWR</span>
             <span class="mpwr">{m.power}</span>
@@ -687,16 +687,16 @@
   }
   .species:hover { background: rgba(176, 96, 224, 0.23); border-color: rgba(176, 96, 224, 0.78); box-shadow: 0 0 14px rgba(176, 96, 224, 0.2); }
   .species-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; line-height: 1.05; }
-  .species-cap { color: #8f79a4; font: 600 9px var(--font-head); letter-spacing: 0.14em; }
+  .species-cap { color: #a18caf; font: 600 var(--type-micro) var(--font-head); letter-spacing: 0.14em; }
   .species-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #eadff4; font: 700 15px var(--font-cond); }
-  .species-change { color: #bca5d1; font: 700 9.5px var(--font-head); letter-spacing: 0.08em; }
+  .species-change { color: #c7b0db; font: 700 var(--type-micro) var(--font-head); letter-spacing: 0.08em; }
   .variant {
     width: 48px; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 0; cursor: pointer; border-radius: 10px; color: #83909a;
     background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.1);
   }
   .variant img { width: 25px; height: 25px; object-fit: contain; opacity: .42; filter: grayscale(.7); }
-  .variant span { font: 600 9px var(--font-head); letter-spacing: .04em; }
+  .variant span { font: 600 var(--type-micro) var(--font-head); letter-spacing: .04em; }
   .variant:hover { border-color: rgba(255,255,255,.24); color: #b9c2c9; }
   .variant.alpha.on { color: #ffaaaa; border-color: rgba(255,70,70,.62); background: rgba(255,70,70,.12); box-shadow: 0 0 14px rgba(255,70,70,.2); }
   .variant.lucky.on { color: #9fddff; border-color: rgba(70,170,255,.62); background: rgba(70,170,255,.12); box-shadow: 0 0 14px rgba(70,170,255,.2); }
@@ -740,8 +740,8 @@
   .moveslots.dropzone, .bench.dropzone { box-shadow: inset 0 0 0 1px rgba(63, 199, 224, 0.28); }
   .move.equipped { background: rgba(63, 199, 224, 0.05); border-color: rgba(63, 199, 224, 0.18); }
   .slot-control {
-    min-width: 37px;
-    height: 23px;
+    min-width: 42px;
+    height: 27px;
     display: inline-grid;
     place-items: center;
     flex: none;
@@ -750,16 +750,16 @@
     color: #b9f2fb;
     background: rgba(63, 199, 224, 0.11);
     border: 1px solid rgba(63, 199, 224, 0.3);
-    font: 700 10px var(--font-head);
+    font: 700 var(--type-label) var(--font-head);
     letter-spacing: 0.04em;
   }
   .emptyslot { display: flex; align-items: center; justify-content: flex-start; gap: 10px; padding: 11px; border-radius: 9px; border: 1px dashed rgba(255, 255, 255, 0.14); color: #6e7a86; font-size: 13px; }
   .bench-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 2px 7px; }
-  .bench-label { font-family: var(--font-head); font-weight: 600; font-size: 11.5px; letter-spacing: 0.14em; color: #6e7a86; }
+  .bench-label { font-family: var(--font-head); font-weight: 600; font-size: var(--type-caption); letter-spacing: 0.14em; color: #84909b; }
   .browse-moves {
     padding: 5px 9px; border-radius: 8px; cursor: pointer; color: #9fd8e6;
     background: rgba(63,199,224,.09); border: 1px solid rgba(63,199,224,.3);
-    font: 700 9.5px var(--font-head); letter-spacing: .08em;
+    font: 700 var(--type-micro) var(--font-head); letter-spacing: .08em;
   }
   .browse-moves:hover { background: rgba(63,199,224,.17); border-color: rgba(63,199,224,.52); }
   .bench { display: flex; flex-direction: column; gap: 7px; }
@@ -796,12 +796,12 @@
   .stat-number::-webkit-inner-spin-button, .stat-number::-webkit-outer-spin-button {
     -webkit-appearance: none; margin: 0;
   }
-  .trust-progress { display: inline-flex; align-items: center; color: #c9b4e0; font-size: 11px; }
+  .trust-progress { display: inline-flex; align-items: center; color: #c9b4e0; font-size: var(--type-label); }
   .stat-number.trust-progress { width: 44px; color: #d8c4ee; }
   .stat-number.trust-progress:disabled { cursor: default; opacity: .55; }
   .trust-rank {
     display: flex; align-items: center; justify-content: flex-end; gap: 6px;
-    margin-top: 4px; color: #8f819b; font-size: 11px;
+    margin-top: 4px; color: #9c8ba9; font-size: var(--type-label);
   }
   .trust-rank .stat-number { width: 38px; color: #d8c4ee; }
   .rank-max { color: #655a70; font-variant-numeric: tabular-nums; }
@@ -926,7 +926,7 @@
   .overline {
     margin-bottom: 4px;
     color: #8d8498;
-    font: 600 9px var(--font-head);
+    font: 600 var(--type-micro) var(--font-head);
     letter-spacing: 0.17em;
   }
   .visual-foot .stars { font-size: 17px; }
@@ -937,7 +937,7 @@
     justify-content: end;
     gap: 1px 8px;
     color: #c789f0;
-    font: 700 11px var(--font-head);
+    font: 700 var(--type-caption) var(--font-head);
     font-variant-numeric: tabular-nums;
     text-shadow: 0 0 12px rgba(176, 96, 224, 0.45);
   }
@@ -969,7 +969,7 @@
     min-height: 15px;
     margin-bottom: 2px;
     color: color-mix(in srgb, var(--primary) 46%, #a99ab4);
-    font: 600 11px var(--font-head);
+    font: 600 var(--type-caption) var(--font-head);
     letter-spacing: 0.18em;
   }
   .nameline { gap: 10px; }
@@ -995,7 +995,7 @@
   }
   .lvbtn { width: 32px; height: 38px; border-radius: 9px; font-size: 20px; }
   .lvbox { min-width: 55px; display: flex; flex-direction: column; align-items: center; cursor: text; }
-  .lvcap { font-size: 9px; letter-spacing: 0.18em; }
+  .lvcap { font-size: var(--type-micro); letter-spacing: 0.18em; }
   .lvnum { width: 58px; font-size: 31px; border-bottom: 0; }
   .combat-stats {
     min-width: 0;
@@ -1019,7 +1019,7 @@
   .combat-stat > span:last-child { min-width: 0; display: flex; flex-direction: column; }
   .combat-stat small {
     color: #7d7786;
-    font: 600 8.5px var(--font-head);
+    font: 600 var(--type-micro) var(--font-head);
     letter-spacing: 0.12em;
   }
   .combat-stat strong {
@@ -1053,19 +1053,19 @@
     gap: 5px;
     margin-bottom: 5px;
     color: #918b99;
-    font: 600 9.5px var(--font-head);
+    font: 600 var(--type-label) var(--font-head);
     letter-spacing: 0.11em;
   }
   .vital-value { min-width: 0; display: inline-flex; align-items: center; color: #7d7785; letter-spacing: 0; }
   .vital .track { height: 6px; }
-  .vital .stat-number { width: 42px; padding: 1px 3px; font-size: 12px; }
-  .vital .stat-number.hp { width: 60px; }
+  .vital .stat-number { width: 47px; padding: 2px 4px; font-size: var(--type-body); }
+  .vital .stat-number.hp { width: 69px; }
   .trust-rank {
     justify-content: flex-end;
     gap: 4px;
     margin-top: 5px;
     color: #756b80;
-    font: 600 8.5px var(--font-head);
+    font: 600 var(--type-micro) var(--font-head);
     letter-spacing: 0.08em;
   }
   .trust-rank .stat-number { width: 32px; color: #d8c4ee; }
@@ -1093,21 +1093,21 @@
       rgba(255, 255, 255, 0.02);
   }
   .pname { font-size: 16px; }
-  .pdesc { margin-top: 6px; font-size: 12px; line-height: 1.42; }
+  .pdesc { margin-top: 6px; font-size: var(--type-body); line-height: 1.45; }
   .passives { gap: 7px; }
   .add { padding: 9px; }
 
   .moves-panel { display: flex; flex-direction: column; }
   .moveslots { gap: 6px; padding: 8px; }
   .move { gap: 9px; padding: 8px 10px; }
-  .emptyslot { padding: 8px; font-size: 12px; }
+  .emptyslot { padding: 9px; font-size: var(--type-caption); }
   .bench-head { margin-top: 10px; }
   .bench { gap: 6px; }
   .bench-move { padding: 7px 10px; }
-  .mname { font-size: 14px; }
-  .bench-move .mname { font-size: 13px; }
-  .mpwrcap { font-size: 9px; }
-  .mpwr { font-size: 14px; }
+  .mname { font-size: 16px; }
+  .bench-move .mname { font-size: var(--type-control); }
+  .mpwrcap { font-size: var(--type-micro); }
+  .mpwr { font-size: 16px; }
 
   .work-panel { padding-left: 18px; padding-right: 18px; }
   .worksuit { gap: 6px; }

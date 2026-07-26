@@ -38,8 +38,8 @@
   .chip.editable:hover { filter: brightness(1.12); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 28%, transparent); }
   .chip.unknown { border-left-color: var(--text-muted); background: rgba(255, 255, 255, 0.03); }
   .top { display: flex; align-items: center; gap: 8px; }
-  .rank { color: color-mix(in srgb, var(--c) 50%, #ffffff); font-size: 11px; letter-spacing: -1px; }
-  .name { font-family: var(--font-cond); font-weight: 600; font-size: 15px; color: #eaf2ee; }
-  .eff { font-size: 12px; color: color-mix(in srgb, var(--c) 38%, #c9d3cf); margin-top: 3px; }
+  .rank { color: color-mix(in srgb, var(--c) 50%, #ffffff); font-size: var(--type-caption); letter-spacing: -1px; }
+  .name { font-family: var(--font-cond); font-weight: 600; font-size: 17px; color: #eaf2ee; }
+  .eff { font-size: var(--type-body); line-height: 1.35; color: color-mix(in srgb, var(--c) 38%, #c9d3cf); margin-top: 4px; }
   .chip.unknown .eff { color: var(--text-muted); }
 </style>

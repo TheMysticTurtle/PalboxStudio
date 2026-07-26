@@ -80,7 +80,7 @@
           style="--c:{elementColor(el)}"
           onclick={() => (filter.elements = toggleIn(filter.elements, el))}
           title={el} aria-label={el} aria-pressed={filter.elements.has(el)}
-        ><ElementIcon element={el} size={20} muted={!filter.elements.has(el)} /></button>
+        ><ElementIcon element={el} size={24} muted={!filter.elements.has(el)} /></button>
       {/each}
     </div>
   </div>
@@ -94,7 +94,7 @@
           class="worktog" class:on={filter.work.has(w.name)}
           onclick={() => (filter.work = toggleIn(filter.work, w.name))}
           title={w.name} aria-label={w.name} aria-pressed={filter.work.has(w.name)}
-        ><WorkIcon icon={w.icon} name={w.name} size={18} muted={!filter.work.has(w.name)} /></button>
+        ><WorkIcon icon={w.icon} name={w.name} size={22} muted={!filter.work.has(w.name)} /></button>
       {/each}
     </div>
   </div>
@@ -141,53 +141,53 @@
 
   .ftoggle {
     display: flex; align-items: center; gap: 8px;
-    padding: 8px 12px; border-radius: 9px; cursor: pointer;
+    min-height: var(--control-min); padding: 8px 12px; border-radius: 9px; cursor: pointer;
     background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #b0a0be; font-size: 13px; text-align: left;
+    color: #b0a0be; font-size: var(--type-body); text-align: left;
   }
   .ftoggle:hover { border-color: rgba(255, 255, 255, 0.22); }
   .ftoggle.active { border-color: rgba(176, 96, 224, 0.4); background: rgba(176, 96, 224, 0.08); }
   .ftoggle .chev { color: #7f7090; transition: transform 0.15s; }
   .ftoggle .chev.open { transform: rotate(90deg); }
   .ftoggle .ftitle { font-family: var(--font-head); font-weight: 600; letter-spacing: 0.06em; color: #cbbfe0; }
-  .ftoggle .fn { display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: rgba(176, 96, 224, 0.25); color: #e0ccf5; font-size: 11px; font-weight: 700; }
-  .ftoggle .clearx { margin-left: auto; color: #8b7c99; font-size: 12px; }
+  .ftoggle .fn { display: grid; place-items: center; min-width: 21px; height: 21px; padding: 0 6px; border-radius: 11px; background: rgba(176, 96, 224, 0.25); color: #e0ccf5; font-size: var(--type-label); font-weight: 700; }
+  .ftoggle .clearx { margin-left: auto; color: #8b7c99; font-size: var(--type-caption); }
   .ftoggle .clearx:hover { color: #d6bef2; }
-  .searchbox { flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 9px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.09); }
-  .searchbox input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; color: #e7daf4; font-size: 14px; }
-  .clear { background: none; border: 0; color: #8b7c99; cursor: pointer; font-size: 12px; white-space: nowrap; }
+  .searchbox { flex: 1; min-height: 40px; display: flex; align-items: center; gap: 9px; padding: 9px 13px; border-radius: 9px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.09); }
+  .searchbox input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; color: #e7daf4; font-size: var(--type-control); }
+  .clear { background: none; border: 0; color: #8b7c99; cursor: pointer; font-size: var(--type-caption); white-space: nowrap; }
   .clear:hover { color: #c9b4e0; }
   .match-mode {
     color: #776b82;
-    font: 600 9.5px var(--font-head);
+    font: 600 var(--type-micro) var(--font-head);
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
-  .grp { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .grp { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .grp.inline { gap: 7px; }
-  .lbl { font-family: var(--font-head); font-size: 10.5px; letter-spacing: 0.1em; color: #7f7090; text-transform: uppercase; min-width: 42px; }
+  .lbl { font-family: var(--font-head); font-size: var(--type-label); letter-spacing: 0.1em; color: #9585a5; text-transform: uppercase; min-width: 52px; }
 
-  .els { display: flex; gap: 5px; flex-wrap: wrap; }
-  .eltog { width: 29px; height: 29px; display: grid; place-items: center; border-radius: 7px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
+  .els { display: flex; gap: 6px; flex-wrap: wrap; }
+  .eltog { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 8px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
   .eltog.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); }
 
-  .works { display: flex; gap: 4px; flex-wrap: wrap; }
-  .worktog { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
+  .works { display: flex; gap: 5px; flex-wrap: wrap; }
+  .worktog { width: 35px; height: 35px; display: grid; place-items: center; border-radius: 8px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
   .worktog.on { border-color: rgba(245, 166, 35, 0.55); background: rgba(245, 166, 35, 0.14); }
 
-  .pill { padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 12.5px; color: #b0a0be; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); white-space: nowrap; }
+  .pill { min-height: var(--control-min); padding: 7px 13px; border-radius: 17px; cursor: pointer; font-size: var(--type-body); color: #b0a0be; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); white-space: nowrap; }
   .pill:hover { border-color: rgba(255, 255, 255, 0.24); }
   .pill.ride.on { color: #9fe6c0; background: rgba(63, 224, 150, 0.14); border-color: rgba(63, 224, 150, 0.5); }
   .pill.cat.on { color: #d6bef2; background: rgba(176, 96, 224, 0.16); border-color: rgba(176, 96, 224, 0.5); font-weight: 600; }
 
   .ranch { border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 9px; background: rgba(255, 255, 255, 0.02); }
-  .ranch summary { cursor: pointer; padding: 8px 12px; font-size: 12.5px; color: #b0a0be; user-select: none; list-style: none; display: flex; align-items: center; gap: 8px; }
+  .ranch summary { cursor: pointer; padding: 10px 13px; font-size: var(--type-body); color: #b0a0be; user-select: none; list-style: none; display: flex; align-items: center; gap: 8px; }
   .ranch summary::-webkit-details-marker { display: none; }
   .ranch summary::before { content: "▸"; color: #7f7090; transition: transform 0.15s; }
   .ranch[open] summary::before { transform: rotate(90deg); }
-  .ranch .n { display: grid; place-items: center; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: rgba(245, 166, 35, 0.2); color: #f5c97a; font-size: 11px; font-weight: 700; }
+  .ranch .n { display: grid; place-items: center; min-width: 21px; height: 21px; padding: 0 5px; border-radius: 11px; background: rgba(245, 166, 35, 0.2); color: #f5c97a; font-size: var(--type-label); font-weight: 700; }
   .drops { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 12px 12px; max-height: 148px; overflow: auto; }
-  .drop { padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 11.5px; color: #b0a0be; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
+  .drop { padding: 7px 11px; border-radius: 8px; cursor: pointer; font-size: var(--type-caption); color: #b0a0be; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
   .drop.on { color: #f5c97a; background: rgba(245, 166, 35, 0.14); border-color: rgba(245, 166, 35, 0.5); }
 </style>

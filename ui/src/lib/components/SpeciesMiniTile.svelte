@@ -53,7 +53,7 @@
   <span class="elements" aria-label={`Elements: ${species.elements.join(", ")}`}>
     {#each species.elements as element}
       <span class="element" title={element}>
-        <ElementIcon {element} size={17} decorative={false} />
+        <ElementIcon {element} size={22} decorative={false} />
       </span>
     {/each}
   </span>
@@ -65,7 +65,7 @@
           icon={suitability.icon}
           name={suitability.name}
           level={suitability.level}
-          size={16}
+          size={20}
         />
         <b>{suitability.level}</b>
       </span>
@@ -78,12 +78,12 @@
   .tile {
     position: relative;
     min-width: 0;
-    min-height: 154px;
+    min-height: 190px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 12px 9px 10px;
+    gap: 7px;
+    padding: 14px 10px 12px;
     overflow: hidden;
     border-radius: 13px;
     cursor: pointer;
@@ -114,17 +114,17 @@
     position: absolute;
     top: 7px;
     right: 7px;
-    padding: 2px 5px;
-    border-radius: 6px;
+    padding: 3px 6px;
+    border-radius: 7px;
     color: #b9f2fb;
     background: rgba(63, 199, 224, 0.16);
     border: 1px solid rgba(63, 199, 224, 0.34);
-    font: 700 8px var(--font-head);
+    font: 700 var(--type-micro) var(--font-head);
     letter-spacing: 0.08em;
   }
   .portrait {
-    width: 66px;
-    height: 66px;
+    width: 82px;
+    height: 82px;
     flex: none;
     display: grid;
     place-items: center;
@@ -156,13 +156,13 @@
     width: 100%;
     overflow: hidden;
     color: #eee9f2;
-    font: 600 14px/1.05 var(--font-cond);
+    font: 600 var(--type-title)/1.08 var(--font-cond);
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .elements {
-    min-height: 18px;
+    min-height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -171,42 +171,42 @@
   .element {
     display: grid;
     place-items: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
+    width: 27px;
+    height: 27px;
+    border-radius: 7px;
     background: rgba(255, 255, 255, 0.045);
   }
   .work {
     width: 100%;
-    min-height: 24px;
+    min-height: 31px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 3px;
-    padding-top: 5px;
+    gap: 4px;
+    padding-top: 7px;
     border-top: 1px solid rgba(255, 255, 255, 0.065);
   }
   .suitability {
-    min-width: 27px;
-    height: 23px;
+    min-width: 34px;
+    height: 29px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 1px;
-    padding: 2px 4px;
-    border-radius: 6px;
+    gap: 2px;
+    padding: 3px 5px;
+    border-radius: 7px;
     color: #d8c48e;
     background: rgba(245, 166, 35, 0.075);
     border: 1px solid rgba(245, 166, 35, 0.14);
   }
   .suitability b {
-    font: 700 9px var(--font-head);
+    font: 700 var(--type-label) var(--font-head);
     font-variant-numeric: tabular-nums;
   }
   .no-work {
     color: #6f7781;
-    font-size: 10px;
+    font-size: var(--type-label);
     font-style: italic;
   }
 </style>

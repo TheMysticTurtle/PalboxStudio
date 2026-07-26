@@ -2,6 +2,26 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Feature branch checkpoint — readable card and selector scale
+
+Branch: `feature/readability-polish`.
+
+The card system now has a documented semantic type scale in `tokens.css`; routine gameplay
+information no longer drops below 11px. This pass raises the selectors, compact Global Palbox
+tiles, expanded trading cards, main editor metadata, active-skill control bindings, passives,
+Work Suitability controls, and Advanced drawer labels together instead of applying isolated
+one-off zooms.
+
+The species selector uses a wider responsive dialog and 185px minimum card width, with 82px
+portraits, 22px element emblems, larger suitability icons and levels, and 35–36px filter targets.
+At a roughly 950px application window it intentionally shows four readable columns instead of
+five compressed columns. The compact drawer widened to 480px, while the expanded Global Palbox
+grid now targets 325px cards so names, calculated stats, moves, suitability levels, passives, and
+groups stay readable without losing the trading-card layout.
+
+Browser QA covered the full species dialog at 950×655, both Global Palbox card densities, and a
+populated main editor at 1400×900. The temporary QA-only route was removed afterward.
+
 ## Feature branch checkpoint — species mini-cards and reliable skill ordering
 
 Branch: `feature/pal-image-filter-polish`.

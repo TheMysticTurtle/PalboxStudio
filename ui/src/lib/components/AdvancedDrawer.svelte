@@ -134,7 +134,7 @@
   .ivs { display: flex; flex-direction: column; gap: 17px; }
   .ivhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
   .ivlabel { font-size: 14px; color: #c6cfd7; }
-  .note { color: #6e7a86; font-size: 11.5px; margin-left: 5px; }
+  .note { color: #7f8a94; font-size: var(--type-caption); margin-left: 5px; }
   .ivnum {
     width: 54px; text-align: right; background: transparent; border: 0; outline: none;
     font-family: var(--font-head); font-weight: 700; font-size: 17px; color: var(--c);
@@ -161,15 +161,15 @@
     object-fit: contain;
     filter: drop-shadow(0 7px 10px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 13px rgba(89, 198, 238, 0.28));
   }
-  .statuecap { font-family: ui-monospace, Menlo, monospace; font-size: 9.5px; color: rgba(214, 190, 242, 0.6); text-align: center; }
+  .statuecap { font-family: ui-monospace, Menlo, monospace; font-size: var(--type-micro); color: rgba(214, 190, 242, 0.72); text-align: center; }
   .souls { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 11px; }
-  .soulhead { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-cond); font-weight: 600; font-size: 12.5px; color: #b99ad6; }
-  .muted { color: #6e7a86; font-weight: 400; font-size: 11px; }
+  .soulhead { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-cond); font-weight: 600; font-size: var(--type-body); color: #b99ad6; }
+  .muted { color: #7f8a94; font-weight: 400; font-size: var(--type-label); }
   .soulrow { display: flex; align-items: center; gap: 8px; }
-  .soullabel { width: 78px; display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 0 4px; font-size: 12px; color: color-mix(in srgb, var(--c) 45%, #ffffff); }
-  .soullabel b { color: var(--c); font-family: var(--font-head); font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; }
-  .soullabel small { grid-column: 1 / -1; color: #6e7a86; font: 500 8.5px var(--font-head); letter-spacing: 0.08em; }
-  .sbtn { width: 24px; height: 24px; flex: none; border-radius: 7px; border: 1px solid color-mix(in srgb, var(--c) 35%, transparent); background: color-mix(in srgb, var(--c) 10%, transparent); color: color-mix(in srgb, var(--c) 45%, #ffffff); cursor: pointer; font-size: 14px; line-height: 1; }
+  .soullabel { width: 88px; display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 0 4px; font-size: var(--type-caption); color: color-mix(in srgb, var(--c) 45%, #ffffff); }
+  .soullabel b { color: var(--c); font-family: var(--font-head); font-size: 16px; text-align: right; font-variant-numeric: tabular-nums; }
+  .soullabel small { grid-column: 1 / -1; color: #7f8a94; font: 500 var(--type-micro) var(--font-head); letter-spacing: 0.08em; }
+  .sbtn { width: 30px; height: 30px; flex: none; border-radius: 7px; border: 1px solid color-mix(in srgb, var(--c) 35%, transparent); background: color-mix(in srgb, var(--c) 10%, transparent); color: color-mix(in srgb, var(--c) 45%, #ffffff); cursor: pointer; font-size: 17px; line-height: 1; }
   .sbtn:disabled { opacity: 0.35; cursor: default; }
   .pips { flex: 1; display: flex; gap: 2px; }
   .pip { flex: 1; height: 10px; border: 0; border-radius: 2px; background: rgba(255, 255, 255, 0.08); cursor: pointer; padding: 0; }
@@ -180,7 +180,7 @@
   .stars { display: flex; justify-content: center; gap: 7px; }
   .star { background: none; border: 0; cursor: pointer; font-size: 30px; line-height: 1; color: rgba(255, 255, 255, 0.2); padding: 0; }
   .star.on { color: var(--accent-amber); text-shadow: 0 0 10px color-mix(in srgb, var(--accent-amber) 60%, transparent); }
-  .condnote { font-size: 11px; color: #6e7a86; margin-top: 9px; }
+  .condnote { font-size: var(--type-caption); color: #7f8a94; margin-top: 9px; }
 
   /* Warning */
   .warn { display: flex; gap: 10px; padding: 13px 14px; border-radius: 11px; background: rgba(245, 166, 35, 0.08); border: 1px solid rgba(245, 166, 35, 0.28); }

@@ -28,12 +28,12 @@
   aria-label={`Select ${card.title}, ${card.speciesName}, level ${card.level}`}
 >
   <span class="identity">
-    <PalPortrait {card} size={76} />
+    <PalPortrait {card} size={88} />
     <span class="copy">
       <strong>{card.title}</strong>
       {#if card.showSpeciesSubtitle}<span class="species">{card.speciesName}</span>{/if}
       <span class="meta">
-        <span class="elements">{#each card.elements as element}<ElementIcon {element} size={16} />{/each}</span>
+        <span class="elements">{#each card.elements as element}<ElementIcon {element} size={20} />{/each}</span>
         <span>Lv.{card.level}</span>
         <span class="gender" class:male={card.gender === "Male"} class:female={card.gender === "Female"}>
           {card.genderSymbol}
@@ -60,7 +60,7 @@
     <span class="work-list">
       {#each card.workSuit as work (work.name)}
         <span class="work" title="{work.name} Lv.{work.level}">
-          <WorkIcon icon={work.icon} name={work.name} level={work.level} size={18} />
+          <WorkIcon icon={work.icon} name={work.name} level={work.level} size={22} />
           <b>Lv.{work.level}</b>
         </span>
       {/each}
@@ -73,7 +73,7 @@
     <span class="move-list">
       {#each card.moves as move (move.code)}
         <span class="move" title="{move.name} · {move.element} · Power {move.power}">
-          <ElementIcon element={move.element} size={15} />
+          <ElementIcon element={move.element} size={18} />
           <span>{move.name}</span>
           <b>{move.power}</b>
         </span>
@@ -103,11 +103,11 @@
   .card {
     position: relative;
     min-width: 0;
-    min-height: 348px;
+    min-height: 430px;
     display: flex;
     flex-direction: column;
-    gap: 9px;
-    padding: 13px;
+    gap: 11px;
+    padding: 16px;
     color: #e8e4ec;
     text-align: left;
     cursor: pointer;
@@ -128,54 +128,54 @@
       0 0 0 1px color-mix(in srgb, var(--secondary) 30%, transparent),
       0 0 22px color-mix(in srgb, var(--primary) 24%, transparent);
   }
-  .identity { position: relative; display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .identity { position: relative; display: flex; align-items: center; gap: 13px; min-width: 0; }
   .copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
   .copy strong {
     overflow: hidden;
     color: #f2edf5;
-    font: 600 17px/1.05 var(--font-cond);
+    font: 600 20px/1.08 var(--font-cond);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .species { color: #91869c; font-size: 11px; }
-  .meta { display: flex; align-items: center; gap: 5px; color: #aba1b5; font-size: 11px; }
+  .species { color: #91869c; font-size: var(--type-caption); }
+  .meta { display: flex; align-items: center; gap: 6px; color: #aba1b5; font-size: var(--type-caption); }
   .elements { display: flex; align-items: center; gap: 1px; }
-  .gender { font: 700 12px var(--font-head); color: #929ca7; }
+  .gender { font: 700 var(--type-body) var(--font-head); color: #929ca7; }
   .gender.male { color: #8fc8ff; }
   .gender.female { color: #f2a0d8; }
-  .cond { color: #f1c95e; font: 700 10px var(--font-head); }
+  .cond { color: #f1c95e; font: 700 var(--type-label) var(--font-head); }
   .variants { position: absolute; top: 0; right: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-  .variants span { padding: 2px 5px; border-radius: 7px; font: 700 8px var(--font-head); letter-spacing: .08em; }
+  .variants span { padding: 3px 7px; border-radius: 8px; font: 700 var(--type-micro) var(--font-head); letter-spacing: .08em; }
   .variants .alpha { color: #ff9a9a; background: rgba(255, 64, 64, 0.14); border: 1px solid rgba(255, 64, 64, 0.3); }
   .variants .lucky { color: #9fddff; background: rgba(70, 170, 255, 0.14); border: 1px solid rgba(70, 170, 255, 0.3); }
-  .section { display: flex; flex-direction: column; gap: 5px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.065); }
-  .label { color: #716b7a; font: 600 9px var(--font-head); letter-spacing: .1em; }
+  .section { display: flex; flex-direction: column; gap: 7px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.065); }
+  .label { color: #8a8291; font: 600 var(--type-label) var(--font-head); letter-spacing: .1em; }
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-  .stats > span { display: flex; align-items: baseline; justify-content: space-between; padding: 5px 7px; border-radius: 7px; background: rgba(255, 255, 255, 0.035); }
-  .stats small { color: #756e7f; font: 600 8px var(--font-head); letter-spacing: .05em; }
-  .stats b { color: #d8d1de; font: 700 13px var(--font-head); }
+  .stats > span { display: flex; align-items: baseline; justify-content: space-between; padding: 7px 9px; border-radius: 7px; background: rgba(255, 255, 255, 0.035); }
+  .stats small { color: #89818f; font: 600 var(--type-micro) var(--font-head); letter-spacing: .05em; }
+  .stats b { color: #d8d1de; font: 700 16px var(--font-head); }
   .work-list { display: flex; flex-wrap: wrap; gap: 4px; }
-  .work { display: flex; align-items: center; gap: 3px; padding: 3px 5px; border-radius: 7px; background: rgba(245, 166, 35, 0.07); border: 1px solid rgba(245, 166, 35, 0.12); }
-  .work b { color: #d5c8ab; font: 600 9px var(--font-head); white-space: nowrap; }
+  .work { display: flex; align-items: center; gap: 4px; padding: 4px 6px; border-radius: 7px; background: rgba(245, 166, 35, 0.07); border: 1px solid rgba(245, 166, 35, 0.12); }
+  .work b { color: #d5c8ab; font: 600 var(--type-label) var(--font-head); white-space: nowrap; }
   .move-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
-  .move { min-width: 0; display: flex; align-items: center; gap: 4px; padding: 4px 5px; border-radius: 7px; background: rgba(255, 255, 255, 0.032); }
-  .move span { min-width: 0; flex: 1; overflow: hidden; color: #c8c1cf; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-  .move b { color: #827b8b; font: 600 9px var(--font-head); }
+  .move { min-width: 0; display: flex; align-items: center; gap: 6px; padding: 6px 7px; border-radius: 7px; background: rgba(255, 255, 255, 0.032); }
+  .move span { min-width: 0; flex: 1; overflow: hidden; color: #c8c1cf; font-size: var(--type-caption); text-overflow: ellipsis; white-space: nowrap; }
+  .move b { color: #968e9f; font: 600 var(--type-label) var(--font-head); }
   .passive-section { margin-top: auto; }
   .passive-list { display: flex; flex-wrap: wrap; gap: 4px; }
   .passive {
     max-width: 100%;
     overflow: hidden;
-    padding: 3px 7px;
+    padding: 4px 8px;
     color: color-mix(in srgb, var(--tone) 38%, #e9e2ee);
-    font-size: 9.5px;
+    font-size: var(--type-label);
     text-overflow: ellipsis;
     white-space: nowrap;
     border-radius: 8px;
     border: 1px solid color-mix(in srgb, var(--tone) 25%, transparent);
     background: color-mix(in srgb, var(--tone) 9%, transparent);
   }
-  .none { color: #625d69; font-size: 10px; font-style: italic; }
+  .none { color: #77717e; font-size: var(--type-label); font-style: italic; }
   .groups { display: flex; flex-wrap: wrap; gap: 4px; }
-  .groups span { padding: 3px 7px; border-radius: 8px; color: #cab7dc; background: rgba(176, 96, 224, 0.11); border: 1px solid rgba(176, 96, 224, 0.2); font-size: 9px; }
+  .groups span { padding: 4px 8px; border-radius: 8px; color: #cab7dc; background: rgba(176, 96, 224, 0.11); border: 1px solid rgba(176, 96, 224, 0.2); font-size: var(--type-label); }
 </style>
