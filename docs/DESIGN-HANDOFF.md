@@ -93,7 +93,7 @@ at once is optional — propose what feels best).
 
 > **Authoritative value ranges (see [SPECS-1.0.md](SPECS-1.0.md)) — the prototype got some of
 > these wrong; use these:** Level **1–80** · IV/breeding traits **0–100** · **Work Suitability
-> steppers 0–10** (not 0–4) · **Pal Souls 0–10** per stat · **Condensation 0–4** stars ·
+> steppers 0–10** (not 0–4) · **Pal Souls 0–20** per stat (+3%/rank, +60% max) · **Condensation 0–4** stars ·
 > Passives up to **4** (rank −3..5) · Active Skills (moves) up to **3** equipped.
 
 ### 4a. Pal Card (center) — the star of the show
@@ -126,7 +126,8 @@ to the right drawer. Every field below is **editable** and clearly labeled:
 ### 4c. Advanced drawer (right)
 - **IV / Breeding Traits:** HP / Attack / Defense talent values (0–100), clearly labeled,
   slider + number. (Palworld 1.0 has a single attack talent — no separate melee/ranged.)
-- **Statue of Power:** **Pal Souls** rank editor (`+N`) and **Condensation** stars (0–4).
+- **Statue of Power:** **Pal Souls** rank editor (0–20, with the actual boosted percentage)
+  and **Condensation** stars (0–4).
   **Include an illustrative image of the Statue of Power** here. Label with official terms.
 
 ### 4d. Groups & tags (lives in/around the box explorer)

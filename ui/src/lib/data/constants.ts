@@ -11,12 +11,19 @@ export const LIMITS = {
   workSuitMin: 0,
   workSuitMax: 10,
   soulsMin: 0,
-  soulsMax: 10,
+  soulsMax: 20,
   condensationMin: 0,
   condensationMax: 4,
   equippedMovesMax: 3,
   passivesMax: 4,
 } as const;
+
+/** Statue of Power enhancement gained by each Pal Soul rank. */
+export const SOUL_BONUS_PERCENT_PER_RANK = 3;
+
+export function soulBonusPercent(rank: number): number {
+  return Math.max(LIMITS.soulsMin, Math.min(LIMITS.soulsMax, rank)) * SOUL_BONUS_PERCENT_PER_RANK;
+}
 
 // Element codename note (SPECS-1.0.md): the save uses Normal/Leaf/Earth/Electricity;
 // we always display the official UI names below.

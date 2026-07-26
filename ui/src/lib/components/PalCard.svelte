@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { Pal, ElementName } from "$lib/data/types";
-  import { LIMITS } from "$lib/data/constants";
+  import { LIMITS, soulBonusPercent } from "$lib/data/constants";
   import { resolveMove, resolveSpecies } from "$lib/data/refdata.svelte";
-  import { palIcon, onPalIconError, variantIcon } from "$lib/data/icons";
+  import { palIcon, variantIcon } from "$lib/data/icons";
   import {
     elementColor,
     genderSymbol as displayGenderSymbol,
@@ -18,6 +18,7 @@
   import SpeciesSelector from "./SpeciesSelector.svelte";
   import PassiveSelector from "./PassiveSelector.svelte";
   import MoveSelector from "./MoveSelector.svelte";
+  import PalArtwork from "./PalArtwork.svelte";
   import ElementIcon from "./ElementIcon.svelte";
 
   let { pal, empty = false }: { pal: Pal; empty?: boolean } = $props();
@@ -33,9 +34,6 @@
   const cardView = $derived(presentBoxPal(palToBoxPal(pal, -1)));
   const hpMax = $derived(empty ? 0 : maxHpForPal(pal));
   const hpPct = $derived(hpMax > 0 ? Math.min(100, (pal.stats.hp / hpMax) * 100) : 0);
-  const soulTotal = $derived(
-    pal.soulRanks.hp + pal.soulRanks.attack + pal.soulRanks.defense + pal.soulRanks.craftSpeed,
-  );
 
   function setLevel(v: number) {
     const n = Math.round(v);
@@ -233,7 +231,9 @@
       <img class="badge alpha" class:hide={!pal.alpha} src={variantIcon("alpha")} alt="Alpha" />
       <img class="badge lucky" class:hide={!pal.lucky} src={variantIcon("lucky")} alt="Lucky" />
       <div class="art">
-        <img class="palimg" src={iconSrc} alt={pal.name} onerror={onPalIconError} />
+        <div class="art-shell">
+          <PalArtwork src={iconSrc} alt={pal.name} zoom={empty ? 1 : 1.04} lazy={false} />
+        </div>
       </div>
       <div class="visual-foot">
         <div>
@@ -244,7 +244,12 @@
         </div>
         <div class="soul-summary">
           <div class="overline">PAL SOULS</div>
-          <strong>+{soulTotal}</strong>
+          <div class="soul-values">
+            <span title="HP soul enhancement">H {soulBonusPercent(pal.soulRanks.hp)}%</span>
+            <span title="Attack soul enhancement">A {soulBonusPercent(pal.soulRanks.attack)}%</span>
+            <span title="Defense soul enhancement">D {soulBonusPercent(pal.soulRanks.defense)}%</span>
+            <span title="Work Speed soul enhancement">W {soulBonusPercent(pal.soulRanks.craftSpeed)}%</span>
+          </div>
         </div>
       </div>
     </div>
@@ -664,7 +669,6 @@
   .badge.lucky { right: 10px; width: 36px; height: 36px; }
   .badge.hide { display: none; }
   .art { position: absolute; inset: 0 0 52px; display: grid; place-items: center; }
-  .palimg { max-width: 78%; max-height: 92%; object-fit: contain; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.5)); }
   .stars { font-size: 18px; letter-spacing: 2px; color: rgba(255, 255, 255, 0.22); }
   .stars .on { color: var(--accent-amber); }
 
@@ -821,14 +825,21 @@
   .visual-orbit.one { width: 250px; height: 250px; left: calc(50% - 125px); top: calc(50% - 135px); }
   .visual-orbit.two { width: 190px; height: 190px; left: calc(50% - 95px); top: calc(50% - 105px); border-color: color-mix(in srgb, var(--secondary) 32%, transparent); }
   .visual-card .art { inset: 8px 8px 61px; }
-  .visual-card .palimg {
+  .art-shell {
     position: relative;
     z-index: 1;
-    max-width: 84%;
-    max-height: 96%;
-    filter:
-      drop-shadow(0 14px 22px rgba(0, 0, 0, 0.62))
-      drop-shadow(0 0 15px color-mix(in srgb, var(--primary) 22%, transparent));
+    width: min(70%, 250px);
+    aspect-ratio: 1;
+    transform: translateY(5px);
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--primary) 38%, rgba(255, 255, 255, 0.12));
+    border-radius: 19px;
+    background:
+      radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.1), transparent 58%),
+      rgba(7, 10, 16, 0.5);
+    box-shadow:
+      0 14px 22px rgba(0, 0, 0, 0.62),
+      0 0 15px color-mix(in srgb, var(--primary) 22%, transparent);
   }
   .visual-card .badge {
     z-index: 3;
@@ -857,10 +868,15 @@
   }
   .visual-foot .stars { font-size: 17px; }
   .soul-summary { text-align: right; }
-  .soul-summary strong {
+  .soul-values {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    justify-content: end;
+    gap: 1px 8px;
     color: #c789f0;
-    font: 700 21px var(--font-head);
-    text-shadow: 0 0 14px rgba(176, 96, 224, 0.55);
+    font: 700 11px var(--font-head);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 12px rgba(176, 96, 224, 0.45);
   }
 
   .hero-copy {
@@ -1034,11 +1050,13 @@
   .worksuit { gap: 6px; }
   .none { padding: 14px; color: #6e7a86; text-align: center; font-size: 12px; }
 
-  .card.empty .palimg {
+  .card.empty .art-shell {
     width: 120px;
-    height: 120px;
+    transform: none;
+    border: 0;
+    background: transparent;
+    box-shadow: 0 0 24px rgba(176, 96, 224, 0.42);
     opacity: 0.62;
-    filter: drop-shadow(0 0 24px rgba(176, 96, 224, 0.42));
   }
   .card.empty .species { min-height: 48px; }
 

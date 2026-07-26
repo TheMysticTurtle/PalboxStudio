@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PalCardPresentation } from "$lib/data/palPresentation";
-  import { onPalIconError, variantIcon } from "$lib/data/icons";
+  import { variantIcon } from "$lib/data/icons";
+  import PalArtwork from "./PalArtwork.svelte";
 
   let {
     card,
@@ -16,7 +17,7 @@
   style="--size:{size}px; --primary:{card.primaryColor}; --secondary:{card.secondaryColor}"
 >
   <span class="portrait-inner">
-    <img class="pal-art" src={card.portrait} alt="" loading="lazy" decoding="async" onerror={onPalIconError} />
+    <PalArtwork src={card.portrait} shape="circle" />
   </span>
   {#if card.alpha}
     <img class="variant alpha" src={variantIcon("alpha")} alt="Alpha" title="Alpha" />
@@ -53,7 +54,6 @@
       linear-gradient(145deg, color-mix(in srgb, var(--primary) 15%, #111722), color-mix(in srgb, var(--secondary) 12%, #0c1119));
     box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.48);
   }
-  .pal-art { width: 94%; height: 94%; object-fit: contain; }
   .variant {
     position: absolute;
     top: -7%;

@@ -5,6 +5,7 @@
   import {
     type SpeciesFilterState,
     toggleIn,
+    toggleOnly,
     clearFilter,
     activeFilterCount,
     ranchDropOptions,
@@ -67,6 +68,8 @@
   {/if}
 
   {#if expanded}
+  <div class="match-mode">Matches every selected filter</div>
+
   <!-- Elements -->
   <div class="grp">
     <span class="lbl">Element</span>
@@ -107,7 +110,7 @@
       {#each CATEGORY_LABELS as c (c.value)}
         <button
           class="pill cat" class:on={filter.categories.has(c.value)}
-          onclick={() => (filter.categories = toggleIn(filter.categories, c.value as Category))}
+          onclick={() => (filter.categories = toggleOnly(filter.categories, c.value as Category))}
           aria-pressed={filter.categories.has(c.value)}
         >{c.label}</button>
       {/each}
@@ -154,6 +157,12 @@
   .searchbox input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; color: #e7daf4; font-size: 14px; }
   .clear { background: none; border: 0; color: #8b7c99; cursor: pointer; font-size: 12px; white-space: nowrap; }
   .clear:hover { color: #c9b4e0; }
+  .match-mode {
+    color: #776b82;
+    font: 600 9.5px var(--font-head);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
 
   .grp { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
   .grp.inline { gap: 7px; }

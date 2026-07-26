@@ -1,7 +1,8 @@
 <script lang="ts">
   import { ref, baseSpeciesCode } from "$lib/data/refdata.svelte";
-  import { palIcon, onPalIconError } from "$lib/data/icons";
+  import { palIcon } from "$lib/data/icons";
   import ElementIcon from "./ElementIcon.svelte";
+  import PalArtwork from "./PalArtwork.svelte";
   import SpeciesFilter from "./SpeciesFilter.svelte";
   import {
     createSpeciesFilter,
@@ -69,7 +70,7 @@
           title={sp.partnerSkill ? `${sp.partnerSkill.name} — ${sp.partnerSkill.description}` : sp.name}
         >
           {#if isRideable(sp)}<span class="mount" title="Rideable mount">🐎</span>{/if}
-          <div class="port"><img src={palIcon(sp.code)} alt="" loading="lazy" decoding="async" onerror={onPalIconError} /></div>
+          <div class="port"><PalArtwork src={palIcon(sp.code)} shape="circle" /></div>
           <div class="nm">{sp.name}</div>
           <div class="els">
             {#each sp.elements as el}<ElementIcon element={el} size={16} decorative={false} />{/each}
@@ -148,7 +149,6 @@
     border: 1px solid rgba(176, 96, 224, 0.3);
     display: grid; place-items: center; overflow: hidden;
   }
-  .port img { width: 100%; height: 100%; object-fit: contain; }
   .nm { font-family: var(--font-cond); font-weight: 600; font-size: 13px; color: #eae2f2; text-align: center; line-height: 1.05; }
   .els { display: flex; gap: 3px; height: 16px; }
   .ps { font-size: 10.5px; color: #9a8bab; text-align: center; line-height: 1.1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }

@@ -32,7 +32,8 @@ Practical pointers for building the global-box editor. The two authoritative sou
   clone may need "drag to an empty slot in-game."
 - Level cap **80**; passives have ranks **−3..5** (rank 5 is the 1.0 addition); 1.0 pals have
   a single attack IV (`Talent_Shot`; `Talent_Melee` is gone — don't re-add it).
-- **Work Suitability 1–10** (all adjustable to 10 in our editor); **Pal Souls 0–10 per stat**;
+- **Work Suitability 1–10** (all adjustable to 10 in our editor); **Pal Souls 0–20 per stat**
+  (**+3% per rank, +60% max**);
   **Condensation 0–4 stars**; **IV/talents 0–100** (raw byte 0–255). **See
   [SPECS-1.0.md](SPECS-1.0.md) — the authoritative source for all value ranges** (don't trust
   our pre-1.0 numbers).

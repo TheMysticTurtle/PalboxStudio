@@ -1,4 +1,5 @@
 import type { BoxPal } from "./types";
+import { soulBonusPercent } from "./constants";
 import { ref, resolveSpecies } from "./refdata.svelte";
 
 export interface CombatStats {
@@ -38,7 +39,7 @@ function finishStat(
   passiveBonusPercent: number,
 ): number {
   const trained = Math.floor(
-    base * (1 + soulRank * 0.03) * (1 + condensation * 0.05),
+    base * (1 + soulBonusPercent(soulRank) / 100) * (1 + condensation * 0.05),
   );
   return Math.max(1, Math.floor(trained * (1 + passiveBonusPercent / 100)));
 }

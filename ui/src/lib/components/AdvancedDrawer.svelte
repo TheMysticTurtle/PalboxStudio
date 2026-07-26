@@ -1,6 +1,10 @@
 <script lang="ts">
   import type { Pal } from "$lib/data/types";
-  import { LIMITS } from "$lib/data/constants";
+  import {
+    LIMITS,
+    SOUL_BONUS_PERCENT_PER_RANK,
+    soulBonusPercent,
+  } from "$lib/data/constants";
   import { STATUE_OF_POWER_ART } from "$lib/data/icons";
   import SectionHeader from "./SectionHeader.svelte";
 
@@ -73,14 +77,27 @@
         <span class="statuecap">statue of power</span>
       </div>
       <div class="souls">
-        <div class="soulhead"><span>Pal Soul Enhancement</span><span class="muted">rank 0–10 · +3%/rank</span></div>
+        <div class="soulhead">
+          <span>Pal Soul Enhancement</span>
+          <span class="muted">rank 0–{LIMITS.soulsMax} · +{SOUL_BONUS_PERCENT_PER_RANK}%/rank</span>
+        </div>
         {#each soulStats as s (s.key)}
           <div class="soulrow" style="--c:{s.color}">
-            <span class="soullabel">{s.label} <b>+{pal.soulRanks[s.key]}</b></span>
+            <span class="soullabel">
+              <span>{s.label}</span>
+              <b>+{soulBonusPercent(pal.soulRanks[s.key])}%</b>
+              <small>R{pal.soulRanks[s.key]}</small>
+            </span>
             <button class="sbtn" onclick={() => decSoul(s.key)} disabled={pal.soulRanks[s.key] <= LIMITS.soulsMin} aria-label="Lower {s.label} soul">−</button>
             <div class="pips">
               {#each Array(LIMITS.soulsMax) as _, i (i)}
-                <button class="pip" class:on={i < pal.soulRanks[s.key]} onclick={() => setSoul(s.key, i)} aria-label="{s.label} soul rank {i + 1}"></button>
+                <button
+                  class="pip"
+                  class:on={i < pal.soulRanks[s.key]}
+                  onclick={() => setSoul(s.key, i)}
+                  aria-label="{s.label} soul rank {i + 1}, +{soulBonusPercent(i + 1)} percent"
+                  title="Rank {i + 1}: +{soulBonusPercent(i + 1)}%"
+                ></button>
               {/each}
             </div>
             <button class="sbtn" onclick={() => incSoul(s.key)} disabled={pal.soulRanks[s.key] >= LIMITS.soulsMax} aria-label="Raise {s.label} soul">+</button>
@@ -149,8 +166,9 @@
   .soulhead { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-cond); font-weight: 600; font-size: 12.5px; color: #b99ad6; }
   .muted { color: #6e7a86; font-weight: 400; font-size: 11px; }
   .soulrow { display: flex; align-items: center; gap: 8px; }
-  .soullabel { width: 58px; font-size: 13px; color: color-mix(in srgb, var(--c) 45%, #ffffff); }
-  .soullabel b { color: var(--c); font-family: var(--font-head); font-size: 15px; }
+  .soullabel { width: 78px; display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 0 4px; font-size: 12px; color: color-mix(in srgb, var(--c) 45%, #ffffff); }
+  .soullabel b { color: var(--c); font-family: var(--font-head); font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; }
+  .soullabel small { grid-column: 1 / -1; color: #6e7a86; font: 500 8.5px var(--font-head); letter-spacing: 0.08em; }
   .sbtn { width: 24px; height: 24px; flex: none; border-radius: 7px; border: 1px solid color-mix(in srgb, var(--c) 35%, transparent); background: color-mix(in srgb, var(--c) 10%, transparent); color: color-mix(in srgb, var(--c) 45%, #ffffff); cursor: pointer; font-size: 14px; line-height: 1; }
   .sbtn:disabled { opacity: 0.35; cursor: default; }
   .pips { flex: 1; display: flex; gap: 2px; }

@@ -10,7 +10,7 @@ guides (see Sources). **This file is the source of truth for value ranges in the
 | Field | Old/forked assumption | **Palworld 1.0 (correct)** |
 |---|---|---|
 | Work Suitability cap | 5 (spinboxes `to=5`) | **1–10** (wild ~7–8; 9–10 via breed/condense). *Editor: all adjustable 0–10.* |
-| Pal Souls per stat | "0–20" (stale note) | **0–10 ranks** (+3%/rank, **+30% max**) |
+| Pal Souls per stat | 0–10 (pre-v0.4.11) | **0–20 ranks** (+3%/rank, **+60% max**) |
 | Level cap | 80 | **80** (confirmed; exp table has 100 rows of headroom) |
 | Attack IV | (fork had melee+shot) | **single `Talent_Shot`** — no `Talent_Melee` |
 
@@ -28,8 +28,8 @@ guides (see Sources). **This file is the source of truth for value ranges in the
 - **Condensation** (`Rank`): **0–4 stars** (rank 4 = max). Needs **48** same-species (was 116).
   +5% HP/Atk/Def per rank (**+20% at ★4**); each rank-up also **+1 to a work suitability**,
   max rank raises **all**. PSP stores as byte (writes only when non-zero).
-- **Pal Souls** (Statue of Power): per-stat ranks **0–10** — `Rank_HP`, `Rank_Attack`,
-  `Rank_Defence`, `Rank_CraftSpeed` (Work Speed). +3%/rank, **+30% max per stat**. Byte;
+- **Pal Souls** (Statue of Power): per-stat ranks **0–20** — `Rank_HP`, `Rank_Attack`,
+  `Rank_Defence`, `Rank_CraftSpeed` (Work Speed). +3%/rank, **+60% max per stat**. Byte;
   write only non-zero. *(This is the field the right-drawer "statue levels" edit.)*
 - **Work Suitability**: **Lv 1–10**. Stored in `GotWorkSuitabilityAddRankList` as
   **bonus rank = desired_total − species_base**; **write only non-zero entries** (zero-bloat
@@ -48,9 +48,9 @@ guides (see Sources). **This file is the source of truth for value ranges in the
 `Leaf`→**Grass** · `Ice`→Ice · `Earth`→**Ground** · `Dark`→Dark · `Dragon`→Dragon.
 **The save/data use the left codenames; show the right names.** (`elements.json` has all 9.)
 
-## Work Suitability jobs (12, official UI names)
+## Work Suitability jobs (13, official UI names)
 Kindling · Watering · Planting · Generating Electricity · Handiwork · Gathering · Lumbering ·
-Mining · Medicine Production · Cooling · Transporting · Farming.
+Mining · Crude Oil Extraction · Medicine Production · Cooling · Transporting · Farming.
 
 ## 1.0 data JSONs we build the app's game-data layer from (`psp-reference/data/json/`)
 `pals.json` (species: elements, scaling, work suitability, skill_set, human flag),
@@ -73,6 +73,8 @@ mirrors them (as PalEdit's `update_data.py` already did).
 - Our own RE notes: `PalEdit/CLAUDE.md`, `PalEdit/docs/save-editing-analysis.md`.
 
 **Official / best community 1.0 wikis & databases (for game-data truth — cross-check here):**
+- **Official v0.4.11 patch notes** — https://store.steampowered.com/news/app/1623730/view/518574472406499342
+  — increased the Statue of Power enhancement limit from 10 to 20; that cap persists in 1.0.
 - **paldb.cc** — https://paldb.cc/en/v1.0.0 — the most technical DB; mirrors game data,
   pal/skill/passive/element tables, and hosts the icon/texture CDN (PalEdit already pulls
   icons from it). **Primary data reference.**

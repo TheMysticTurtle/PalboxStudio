@@ -8,6 +8,10 @@ data, icons, and the filtering/legality logic — this catalogs where it all is 
   Lookup rule (PalEdit `GetImage`): strip a `RAID_` prefix and a trailing `_2` from the
   CharacterID; fall back to `#ERROR.png` when missing (~27 scrapped/quest entities have none —
   placeholder is fine). **In a URL the fallback must be `%23ERROR.png`** (the `#` is a fragment).
+  The retained sources contain 296 images at 240×240 and 83 at 128×128, with varying transparent
+  padding. `PalArtwork.svelte` is the shared rendered surface that gives them one fixed-size,
+  clipped, rounded crop and fallback rule across every card and picker. Keep the original files;
+  do not create component-owned copies or per-species CSS corrections.
 - **Work-suitability icons** → `ui/static/icons/work/<name>.png` + `no_<name>.png` (13 active +
   13 greyed). Names use PalEdit's internal set — see the mapping below.
 - **Element badges** → `ui/static/icons/elements/<element>.webp` (9). These are the retained
@@ -85,7 +89,8 @@ Global Palbox saves carry the inputs for Attack and Defense, not ready-made disp
 species scaling + level + IVs + Pal Soul ranks + condensation + the Alpha HP bonus + static
 self-targeted Max HP/Attack/Defense passive effects. It deliberately excludes party, riding,
 equipment, food, and server modifiers because those depend on runtime context outside the Global
-Palbox file. IVs remain separate editor metadata in the Advanced drawer.
+Palbox file. Soul ranks are 0–20 at +3% per rank (+60% maximum for each trained stat). IVs remain
+separate editor metadata in the Advanced drawer.
 
 ## Work Suitability — **13** (internal → current 1.0 UI). We had 12; add **Crude Oil Extraction**.
 | internal key / icon file          | official UI name        |

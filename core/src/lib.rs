@@ -34,9 +34,9 @@ pub mod limits {
     pub const WORK_SUITABILITY_MIN: u8 = 0;
     pub const WORK_SUITABILITY_MAX: u8 = 10;
 
-    /// Pal Souls rank per stat (Statue of Power): +3%/rank, +30% max.
+    /// Pal Souls rank per stat (Statue of Power): +3%/rank, +60% max.
     pub const SOULS_RANK_MIN: u8 = 0;
-    pub const SOULS_RANK_MAX: u8 = 10;
+    pub const SOULS_RANK_MAX: u8 = 20;
 
     /// Condensation rank, shown as 0..=4 gold stars.
     pub const CONDENSATION_MIN: u8 = 0;
@@ -65,7 +65,7 @@ mod tests {
     fn one_zero_limits_match_specs() {
         assert_eq!(limits::LEVEL_MAX, 80);
         assert_eq!(limits::WORK_SUITABILITY_MAX, 10);
-        assert_eq!(limits::SOULS_RANK_MAX, 10);
+        assert_eq!(limits::SOULS_RANK_MAX, 20);
         assert_eq!(limits::CONDENSATION_MAX, 4);
         assert_eq!(limits::GLOBAL_BOX_SLOTS, 960);
     }

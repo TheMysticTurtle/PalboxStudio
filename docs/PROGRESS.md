@@ -2,6 +2,26 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Feature branch checkpoint — Pal artwork, match-all filters, and Soul percentages
+
+Branch: `feature/pal-image-filter-polish`.
+
+Pal portraits now render through `PalArtwork.svelte`, a single clipped artwork surface used by
+the compact cards, expanded cards, species selector, and main editor card. It gives every source
+image the same fixed-size frame, crop, corner treatment, fallback behavior, and subtle zoom without
+creating a second set of derived image files or adding per-species layout exceptions.
+
+The shared species filter now has explicit intersection semantics: a Pal must match every selected
+value within a facet and every other active facet. Category buttons are mutually exclusive because
+a species cannot simultaneously be Natural, a Tower Boss, and Unobtainable. The pure matching
+module has focused unit tests and remains the source for both Global Palbox views and the species
+selector.
+
+Statue of Power enhancement ranks are 0–20 at +3% per rank, or +60% per stat at rank 20. The
+Advanced drawer shows rank and actual percentage together; the main card summarizes the four real
+percentages instead of adding unlike ranks into one number. Shared constants drive UI limits,
+combat-stat calculations, and the Rust boundary.
+
 ## Feature branch checkpoint — modular Pal cards
 
 Branch: `feature/modular-pal-cards`.
@@ -123,7 +143,7 @@ move/passive legality, the 13 work suits, per-pal save fields.
 - Real assets + data: 379 pal icons + 13 work icons in `ui/static`; card renders the real
   Incineram (CodeName Baphomet) + real work-suit icons. WORK_SUITS → **13** (added Crude Oil Extraction).
 - **Advanced drawer complete**: IV sliders (0–100), Statue of Power per-stat souls
-  HP/ATK/DEF/WS (0–10, ±/clickable pips), condensation stars (0–4). Model gained `ivs` +
+  HP/ATK/DEF/WS (0–20, ±/clickable pips), condensation stars (0–4). Model gained `ivs` +
   `soulRanks` (per the PSP DTO map).
 - **Global Box drawer**: Open-file button (`tauri-plugin-dialog`, defaults to
   `%LOCALAPPDATA%/Pal/Saved/SaveGames`), search + element + group filters, 3-col tile matrix,
@@ -214,7 +234,8 @@ central-card glow goals. NOTE: the open-file button needs a `tauri dev` rebuild 
    (`LIMITS.equippedMovesMax`). Exact markup: prototype `Palbox Studio.dc.html` lines 160–191.
    Needs a bench-moves list in the pal model.
 2. **Right drawer (Advanced)** — IV/breeding sliders (0–100), Statue of Power (Pal Souls
-   per-stat 0–10 rank bars + statue image), Souls & Condensation cards, amber backup warning.
+   per-stat 0–20 rank bars + actual percentage + statue image), Souls & Condensation cards,
+   amber backup warning.
    Prototype lines 308–393.
 3. **Left drawer (Global Box)** — tile grid (matrix/list toggle), search/filter/sort, groups
    & tags, add/clone/delete, filter modal. Prototype lines 255–306 + 396+ (READ the rest of
@@ -260,7 +281,7 @@ central-card glow goals. NOTE: the open-file button needs a `tauri dev` rebuild 
 Source of truth for stats = PSP's `PalDto` (`PalEdit/psp-reference/psp-core/src/dto/pal.rs`).
 Our UI `Pal` model maps cleanly for most fields; fixes to make while wiring the core:
 - **Pal Souls are PER-STAT**: `rank_hp / rank_attack / rank_defense / rank_craftspeed` (each
-  0–10). Our model has a single `souls` → change to `{hp,attack,defense,craftSpeed}`. (The
+  0–20). Our model has a single `souls` → change to `{hp,attack,defense,craftSpeed}`. (The
   Advanced-drawer design already shows per-stat.)
 - **IVs/talents**: `talent_hp / talent_shot / talent_defense` (0–100 display, raw byte) — add
   to the model (only placeholder in the Advanced drawer today).
@@ -303,7 +324,7 @@ passive_skills · work_suitability · is_sick · friendship_point.
 - **Design source of truth = `design/state-a-prototype/Palbox Studio.dc.html`.** LIFT its inline
   CSS values; do NOT re-derive layout from notes (that caused the wonky scaling this session).
   Its `support.js` runtime is intentionally missing — ignore it.
-- **Value ranges = SPECS-1.0.md**, not our pre-1.0 fork (work suit 0–10, souls 0–10, level 80,
+- **Value ranges = SPECS-1.0.md**, not our pre-1.0 fork (work suit 0–10, souls 0–20, level 80,
   condensation 0–4, IV 0–100, passives −3..5, single `Talent_Shot`; element codenames ≠ UI
   names). Cross-check game data against paldb.cc / wiki.gg; format against the PSP Rust source
   in `PalEdit/psp-reference/`.
