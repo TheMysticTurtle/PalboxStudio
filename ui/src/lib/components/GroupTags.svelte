@@ -39,7 +39,7 @@
   }
 
   function openPicker() {
-    if (disabled || !instanceId) return;
+    if (disabled) return;
     open = !open;
     managing = false;
     editingId = null;
@@ -150,11 +150,20 @@
       const anchor = root.getBoundingClientRect();
       const margin = 12;
       const width = Math.min(320, window.innerWidth - margin * 2);
-      const naturalHeight = Math.min(node.scrollHeight || 390, window.innerHeight * 0.62);
+      const visibleRows = Math.min(Math.max(library.groups.length, 3), 6);
+      const listHeight = visibleRows * 39 + Math.max(0, visibleRows - 1) * 5 + 16;
+      const preferredHeight = library.groups.length
+        ? 54 + listHeight + (managing ? 57 : 50)
+        : managing ? 220 : 190;
+      const naturalHeight = Math.min(
+        Math.max(node.scrollHeight, preferredHeight),
+        window.innerHeight * 0.72,
+      );
       const below = window.innerHeight - anchor.bottom - margin;
       const above = anchor.top - margin;
-      const placeAbove = below < Math.min(250, naturalHeight) && above > below;
+      const placeAbove = below < naturalHeight && above > below;
       const available = Math.max(160, placeAbove ? above : below);
+      const height = Math.min(naturalHeight, available);
       const left = Math.min(
         window.innerWidth - width - margin,
         Math.max(margin, anchor.right - width),
@@ -163,9 +172,10 @@
       node.style.width = `${width}px`;
       node.style.left = `${left}px`;
       node.style.top = placeAbove
-        ? `${Math.max(margin, anchor.top - Math.min(naturalHeight, available) - 8)}px`
+        ? `${Math.max(margin, anchor.top - height - 8)}px`
         : `${anchor.bottom + 8}px`;
-      node.style.maxHeight = `${Math.min(naturalHeight, available)}px`;
+      node.style.height = `${height}px`;
+      node.style.maxHeight = `${height}px`;
     }
 
     const observer = new ResizeObserver(position);
@@ -200,7 +210,7 @@
       type="button"
       class="pick"
       class:on={open}
-      disabled={disabled || !instanceId}
+      disabled={disabled}
       aria-haspopup="listbox"
       aria-expanded={open}
       onclick={openPicker}
@@ -256,7 +266,7 @@
         <div class="popover-head">
           <div>
             <strong>SELECT TAGS</strong>
-            <small>Choose any that apply to this Pal</small>
+            <small>{instanceId ? "Choose any that apply to this Pal" : "Select a Pal to assign tags"}</small>
           </div>
         </div>
 
@@ -265,7 +275,7 @@
             <button
               type="button"
               class:on={assignedIds.has(group.id)}
-              disabled={busy}
+              disabled={busy || !instanceId}
               role="option"
               aria-selected={assignedIds.has(group.id)}
               onclick={() => toggle(group.id)}
@@ -349,6 +359,7 @@
   }
 
   .tag-list, .manage-list {
+    flex: 1 1 auto;
     min-height: 0;
     overflow: auto;
     padding: 8px;
@@ -386,6 +397,7 @@
     font-weight: 700;
   }
   .manage {
+    flex: none;
     min-height: 42px;
     margin: 0 8px 8px;
     border-radius: 8px;
@@ -396,7 +408,7 @@
     font-size: var(--type-caption);
   }
 
-  .create { display: flex; gap: 6px; padding: 8px; border-bottom: 1px solid rgba(255,255,255,.06); }
+  .create { flex: none; display: flex; gap: 6px; padding: 8px; border-bottom: 1px solid rgba(255,255,255,.06); }
   .create input, .rename-input {
     min-width: 0;
     color: #eee8f2;
@@ -453,6 +465,6 @@
   .mini.save { color: #bff3fb; border-color: rgba(63,199,224,.35); }
   .mini.delete { color: #db9292; border-color: rgba(224,90,90,.24); }
   .empty { padding: 20px 9px; color: #807586; text-align: center; font-size: var(--type-caption); }
-  .error { margin: 0 8px 8px; padding: 8px 9px; border-radius: 8px; color: #f0aaaa; background: rgba(224,90,90,.1); border: 1px solid rgba(224,90,90,.28); font-size: var(--type-label); }
+  .error { flex: none; margin: 0 8px 8px; padding: 8px 9px; border-radius: 8px; color: #f0aaaa; background: rgba(224,90,90,.1); border: 1px solid rgba(224,90,90,.28); font-size: var(--type-label); }
 
 </style>

@@ -2,6 +2,21 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## UI polish checkpoint — tag popover and compact Global Box
+
+Branch: `feature/groups-passive-presets`.
+
+The shared Pal-tag control now has a measured responsive height instead of relying on its
+initially collapsed `scrollHeight`. Its header, create form, create/manage footer, and error
+message are fixed regions; only the tag rows scroll. When tags exist, the picker reserves room
+for at least three rows plus the create/manage button and chooses above/below placement from that
+real target height, preventing the footer from covering entries near the bottom of the editor.
+
+The compact Global Box now always exposes the same tag control while a box is open. Global tag
+creation and management remain available before selecting a Pal; assignment rows stay disabled
+until a Pal is selected, then target that Pal's stable `InstanceId`. The compact tile scroller also
+has ten pixels of top breathing room so the first row's hover lift and shadow are not clipped.
+
 ## Feature branch checkpoint — clean tag baseline and verified save backups
 
 Branch: `feature/groups-passive-presets`.

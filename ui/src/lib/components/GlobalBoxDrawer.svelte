@@ -121,10 +121,16 @@
   <SpeciesFilter filter={boxFilter} showSearch={false} collapsible />
   <GroupFilter bind:selected={selectedGroups} />
 
-  {#if box.pal}
+  {#if box.open}
     <div class="selected-groups">
-      <span>GROUPS FOR <b>{box.pal.name || speciesDisplayName(box.pal.species)}</b></span>
-      <GroupTags instanceId={box.pal.instanceId} />
+      <span>
+        {#if box.pal}
+          TAGS FOR <b>{box.pal.name || speciesDisplayName(box.pal.species)}</b>
+        {:else}
+          TAGS
+        {/if}
+      </span>
+      <GroupTags instanceId={box.pal?.instanceId ?? ""} />
     </div>
   {/if}
 
@@ -174,7 +180,7 @@
     gap: 10px;
     align-content: start;
     align-items: start;
-    padding-right: 4px;
+    padding: 10px 4px 0 0;
   }
   .selected-groups {
     display: flex;
