@@ -68,36 +68,34 @@ passives.
   <img src="docs/screenshots/03-expanded-explorer.png" alt="Expanded Palbox gallery" width="900">
 </p>
 
-### Filters
-Element, the 13 work suitabilities, ride/mount capability, ranch drops, obtainability, and search.
-The same controls filter the box and the species picker, and collapse when not in use.
+### Species selector
+Change a Pal's species from a searchable, icon-based picker, filtered by element, work, and more.
+Selecting a species updates the Pal's typing, Partner Skill, and learnset.
 
 <p align="center">
-  <img src="docs/screenshots/04-filters.png" alt="Species filter" width="900">
-</p>
-
-### Groups and tags
-User-defined groups for organizing Pals. Assignments are stored per-user and persist across updates.
-
-<p align="center">
-  <img src="docs/screenshots/05-groups.png" alt="Groups and tags" width="900">
+  <img src="docs/screenshots/04-species-selector.png" alt="Species selector" width="900">
 </p>
 
 ### Editable stats
-IVs, Pal Souls, condensation, level, passives, moves, and work suitabilities, with clear readouts and
-support for the extended values reachable in Palworld 1.0.
+IVs, Pal Souls, condensation, level, and work suitabilities, with clear readouts and support for the
+extended values reachable in Palworld 1.0.
 
 <p align="center">
-  <img src="docs/screenshots/06-stats.png" alt="Editable stats" width="900">
+  <img src="docs/screenshots/05-stats.png" alt="Editable stats" width="900">
 </p>
 
-### Backups
-Each save writes a verified backup beside the save file, then replaces the original atomically. If the
-backup cannot be created, the save aborts before the original is modified. **Open backup** opens the
-kept file directly.
+### Passive skills
+Assign passive skills from a searchable, filterable list to find the exact passive you want.
 
 <p align="center">
-  <img src="docs/screenshots/07-backups.png" alt="Backup handling" width="900">
+  <img src="docs/screenshots/06-passive-filter.png" alt="Passive skill picker" width="900">
+</p>
+
+### Moves
+Choose active skills from a filterable list, with each move's element and power shown.
+
+<p align="center">
+  <img src="docs/screenshots/07-pal-move-filter.png" alt="Move picker" width="900">
 </p>
 
 ---
