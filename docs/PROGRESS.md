@@ -2,6 +2,28 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Feature branch checkpoint — clean tag baseline and verified save backups
+
+Branch: `feature/groups-passive-presets`.
+
+The pre-release user metadata database now starts from the canonical schema already present in
+`database/user-schema.sql`. The incompatible local prototype database discovered during tag
+testing was preserved as a dated `.bak` and replaced with a clean database; no speculative
+compatibility layer was added. Canonical integration tests cover creating reusable tags,
+case-insensitive name uniqueness, assigning multiple tags by stable Pal `InstanceId`, replacing
+assignments atomically, renaming, and cascading membership cleanup on deletion.
+
+The selected-Pal gender control is now a large labeled **Male**/**Female** pill with an explicit
+vector symbol, keyboard focus treatment, and a tooltip describing the next value. It retains the
+existing one-click toggle behavior while making the control readable at normal viewing distance.
+
+Every **Save Box** operation now encodes and decodes the edited payload before touching the source,
+creates a collision-safe backup in the save's sibling `PalboxStudio-backups` folder, syncs it, and
+verifies it byte-for-byte against the current source. A backup failure aborts the save before the
+source can be changed. The replacement is likewise staged, synced, byte-checked, decoded, and then
+atomically renamed. After a successful save, **Open backup** reveals the exact backup file so users
+do not have to discover the folder manually.
+
 ## Feature branch checkpoint — groups and passive presets
 
 Branch: `feature/groups-passive-presets`.

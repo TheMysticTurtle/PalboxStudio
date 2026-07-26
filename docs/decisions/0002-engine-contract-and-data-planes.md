@@ -73,9 +73,11 @@ the engine **computes** for display (so the UI never re-implements game formulas
 
 ## Save / backup flow (non-negotiable safety)
 
-1. On `save_box`: copy the original `.sav` to `<name>.YYYYMMDD-HHMMSS.bak` (a `PalboxStudio-backups/`
-   folder) **before** touching it. A failed backup **aborts** the save.
-2. Write to a temp file, then atomic rename over the target (no partial writes).
+1. On `save_box`: create a uniquely timestamped `.bak` in a sibling `PalboxStudio-backups/`
+   folder **before** touching the original. Sync it and verify it byte-for-byte; any failure
+   removes the incomplete backup and **aborts** the save.
+2. Write to a sibling temp file, sync it, verify its bytes and decode it, then atomically rename
+   it over the target (no partial writes).
 3. Preserve compression/`save_type` so an unmodified pal round-trips **byte-identical**.
 4. Never operate on the live save in place beyond the read; all edits go through the copy-in-memory
    → backup → write path. (Carried from the PalEdit rules.)

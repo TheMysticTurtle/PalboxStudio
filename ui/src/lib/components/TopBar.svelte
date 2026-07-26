@@ -15,6 +15,16 @@
       /* running outside the app (browser preview) — no-op */
     }
   }
+
+  async function revealBackup() {
+    if (!box.lastBackupPath) return;
+    try {
+      const { revealItemInDir } = await import("@tauri-apps/plugin-opener");
+      await revealItemInDir(box.lastBackupPath);
+    } catch (error) {
+      box.error = `Could not open the backup folder: ${String(error)}`;
+    }
+  }
 </script>
 
 <header class="titlebar" data-tauri-drag-region>
@@ -33,6 +43,13 @@
   {#if box.open}
     <button class="savebtn" onclick={saveToFile} title="Backup the original, then write the edited box">💾 Save Box</button>
     {#if box.saveMsg}<span class="savemsg">{box.saveMsg}</span>{/if}
+    {#if box.lastBackupPath}
+      <button
+        class="backupbtn"
+        onclick={revealBackup}
+        title={box.lastBackupPath}
+      >Open backup</button>
+    {/if}
   {/if}
 
   {#if box.open}
@@ -112,6 +129,21 @@
   }
   .spacer {
     flex: 1;
+  }
+  .backupbtn {
+    min-height: 30px;
+    padding: 5px 9px;
+    border-radius: 7px;
+    cursor: pointer;
+    color: #b9d8c0;
+    background: rgba(95, 209, 106, .08);
+    border: 1px solid rgba(95, 209, 106, .28);
+    font: 600 var(--type-label) var(--font-head);
+  }
+  .backupbtn:hover {
+    color: #dcf8e1;
+    background: rgba(95, 209, 106, .15);
+    border-color: rgba(95, 209, 106, .5);
   }
   .safe {
     display: flex;

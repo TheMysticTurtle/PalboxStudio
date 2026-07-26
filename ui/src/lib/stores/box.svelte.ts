@@ -24,6 +24,7 @@ export const box = $state({
   loading: false,
   error: "",
   saveMsg: "",
+  lastBackupPath: "",
   /** Transient hint after an add/clone/delete (e.g. the in-game "drag" caveat). */
   hint: "",
 });
@@ -63,6 +64,7 @@ export async function openBoxFile(path: string) {
     box.slotCount = r.slotCount;
     box.tiles = r.pals;
     box.open = true;
+    box.lastBackupPath = "";
     box.selectedSlot = -1;
     box.pal = null;
   } catch (e) {
@@ -135,6 +137,7 @@ export async function saveToFile() {
     box.saveMsg = "saving…";
     await flush();
     const backup = await saveBox();
+    box.lastBackupPath = backup;
     box.saveMsg = "Saved ✓ (backup: " + backup.split(/[\\/]/).pop() + ")";
   } catch (e) {
     box.error = String(e);
