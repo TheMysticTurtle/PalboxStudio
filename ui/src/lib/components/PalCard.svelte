@@ -768,7 +768,7 @@
   .editor-grid { position: relative; z-index: 1; }
 
   .hero {
-    flex: 0 0 clamp(285px, 39vh, 390px);
+    flex: 0 0 clamp(355px, 39vh, 390px);
     min-height: 0;
     display: grid;
     grid-template-columns: minmax(300px, 38%) minmax(0, 1fr);
@@ -780,6 +780,7 @@
   .visual-card {
     position: relative;
     min-width: 0;
+    min-height: 0;
     overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--primary) 48%, var(--secondary));
     border-radius: 18px;
@@ -864,6 +865,7 @@
 
   .hero-copy {
     min-width: 0;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -1042,7 +1044,7 @@
 
   @media (max-height: 820px) {
     .hero {
-      flex-basis: 270px;
+      flex-basis: 345px;
       gap: 18px;
       padding: 14px 18px;
     }
@@ -1055,7 +1057,7 @@
   }
 
   @media (max-width: 1120px) {
-    .hero { grid-template-columns: minmax(250px, 34%) minmax(0, 1fr); gap: 16px; }
+    .hero { flex-basis: 385px; grid-template-columns: minmax(250px, 34%) minmax(0, 1fr); gap: 16px; }
     .vitals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .editor-grid { grid-template-columns: minmax(220px, 0.9fr) minmax(320px, 1.35fr) minmax(200px, 0.75fr); }
     .combat-stat { gap: 5px; padding-inline: 6px; }
