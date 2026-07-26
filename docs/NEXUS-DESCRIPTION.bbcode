@@ -1,29 +1,29 @@
 [center][size=6][b]PALBOX STUDIO[/b][/size]
-[size=4][i]A gorgeous, purpose-built editor for your Palworld 1.0 Global Palbox.[/i][/size][/center]
+[size=4][i]A desktop editor for the Palworld 1.0 Global Palbox.[/i][/size][/center]
 
 [img]REPLACE_WITH_HERO_SCREENSHOT_URL[/img]
 
-Palbox Studio reads your real GlobalPalStorage.sav, shows every Pal in it, and lets you edit them through an interface that actually looks like it belongs next to Palworld — not a spreadsheet, not a form from 2005. It's a standalone desktop app, [b]not a game mod[/b]: nothing is installed into Palworld and nothing is deployed into the game folder. You open your box, make it exactly what you want, and save — with a verified backup taken every single time.
+Palbox Studio is a desktop application for editing the Global Palbox in Palworld 1.0 save files. It reads GlobalPalStorage.sav directly, presents every Pal in the box, and gives full control over each Pal's attributes through a native interface. It runs as a standalone application: it does not modify the game, install into Palworld, or place files in the game directory. Every save operation writes a verified backup before it touches the original file.
 
-[b]Focused by design:[/b] Palbox Studio edits the [b]Global Palbox only[/b]. No world saves, no bases, no party — just your box, done properly.
+Palbox Studio is scoped to the [b]Global Palbox[/b] only. It does not edit world saves, bases, or party Pals.
 
 [line]
 
-[size=5][b]What you can do[/b][/size]
+[size=5][b]Features[/b][/size]
 [list]
-[*][b]Edit a Pal completely[/b] — species, nickname, gender, level, IVs, Pal Souls, condensation, passive skills, active & learned moves, work suitabilities, and the Lucky / Alpha flags.
-[*][b]Browse your whole box[/b] at a glance, or expand it into a full gallery with live stats.
-[*][b]Filter by anything[/b] — element, work suitability, "rideable as a mount," ranch drops, and obtainability, plus a name/species search.
-[*][b]Organize with tags[/b] — create your own groups, tag Pals, and filter to them.
-[*][b]Change a Pal's species[/b] from a searchable, icon-rich picker — the card re-derives its type, Partner Skill, and learnset instantly.
-[*][b]Add, clone, and delete[/b] Pals; a new one defaults to a turtle and jumps straight into view.
-[*][b]Never lose data[/b] — every save writes a byte-verified backup first, then replaces atomically.
+[*][b]Full Pal editing[/b] — species, nickname, gender, level, IVs, Pal Souls, condensation, passive skills, active and learned moves, work suitabilities, and the Lucky and Alpha flags.
+[*][b]Box explorer[/b] — a side panel listing every Pal in the box, or an expanded full-gallery view.
+[*][b]Filtering and search[/b] — by element, work suitability, ride/mount capability, ranch drops, and obtainability, with a name and species search.
+[*][b]Groups and tags[/b] — user-defined groups for organizing and filtering Pals.
+[*][b]Species selector[/b] — a searchable, icon-based picker; changing species updates typing, Partner Skill, and learnset automatically.
+[*][b]Add, clone, and remove[/b] Pals.
+[*][b]Verified backups[/b] — each save writes a checked backup, then replaces the original atomically.
 [/list]
-Everything you see is rendered from an authoritative, bundled game-data database (species, movesets, passives, Partner Skills, ranch products, work suitabilities), so the display always matches Palworld 1.0.
+All species, stats, moves, Partner Skills, and ranch products are rendered from a bundled game-data database, so displayed values match Palworld 1.0.
 
 [line]
 
-[size=5][b]A quick tour[/b][/size]
+[size=5][b]Overview[/b][/size]
 [i]Upload these to the mod's Gallery, or drop the image URLs in below.[/i]
 [img]REPLACE_WITH_SCREENSHOT_EXPANDED_EXPLORER[/img]
 [img]REPLACE_WITH_SCREENSHOT_FILTERS[/img]
@@ -32,20 +32,20 @@ Everything you see is rendered from an authoritative, bundled game-data database
 
 [line]
 
-[size=5][b]Install[/b][/size]
-[b]Installer[/b] — download the setup .exe and run it. It creates a Start-menu shortcut and sets up the WebView2 runtime if your Windows doesn't already have it.
-[b]Portable[/b] — download the portable .zip, unzip it anywhere, and double-click Palbox Studio.exe. Nothing to install; keep the folder together.
-[b]With Vortex[/b] — the portable folder doubles as a Vortex tool: on the Palworld dashboard, [b]+ Add Tool -> New...[/b], point [b]Target[/b] at Palbox Studio.exe.
+[size=5][b]Installation[/b][/size]
+[b]Installer[/b] — run the setup .exe. It creates a Start-menu shortcut and installs the WebView2 runtime if it is not already present.
+[b]Portable[/b] — unzip the portable .zip and run Palbox Studio.exe. No installation is required; keep the folder contents together.
+[b]Vortex[/b] — the portable folder can be registered as a Vortex tool: on the Palworld dashboard, [b]+ Add Tool -> New...[/b], and set [b]Target[/b] to Palbox Studio.exe.
 
-[b][color=#e0b050]Safety first:[/color][/b] Palbox Studio never edits a live save in place without first taking a verified backup. Close Palworld completely before saving edits. Your box lives at %LOCALAPPDATA%\Pal\Saved\SaveGames\<your-id>\GlobalPalStorage.sav.
+Windows 11 includes the required WebView2 runtime. On earlier versions of Windows, install the Microsoft Edge WebView2 Runtime if the application does not start.
 
-[i]Windows 11 already includes the WebView2 runtime Palbox Studio uses. On older Windows, if it won't start, install the free Microsoft Edge WebView2 Runtime and try again.[/i]
+[b][color=#e0b050]Save safety:[/color][/b] A verified backup is written before any save modifies your file. Close Palworld before saving edits. The Global Palbox is located at %LOCALAPPDATA%\Pal\Saved\SaveGames\<id>\GlobalPalStorage.sav. Keeping an independent copy of important saves is recommended.
 
 [line]
 
 [size=5][b]Notes[/b][/size]
 [list]
-[*][b]Source-available[/b] on GitHub so you can see exactly what it does with your saves: [url=https://github.com/themysticturtle/PalboxStudio]github.com/themysticturtle/PalboxStudio[/url]
-[*]Licensed under [b]PolyForm Strict 1.0.0[/b] — free to use, but please don't re-host it or publish modified/forked versions. Want to collaborate? Just ask.
-[*]Unofficial, fan-made tool. Palworld is a trademark of Pocketpair, Inc.
+[*]Source-available on GitHub: [url=https://github.com/TheMysticTurtle/PalboxStudio]github.com/TheMysticTurtle/PalboxStudio[/url]
+[*]Licensed under [b]PolyForm Strict 1.0.0[/b]. Free to download and use. Redistribution and modified or derivative versions are not permitted without written permission.
+[*]Save serialization uses the uesave library. Palworld is a trademark of Pocketpair, Inc. Palbox Studio is an unofficial, independent tool.
 [/list]
