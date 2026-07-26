@@ -12,7 +12,7 @@ once for every card density. `BoxTile.svelte` is a small dispatcher over:
 
 - `CompactPalTile.svelte` — portrait, localized nickname/species, level, gender, elements,
   condensation, variants, and the first assigned group.
-- `ExpandedPalCard.svelte` — the trading-card view with real HP/Attack/Defense IVs, only nonzero
+- `ExpandedPalCard.svelte` — the trading-card view with calculated Max HP/Attack/Defense, only nonzero
   Work Suitabilities, the three equipped moves, every passive, variants, and groups.
 
 The box engine summary now exposes the fields needed by those cards from the full Pal record it
@@ -25,8 +25,12 @@ Suitability icons. Shared `PalPortrait`, `ElementIcon`, and `WorkIcon` component
 density on that contract. Reference-backed element colors now flow through the presentation layer;
 CSS token colors are startup fallbacks only.
 
-The main-card gender badge is now a real button. Clicking it toggles Male/Female on the loaded Pal;
-the existing DTO flush/save path persists the change. The zero-state card remains inert.
+The main editor card now uses that same presentation engine for species identity, elemental
+coloring, artwork, variants, and calculated Max HP/Attack/Defense. Its trading-card hero sits above
+the actual editing workspace; species, nickname, gender, Alpha/Lucky, level, vitals, trust,
+passives, moves, and Work Suitability remain the existing live save controls rather than display
+copies. Clicking the gender badge toggles Male/Female through the existing DTO flush/save path.
+The zero-state uses the same layout with zeroed, inert controls and the Palbox Studio logo.
 
 Both box grids use content-sized implicit rows. Compact tiles keep a stable minimum height, while
 expanded rows grow to the tallest card in that row so variable Work Suitability, move, and passive
@@ -36,6 +40,10 @@ Expanded cards show calculated Max HP, Attack, and Defense instead of IVs. The s
 `palStats.ts` calculator combines cached species scaling with the Pal's level, IVs, Soul ranks,
 condensation, Alpha HP bonus, and static self-targeted passives; runtime party/equipment/server
 modifiers are intentionally excluded. IVs remain editable in the Advanced drawer.
+
+The Advanced drawer's old emoji placeholder is replaced by bundled Statue of Power artwork.
+Its path is registered in `icons.ts`, keeping the asset swappable from the same centralized
+artwork contract as Pal portraits, elements, variants, and Work Suitability icons.
 
 ## Session 4 (2026-07-25) — real-save editing and editor controls
 

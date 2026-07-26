@@ -56,6 +56,9 @@ export function variantIcon(variant: PalVariant): string {
   return VARIANT_ICON_PATHS[variant];
 }
 
+/** Shared interface artwork; components never own the deployed asset path. */
+export const STATUE_OF_POWER_ART = "/icons/statue-of-power.webp";
+
 /** Resolve all Work Suitability artwork through one path contract. */
 export function workIcon(basename: string, active = true): string {
   return `/icons/work/${active ? basename : `no_${basename}`}.png`;

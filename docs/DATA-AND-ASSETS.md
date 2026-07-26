@@ -15,6 +15,12 @@ data, icons, and the filtering/legality logic — this catalogs where it all is 
   Skills, move rows, and element filters all render them through the shared `ElementIcon` component;
   cached SQLite element colors drive borders/backgrounds, with the existing `--el-*` tokens as
   startup fallbacks before the reference bundle is available.
+- **Statue of Power** → `ui/static/icons/statue-of-power.webp`. This is bundled for offline use
+  and exposed as `STATUE_OF_POWER_ART`; the Advanced drawer never owns the filename. Source:
+  [Palpedia's Statue of Power structure artwork](https://palpedia.com/structures/statue-of-power),
+  retrieved 2026-07-25. The asset identity was cross-checked against the
+  [Palworld Wiki](https://palworld.wiki.gg/wiki/Statue_of_Power) and
+  [PalDB](https://paldb.cc/Statue_of_Power) structure records.
 
 All UI artwork paths resolve through `ui/src/lib/data/icons.ts`; components do not own filenames.
 The element basename comes from the cached SQLite `element.icon` field, Work Suitability components

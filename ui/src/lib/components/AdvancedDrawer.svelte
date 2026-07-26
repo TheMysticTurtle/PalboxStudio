@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Pal } from "$lib/data/types";
   import { LIMITS } from "$lib/data/constants";
+  import { STATUE_OF_POWER_ART } from "$lib/data/icons";
   import SectionHeader from "./SectionHeader.svelte";
 
   let { pal }: { pal: Pal } = $props();
@@ -68,7 +69,7 @@
     <SectionHeader title="STATUE OF POWER" accent="var(--accent-purple)" color="#D6BEF2" />
     <div class="statue">
       <div class="statueimg">
-        <span class="statueemoji">🗿</span>
+        <img class="statueart" src={STATUE_OF_POWER_ART} alt="Statue of Power" />
         <span class="statuecap">statue of power</span>
       </div>
       <div class="souls">
@@ -137,7 +138,12 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
     box-shadow: inset 0 0 30px rgba(176, 96, 224, 0.2);
   }
-  .statueemoji { font-size: 40px; }
+  .statueart {
+    width: 92px;
+    height: 106px;
+    object-fit: contain;
+    filter: drop-shadow(0 7px 10px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 13px rgba(89, 198, 238, 0.28));
+  }
   .statuecap { font-family: ui-monospace, Menlo, monospace; font-size: 9.5px; color: rgba(214, 190, 242, 0.6); text-align: center; }
   .souls { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 11px; }
   .soulhead { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-cond); font-weight: 600; font-size: 12.5px; color: #b99ad6; }
