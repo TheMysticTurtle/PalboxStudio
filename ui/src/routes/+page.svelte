@@ -23,11 +23,11 @@
   </section>
 </main>
 
-<Drawer side="left" tone="box" label="GLOBAL BOX" tabLabel="BOX" width={480} bind:open={ui.leftOpen}>
+<Drawer side="left" tone="box" label="GLOBAL PAL BOX" tabLabel="PAL BOX" width={480} bind:open={ui.leftOpen}>
   <GlobalBoxDrawer />
 </Drawer>
 
-<Drawer side="right" tone="advanced" label="ADVANCED" tabLabel="IV / STATUE" width={420} bind:open={ui.rightOpen}>
+<Drawer side="right" tone="advanced" label="PROGRESSION" tabLabel="IV / STATUE / CONDENSATION" width={420} bind:open={ui.rightOpen}>
   <div class="advanced-state" inert={!box.pal}>
     <AdvancedDrawer pal={box.pal ?? EMPTY_PAL} />
   </div>
