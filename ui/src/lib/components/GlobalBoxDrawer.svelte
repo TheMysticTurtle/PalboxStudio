@@ -126,7 +126,7 @@
   <GroupFilter bind:selected={selectedGroups} />
 
   {#if box.open}
-    <div class="selected-groups" class:open={tagsOpen}>
+    <div class="selected-groups" class:expanded={tagsOpen}>
       <button
         type="button"
         class="tags-toggle"
@@ -146,7 +146,7 @@
             Manage
           {/if}
         </span>
-        <svg class:open={tagsOpen} viewBox="0 0 20 20" aria-hidden="true">
+        <svg class:expanded={tagsOpen} viewBox="0 0 20 20" aria-hidden="true">
           <path d="m6 8 4 4 4-4"></path>
         </svg>
       </button>
@@ -211,7 +211,7 @@
     background: rgba(176, 96, 224, .065);
     border: 1px solid rgba(176, 96, 224, .18);
   }
-  .selected-groups.open { border-color: rgba(176, 96, 224, .3); }
+  .selected-groups.expanded { border-color: rgba(176, 96, 224, .3); }
   .tags-toggle {
     width: 100%;
     min-height: 38px;
@@ -243,7 +243,7 @@
     stroke-linejoin: round;
     transition: transform .14s;
   }
-  .tags-toggle svg.open { transform: rotate(180deg); }
+  .tags-toggle svg.expanded { transform: rotate(180deg); }
   .tags-editor { padding: 8px 10px 10px; border-top: 1px solid rgba(176, 96, 224, .14); }
   .empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 24px; font-size: var(--type-body); }
 
