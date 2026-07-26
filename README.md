@@ -3,10 +3,12 @@
 A ground-up, well-engineered Palworld 1.0 **global Pal box** editor with a beautiful,
 Palworld-styled GUI. A rewrite in intent of the PalEdit 1.0 fork.
 
-Status: **scaffolding.** The Rust + Tauri + Svelte workspace is stood up and building; next
-is porting the State A design into components. See [docs/DIRECTION.md](docs/DIRECTION.md) for
-the vision, [docs/SPECS-1.0.md](docs/SPECS-1.0.md) for the authoritative 1.0 data specs,
-[docs/DESIGN-HANDOFF.md](docs/DESIGN-HANDOFF.md) for the design brief, and
+Status: **functional pre-release.** Real Global Palbox saves load, edit, back up, verify, and
+round-trip through the Rust engine; the Tauri/Svelte editor and reference-backed filters are
+working. Installer/bundle validation is the next release step. See
+[docs/PROGRESS.md](docs/PROGRESS.md) for the current handoff,
+[docs/DIRECTION.md](docs/DIRECTION.md) for the vision,
+[docs/SPECS-1.0.md](docs/SPECS-1.0.md) for the authoritative 1.0 data specs, and
 [docs/decisions/0001-rust-core-tauri-svelte.md](docs/decisions/0001-rust-core-tauri-svelte.md)
 for the architecture rationale.
 

@@ -21,6 +21,10 @@
   // applied to each tile's species row — same control as the species selector.
   const boxFilter = createSpeciesFilter();
   let selectedGroups = $state(new Set<number>());
+  let tagsOpen = $state(false);
+  const selectedTagCount = $derived(
+    box.pal ? groupIdsFor(box.pal.instanceId).length : 0,
+  );
 
   // Real box tiles joined to the cached species reference data.
   let source: BoxPal[] = $derived(
@@ -122,15 +126,35 @@
   <GroupFilter bind:selected={selectedGroups} />
 
   {#if box.open}
-    <div class="selected-groups">
-      <span>
-        {#if box.pal}
-          TAGS FOR <b>{box.pal.name || speciesDisplayName(box.pal.species)}</b>
-        {:else}
-          TAGS
-        {/if}
-      </span>
-      <GroupTags instanceId={box.pal?.instanceId ?? ""} />
+    <div class="selected-groups" class:open={tagsOpen}>
+      <button
+        type="button"
+        class="tags-toggle"
+        aria-expanded={tagsOpen}
+        onclick={() => (tagsOpen = !tagsOpen)}
+      >
+        <span class="tags-title">
+          PAL TAGS
+          {#if box.pal}
+            <b>{box.pal.name || speciesDisplayName(box.pal.species)}</b>
+          {/if}
+        </span>
+        <span class="tags-status">
+          {#if box.pal}
+            {selectedTagCount ? `${selectedTagCount} assigned` : "None assigned"}
+          {:else}
+            Manage
+          {/if}
+        </span>
+        <svg class:open={tagsOpen} viewBox="0 0 20 20" aria-hidden="true">
+          <path d="m6 8 4 4 4-4"></path>
+        </svg>
+      </button>
+      {#if tagsOpen}
+        <div class="tags-editor">
+          <GroupTags instanceId={box.pal?.instanceId ?? ""} />
+        </div>
+      {/if}
     </div>
   {/if}
 
@@ -183,16 +207,44 @@
     padding: 10px 4px 0 0;
   }
   .selected-groups {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    padding: 10px 11px;
     border-radius: 10px;
     background: rgba(176, 96, 224, .065);
     border: 1px solid rgba(176, 96, 224, .18);
   }
-  .selected-groups > span { color: #8f819b; font: 600 var(--type-micro) var(--font-head); letter-spacing: .08em; }
-  .selected-groups b { color: #ccb9dc; }
+  .selected-groups.open { border-color: rgba(176, 96, 224, .3); }
+  .tags-toggle {
+    width: 100%;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: 9px;
+    cursor: pointer;
+    color: #9f8dab;
+    background: transparent;
+    font: 600 var(--type-label) var(--font-head);
+    letter-spacing: .08em;
+    text-align: left;
+  }
+  .tags-toggle:hover { color: #d9c9e5; background: rgba(176, 96, 224, .07); }
+  .tags-title { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tags-title b { margin-left: 5px; color: #ccb9dc; }
+  .tags-status { flex: none; color: #85778f; font: 500 var(--type-label) var(--font-cond); letter-spacing: 0; }
+  .tags-toggle svg {
+    width: 17px;
+    height: 17px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform .14s;
+  }
+  .tags-toggle svg.open { transform: rotate(180deg); }
+  .tags-editor { padding: 8px 10px 10px; border-top: 1px solid rgba(176, 96, 224, .14); }
   .empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 24px; font-size: var(--type-body); }
 
   .hint { font-size: var(--type-caption); line-height: 1.4; color: #c9b98a; padding: 9px 11px; border-radius: 8px; background: rgba(245, 166, 35, 0.1); border: 1px solid rgba(245, 166, 35, 0.28); }

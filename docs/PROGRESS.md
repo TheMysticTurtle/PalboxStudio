@@ -2,6 +2,42 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Packaging handoff
+
+Current working branch: `feature/groups-passive-presets`.
+
+The editor is a functional pre-release, not a UI scaffold. The next task is Windows
+installer/bundle validation through the existing Tauri 2 configuration. Start by reading this
+file and the three ADRs in `docs/decisions/`; do not replace the working architecture or introduce
+sample data. The expected pre-bundle gate is:
+
+```powershell
+npm.cmd run check
+npm.cmd run build
+cargo fmt --all -- --check
+cargo test
+python scripts/build_reference_db.py --check
+npm.cmd run tauri build
+```
+
+`src-tauri/tauri.conf.json` already enables bundling, declares the desktop icon set, and packages
+`data/palbox-reference.db` as a runtime resource. Confirm the generated installer launches without
+the repository, loads that packaged reference DB, creates the writable user metadata DB under the
+app data directory, opens a copied `GlobalPalStorage.sav`, and can reveal its verified backup.
+The save boundary is non-negotiable: encode/decode validation → unique byte-verified backup →
+synced/decoded temp file → atomic replacement. Do not weaken it to make packaging easier.
+
+Two untracked PNGs under `assets/` are design concepts, not required runtime assets:
+`Expanded Global Palbox Card Design Concept.png` and `Main Focued Palcard Design Concept.png`.
+Do not accidentally include or commit them during bundling.
+
+## UI polish checkpoint — collapsible compact Pal tags
+
+The compact Global Box keeps the group filter visible but collapses the selected-Pal tag editor
+to a single summary row by default. The row shows the selected Pal, assigned-tag count, and a clear
+chevron; expanding it restores the full shared create/manage/assignment control. This keeps the
+tile matrix visually dominant without removing tag management.
+
 ## UI polish checkpoint — tag popover and compact Global Box
 
 Branch: `feature/groups-passive-presets`.
