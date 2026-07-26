@@ -56,14 +56,6 @@ Pal to load it into the editor.
   <img src="docs/screenshots/02-palbox-explorer.png" alt="Global Pal Box explorer" width="900">
 </p>
 
-### 🎴 The editor
-The selected Pal is presented on a single card: portrait, typing, stats, Partner Skill, passives,
-moves, and work suitabilities.
-
-<p align="center">
-  <img src="docs/screenshots/01-main-editor.png" alt="Main editor card" width="900">
-</p>
-
 ### 🔎 Expanded view
 The box expands into a full gallery, with each Pal shown as a card carrying its stats, moves, and
 passives.
@@ -72,12 +64,12 @@ passives.
   <img src="docs/screenshots/03-expanded-explorer.png" alt="Expanded Pal Box gallery" width="900">
 </p>
 
-### 🔄 Species selector
-Easily change any Pal's species with a searchable, filterable picker. Pick a new one and the card
-updates to match.
+### 🎴 The editor
+The selected Pal is presented on a single card: portrait, typing, stats, Partner Skill, passives,
+moves, and work suitabilities.
 
 <p align="center">
-  <img src="docs/screenshots/04-species-selector.png" alt="Species selector" width="900">
+  <img src="docs/screenshots/01-main-editor.png" alt="Main editor card" width="900">
 </p>
 
 ### 📊 Editable stats
@@ -86,6 +78,14 @@ extended values reachable in Palworld 1.0.
 
 <p align="center">
   <img src="docs/screenshots/05-stats.png" alt="Editable stats" width="900">
+</p>
+
+### 🔄 Species selector
+Easily change any Pal's species with a searchable, filterable picker. Pick a new one and the card
+updates to match.
+
+<p align="center">
+  <img src="docs/screenshots/04-species-selector.png" alt="Species selector" width="900">
 </p>
 
 ### ⚡ Passive skills
