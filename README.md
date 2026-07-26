@@ -117,6 +117,12 @@ Download the latest build from the [Releases](../../releases) page or from Nexus
 Windows 11 includes the required WebView2 runtime. On earlier versions of Windows, install the
 Microsoft Edge WebView2 Runtime if the application does not start.
 
+### A note on antivirus / SmartScreen
+Palbox Studio is not code-signed, so Windows SmartScreen or antivirus software may warn about it the
+first time you run it. This is expected for unsigned, independent software. The complete source is in
+this repository — you are welcome to review it, and to build the application yourself (see
+[Building from source](#building-from-source)) rather than run a prebuilt binary.
+
 ### Save safety
 - A verified backup is written before any save modifies your file.
 - Close Palworld before saving edits.
