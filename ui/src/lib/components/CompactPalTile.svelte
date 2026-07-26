@@ -48,12 +48,12 @@
   .tile {
     position: relative;
     min-width: 0;
+    min-height: 126px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 5px;
     padding: 12px 7px 9px;
-    overflow: hidden;
     border-radius: 12px;
     cursor: pointer;
     font: inherit;
@@ -71,6 +71,7 @@
     position: absolute;
     inset: 0 0 auto;
     height: 2px;
+    border-radius: 12px 12px 0 0;
     background: linear-gradient(90deg, var(--primary), var(--secondary));
     opacity: 0.72;
   }

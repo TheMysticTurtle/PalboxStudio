@@ -150,7 +150,18 @@
   .expand { padding: 8px 11px; border-radius: 9px; border: 1px solid rgba(176, 96, 224, 0.4); background: rgba(176, 96, 224, 0.12); color: #d6bef2; cursor: pointer; font-size: 12.5px; white-space: nowrap; }
   .expand:hover { background: rgba(176, 96, 224, 0.22); }
 
-  .matrix { flex: 1; overflow: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-content: start; padding-right: 4px; }
+  .matrix {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: max-content;
+    gap: 10px;
+    align-content: start;
+    align-items: start;
+    padding-right: 4px;
+  }
   .empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 24px; font-size: 13px; }
 
   .hint { font-size: 11.5px; line-height: 1.35; color: #c9b98a; padding: 8px 11px; border-radius: 8px; background: rgba(245, 166, 35, 0.1); border: 1px solid rgba(245, 166, 35, 0.28); }

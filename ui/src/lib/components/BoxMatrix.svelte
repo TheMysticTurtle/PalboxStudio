@@ -128,8 +128,10 @@
     padding: 24px 30px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+    grid-auto-rows: max-content;
     gap: 14px;
     align-content: start;
+    align-items: stretch;
   }
   .empty { grid-column: 1 / -1; padding: 36px; text-align: center; color: #7f718c; }
 </style>

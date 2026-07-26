@@ -109,7 +109,6 @@
     flex-direction: column;
     gap: 9px;
     padding: 13px;
-    overflow: hidden;
     color: #e8e4ec;
     text-align: left;
     cursor: pointer;
@@ -134,6 +133,7 @@
     position: absolute;
     inset: 0 0 auto;
     height: 2px;
+    border-radius: 13px 13px 0 0;
     background: linear-gradient(90deg, var(--primary), var(--secondary));
     box-shadow: 0 0 10px color-mix(in srgb, var(--primary) 38%, transparent);
   }

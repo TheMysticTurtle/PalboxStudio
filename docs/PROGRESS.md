@@ -28,6 +28,10 @@ CSS token colors are startup fallbacks only.
 The main-card gender badge is now a real button. Clicking it toggles Male/Female on the loaded Pal;
 the existing DTO flush/save path persists the change. The zero-state card remains inert.
 
+Both box grids use content-sized implicit rows. Compact tiles keep a stable minimum height, while
+expanded rows grow to the tallest card in that row so variable Work Suitability, move, and passive
+counts remain inside the card instead of being clipped.
+
 ## Session 4 (2026-07-25) — real-save editing and editor controls
 
 **The save-editing path has completed its first real game test.** A Pal added through Palbox
