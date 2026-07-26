@@ -13,7 +13,13 @@ data, icons, and the filtering/legality logic — this catalogs where it all is 
 - **Element badges** → `ui/static/icons/elements/<element>.webp` (9). These are the retained
   PalEdit/PSP game-style `_icon.webp` assets, copied locally for offline use. Pal species, Partner
   Skills, move rows, and element filters all render them through the shared `ElementIcon` component;
-  the existing `--el-*` colors remain the single source for borders, backgrounds, and highlights.
+  cached SQLite element colors drive borders/backgrounds, with the existing `--el-*` tokens as
+  startup fallbacks before the reference bundle is available.
+
+All UI artwork paths resolve through `ui/src/lib/data/icons.ts`; components do not own filenames.
+The element basename comes from the cached SQLite `element.icon` field, Work Suitability components
+pass their canonical basename to `workIcon`, and Alpha/Lucky use the shared variant registry.
+`palIcon` remains the only place that handles portrait aliases and the missing-art fallback.
 
 ## SQLite reference dataset — `data/palbox-reference.db`
 

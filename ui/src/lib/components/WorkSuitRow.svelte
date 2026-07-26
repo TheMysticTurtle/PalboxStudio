@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { WorkSuit } from "$lib/data/types";
   import { LIMITS } from "$lib/data/constants";
+  import WorkIcon from "./WorkIcon.svelte";
 
   // `suit` is a reactive object from the parent's $state pal.
   let { suit }: { suit: WorkSuit } = $props();
@@ -10,7 +11,7 @@
 </script>
 
 <div class="row" class:active>
-  <img class="ic" src="/icons/work/{active ? suit.icon : 'no_' + suit.icon}.png" alt="" />
+  <span class="ic"><WorkIcon icon={suit.icon} name={suit.name} level={suit.level} size={30} /></span>
   <span class="name">{suit.name}</span>
   <span class="lvl">{suit.level}</span>
   <div class="step">
@@ -32,13 +33,7 @@
     background: rgba(245, 166, 35, 0.1);
     border-color: rgba(245, 166, 35, 0.28);
   }
-  .ic {
-    width: 30px;
-    height: 30px;
-    flex: none;
-    object-fit: contain;
-    opacity: 0.8;
-  }
+  .ic { width: 30px; height: 30px; flex: none; opacity: 0.8; }
   .row.active .ic { opacity: 1; }
   .name { flex: 1; font-size: 13.5px; color: #8892a0; }
   .row.active .name { color: #ede3d6; }

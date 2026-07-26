@@ -35,7 +35,13 @@ export interface BoxTileDto {
   slot: number;
   instanceId: string;
   characterId: string;
+  nickname: string | null;
+  gender: string;
   level: number;
+  condensation: number;
+  ivs: PalDtoIvs;
+  /** Official Work Suitability name -> per-instance AddRank bonus. */
+  work: Record<string, number>;
   isLucky: boolean;
   isAlpha: boolean;
   passives: string[];

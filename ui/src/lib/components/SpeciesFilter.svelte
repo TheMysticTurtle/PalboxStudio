@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ElementName, Category } from "$lib/data/types";
-  import { ELEMENT_COLOR, WORK_SUITS } from "$lib/data/constants";
+  import { WORK_SUITS } from "$lib/data/constants";
+  import { elementColor } from "$lib/data/palPresentation";
   import {
     type SpeciesFilterState,
     toggleIn,
@@ -10,6 +11,7 @@
     CATEGORY_LABELS,
   } from "$lib/data/speciesFilter.svelte";
   import ElementIcon from "./ElementIcon.svelte";
+  import WorkIcon from "./WorkIcon.svelte";
 
   let {
     filter,
@@ -72,7 +74,7 @@
       {#each elements as el (el)}
         <button
           class="eltog" class:on={filter.elements.has(el)}
-          style="--c:{ELEMENT_COLOR[el]}"
+          style="--c:{elementColor(el)}"
           onclick={() => (filter.elements = toggleIn(filter.elements, el))}
           title={el} aria-label={el} aria-pressed={filter.elements.has(el)}
         ><ElementIcon element={el} size={20} muted={!filter.elements.has(el)} /></button>
@@ -89,7 +91,7 @@
           class="worktog" class:on={filter.work.has(w.name)}
           onclick={() => (filter.work = toggleIn(filter.work, w.name))}
           title={w.name} aria-label={w.name} aria-pressed={filter.work.has(w.name)}
-        ><img src={`/icons/work/${w.icon}.png`} alt="" /></button>
+        ><WorkIcon icon={w.icon} name={w.name} size={18} muted={!filter.work.has(w.name)} /></button>
       {/each}
     </div>
   </div>
@@ -163,9 +165,7 @@
 
   .works { display: flex; gap: 4px; flex-wrap: wrap; }
   .worktog { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
-  .worktog img { width: 18px; height: 18px; object-fit: contain; opacity: 0.5; filter: grayscale(0.4); }
   .worktog.on { border-color: rgba(245, 166, 35, 0.55); background: rgba(245, 166, 35, 0.14); }
-  .worktog.on img { opacity: 1; filter: none; }
 
   .pill { padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 12.5px; color: #b0a0be; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); white-space: nowrap; }
   .pill:hover { border-color: rgba(255, 255, 255, 0.24); }

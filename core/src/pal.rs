@@ -83,8 +83,13 @@ fn strip(prefix: &str, s: &str) -> String {
 
 /// Read all editable fields of a pal from its `SaveParameter` properties.
 pub fn read_pal(sp: &Properties, slot: usize) -> PalDto {
-    let character_id = ue::prop(sp, "CharacterID").and_then(ue::as_str).unwrap_or("").to_string();
-    let is_lucky = ue::prop(sp, "IsRarePal").and_then(ue::as_bool).unwrap_or(false);
+    let character_id = ue::prop(sp, "CharacterID")
+        .and_then(ue::as_str)
+        .unwrap_or("")
+        .to_string();
+    let is_lucky = ue::prop(sp, "IsRarePal")
+        .and_then(ue::as_bool)
+        .unwrap_or(false);
     let is_alpha = character_id.to_uppercase().starts_with("BOSS_") && !is_lucky;
     let gender = ue::prop(sp, "Gender")
         .and_then(ue::as_str)
@@ -95,8 +100,12 @@ pub fn read_pal(sp: &Properties, slot: usize) -> PalDto {
     let mut work = BTreeMap::new();
     if let Some(list) = ue::prop(sp, "GotWorkSuitabilityAddRankList").and_then(ue::array_structs) {
         for entry in list {
-            let StructValue::Struct(p) = entry else { continue };
-            let Some(name) = ue::prop(p, "WorkSuitability").and_then(ue::as_str) else { continue };
+            let StructValue::Struct(p) = entry else {
+                continue;
+            };
+            let Some(name) = ue::prop(p, "WorkSuitability").and_then(ue::as_str) else {
+                continue;
+            };
             let internal = strip(WORK_PFX, name);
             let rank = ue::prop(p, "Rank").and_then(ue::as_i32).unwrap_or(0) as i64;
             if let Some((_, official)) = WORK.iter().find(|(i, _)| *i == internal) {
@@ -115,7 +124,9 @@ pub fn read_pal(sp: &Properties, slot: usize) -> PalDto {
     PalDto {
         slot,
         instance_id: String::new(),
-        nickname: ue::prop(sp, "NickName").and_then(ue::as_str).map(str::to_string),
+        nickname: ue::prop(sp, "NickName")
+            .and_then(ue::as_str)
+            .map(str::to_string),
         gender,
         level: byte("Level").unwrap_or(1),
         exp: ue::prop(sp, "Exp").and_then(ue::as_i64).unwrap_or(0),
@@ -132,15 +143,24 @@ pub fn read_pal(sp: &Properties, slot: usize) -> PalDto {
             defense: byte("Talent_Defense").unwrap_or(0),
         },
         work,
-        passives: ue::prop(sp, "PassiveSkillList").and_then(ue::name_values).cloned().unwrap_or_default(),
+        passives: ue::prop(sp, "PassiveSkillList")
+            .and_then(ue::name_values)
+            .cloned()
+            .unwrap_or_default(),
         equipped_moves: moves("EquipWaza"),
         learned_moves: moves("MasteredWaza"),
         is_lucky,
         is_alpha,
         hp: ue::prop(sp, "Hp").and_then(ue::fixed_point64).unwrap_or(0),
-        sanity: ue::prop(sp, "SanityValue").and_then(ue::as_f32).unwrap_or(100.0),
-        food: ue::prop(sp, "FullStomach").and_then(ue::as_f32).unwrap_or(150.0),
-        friendship: ue::prop(sp, "FriendshipPoint").and_then(ue::as_i32).unwrap_or(0),
+        sanity: ue::prop(sp, "SanityValue")
+            .and_then(ue::as_f32)
+            .unwrap_or(100.0),
+        food: ue::prop(sp, "FullStomach")
+            .and_then(ue::as_f32)
+            .unwrap_or(150.0),
+        friendship: ue::prop(sp, "FriendshipPoint")
+            .and_then(ue::as_i32)
+            .unwrap_or(0),
         character_id,
     }
 }
@@ -206,7 +226,11 @@ pub fn set_food(sp: &mut Properties, value: f32) {
     ue::set_prop(sp, "FullStomach", ue::float_prop(value.max(0.0)));
 }
 pub fn set_friendship(sp: &mut Properties, value: i32) {
-    ue::set_prop(sp, "FriendshipPoint", ue::int_prop(value.clamp(-10_000, 200_000)));
+    ue::set_prop(
+        sp,
+        "FriendshipPoint",
+        ue::int_prop(value.clamp(-10_000, 200_000)),
+    );
 }
 pub fn set_lucky(sp: &mut Properties, lucky: bool) {
     if lucky {
@@ -232,8 +256,14 @@ fn set_character_id(sp: &mut Properties, value: &str) {
 /// suitability and natural learnset are derived by the game from `CharacterID`,
 /// so no other field needs writing here.
 pub fn set_species(sp: &mut Properties, code: &str) {
-    let current = ue::prop(sp, "CharacterID").and_then(ue::as_str).unwrap_or("");
-    let prefix = if current.to_uppercase().starts_with("BOSS_") { "BOSS_" } else { "" };
+    let current = ue::prop(sp, "CharacterID")
+        .and_then(ue::as_str)
+        .unwrap_or("");
+    let prefix = if current.to_uppercase().starts_with("BOSS_") {
+        "BOSS_"
+    } else {
+        ""
+    };
     // Strip any prefix the caller passed; we re-apply the pal's own.
     let base = code
         .strip_prefix("BOSS_")
@@ -250,7 +280,9 @@ pub fn set_variant(sp: &mut Properties, alpha: bool, lucky: bool) {
     // Lucky wins if an untrusted caller sends both true. The UI prevents that,
     // and normalizing here keeps the save representation unambiguous.
     let alpha = alpha && !lucky;
-    let current = ue::prop(sp, "CharacterID").and_then(ue::as_str).unwrap_or("");
+    let current = ue::prop(sp, "CharacterID")
+        .and_then(ue::as_str)
+        .unwrap_or("");
     let base = current
         .strip_prefix("BOSS_")
         .or_else(|| current.strip_prefix("Boss_"))
@@ -270,7 +302,13 @@ pub fn set_passives(sp: &mut Properties, codes: Vec<String>) {
 pub fn set_equipped_moves(sp: &mut Properties, codes: Vec<String>) {
     let full = codes
         .into_iter()
-        .map(|c| if c.starts_with(WAZA) { c } else { format!("{WAZA}{c}") })
+        .map(|c| {
+            if c.starts_with(WAZA) {
+                c
+            } else {
+                format!("{WAZA}{c}")
+            }
+        })
         .collect();
     ue::set_prop(sp, "EquipWaza", ue::enum_array_prop(full));
 }
@@ -284,7 +322,13 @@ pub fn set_learned_moves(sp: &mut Properties, codes: Vec<String>) {
     }
     let full = codes
         .into_iter()
-        .map(|c| if c.starts_with(WAZA) { c } else { format!("{WAZA}{c}") })
+        .map(|c| {
+            if c.starts_with(WAZA) {
+                c
+            } else {
+                format!("{WAZA}{c}")
+            }
+        })
         .collect();
     ue::set_prop(sp, "MasteredWaza", ue::enum_array_prop(full));
 }
@@ -349,15 +393,24 @@ mod tests {
         ue::set_prop(&mut sp, "CharacterID", ue::name_prop("Baphomet"));
 
         set_variant(&mut sp, true, false);
-        assert_eq!(ue::prop(&sp, "CharacterID").and_then(ue::as_str), Some("BOSS_Baphomet"));
+        assert_eq!(
+            ue::prop(&sp, "CharacterID").and_then(ue::as_str),
+            Some("BOSS_Baphomet")
+        );
         assert_eq!(ue::prop(&sp, "IsRarePal").and_then(ue::as_bool), None);
 
         set_variant(&mut sp, false, true);
-        assert_eq!(ue::prop(&sp, "CharacterID").and_then(ue::as_str), Some("BOSS_Baphomet"));
+        assert_eq!(
+            ue::prop(&sp, "CharacterID").and_then(ue::as_str),
+            Some("BOSS_Baphomet")
+        );
         assert_eq!(ue::prop(&sp, "IsRarePal").and_then(ue::as_bool), Some(true));
 
         set_variant(&mut sp, false, false);
-        assert_eq!(ue::prop(&sp, "CharacterID").and_then(ue::as_str), Some("Baphomet"));
+        assert_eq!(
+            ue::prop(&sp, "CharacterID").and_then(ue::as_str),
+            Some("Baphomet")
+        );
         assert_eq!(ue::prop(&sp, "IsRarePal").and_then(ue::as_bool), None);
     }
 
@@ -367,11 +420,23 @@ mod tests {
         ue::set_prop(&mut sp, "HP", ue::fixed_point64_prop(1));
         ue::set_prop(&mut sp, "PalReviveTimer", ue::float_prop(30.0));
         initialize_new_pal(&mut sp, 552_000, 580.0);
-        assert_eq!(ue::prop(&sp, "Hp").and_then(ue::fixed_point64), Some(552_000));
+        assert_eq!(
+            ue::prop(&sp, "Hp").and_then(ue::fixed_point64),
+            Some(552_000)
+        );
         assert!(ue::prop(&sp, "HP").is_none());
         assert!(ue::prop(&sp, "PalReviveTimer").is_none());
-        assert_eq!(ue::prop(&sp, "SanityValue").and_then(ue::as_f32), Some(100.0));
-        assert_eq!(ue::prop(&sp, "FullStomach").and_then(ue::as_f32), Some(580.0));
+        assert_eq!(
+            ue::prop(&sp, "SanityValue").and_then(ue::as_f32),
+            Some(100.0)
+        );
+        assert_eq!(
+            ue::prop(&sp, "FullStomach").and_then(ue::as_f32),
+            Some(580.0)
+        );
+
+        set_gender(&mut sp, "Female");
+        assert_eq!(read_pal(&sp, 0).gender, "Female");
 
         set_friendship(&mut sp, 210_000);
         assert_eq!(

@@ -1,11 +1,11 @@
 <script lang="ts">
   import type { ElementName } from "$lib/data/types";
-  import { ELEMENT_COLOR } from "$lib/data/constants";
+  import { elementColor } from "$lib/data/palPresentation";
   import ElementIcon from "./ElementIcon.svelte";
   let { element }: { element: ElementName } = $props();
 </script>
 
-<span class="pill" style="--c:{ELEMENT_COLOR[element]}">
+<span class="pill" style="--c:{elementColor(element)}">
   <ElementIcon {element} size={18} />
   <span class="label">{element}</span>
 </span>

@@ -1,4 +1,5 @@
 import type { ElementName } from "./types";
+import { ref } from "./refdata.svelte";
 
 // Pal portrait icon path. Mirrors PalEdit's GetImage lookup rule (see
 // docs/DATA-AND-ASSETS.md): the bundled files are `T_<CodeName>_icon_normal.png`;
@@ -26,19 +27,36 @@ export function onPalIconError(e: Event): void {
   if (!img.src.endsWith("%23ERROR.png")) img.src = PAL_ICON_FALLBACK;
 }
 
-/** Bundled game-style badges shared by Pal species and move element displays. */
-const ELEMENT_ICON_PATHS: Record<ElementName, string> = {
-  Neutral: "/icons/elements/neutral.webp",
-  Fire: "/icons/elements/fire.webp",
-  Water: "/icons/elements/water.webp",
-  Grass: "/icons/elements/grass.webp",
-  Electric: "/icons/elements/electric.webp",
-  Ice: "/icons/elements/ice.webp",
-  Ground: "/icons/elements/ground.webp",
-  Dark: "/icons/elements/dark.webp",
-  Dragon: "/icons/elements/dragon.webp",
+/** Fallbacks cover the brief startup window before the cached reference bundle loads. */
+const ELEMENT_ICON_FALLBACKS: Record<ElementName, string> = {
+  Neutral: "neutral",
+  Fire: "fire",
+  Water: "water",
+  Grass: "grass",
+  Electric: "electric",
+  Ice: "ice",
+  Ground: "ground",
+  Dark: "dark",
+  Dragon: "dragon",
 };
 
 export function elementIcon(element: ElementName): string {
-  return ELEMENT_ICON_PATHS[element];
+  const basename = ref.elements[element]?.icon || ELEMENT_ICON_FALLBACKS[element];
+  return `/icons/elements/${basename}.webp`;
+}
+
+export type PalVariant = "alpha" | "lucky";
+
+const VARIANT_ICON_PATHS: Record<PalVariant, string> = {
+  alpha: "/icons/variants/alpha.webp",
+  lucky: "/icons/variants/lucky.webp",
+};
+
+export function variantIcon(variant: PalVariant): string {
+  return VARIANT_ICON_PATHS[variant];
+}
+
+/** Resolve all Work Suitability artwork through one path contract. */
+export function workIcon(basename: string, active = true): string {
+  return `/icons/work/${active ? basename : `no_${basename}`}.png`;
 }

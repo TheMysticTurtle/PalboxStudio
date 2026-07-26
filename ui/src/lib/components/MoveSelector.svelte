@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ElementName } from "$lib/data/types";
-  import { ELEMENT_COLOR } from "$lib/data/constants";
+  import { elementColor, normalizeElement } from "$lib/data/palPresentation";
   import { ref, resolveSpecies } from "$lib/data/refdata.svelte";
   import { toggleIn } from "$lib/data/speciesFilter.svelte";
   import ElementIcon from "./ElementIcon.svelte";
@@ -26,7 +26,6 @@
   const elementOptions: ElementName[] = [
     "Neutral", "Fire", "Water", "Grass", "Electric", "Ice", "Ground", "Dark", "Dragon",
   ];
-  const displayElement = (element: ElementName | ""): ElementName => element || "Neutral";
   let categories = $derived([
     "All",
     ...Array.from(new Set(Object.values(ref.moves).map((m) => m.category).filter(Boolean))).sort(),
@@ -111,7 +110,7 @@
         {#each elementOptions as element}
           <button
             class:on={elements.has(element)}
-            style="--c:{ELEMENT_COLOR[element]}"
+            style="--c:{elementColor(element)}"
             title={element}
             aria-label={element}
             aria-pressed={elements.has(element)}
@@ -127,10 +126,10 @@
           class="move"
           class:equipped={row.equipped}
           disabled={row.equipped}
-          style="--c:{ELEMENT_COLOR[row.move.element as ElementName] ?? 'var(--el-neutral)'}"
+          style="--c:{elementColor(normalizeElement(row.move.element))}"
           onclick={() => choose(row.code)}
         >
-          <ElementIcon element={displayElement(row.move.element)} size={18} />
+          <ElementIcon element={normalizeElement(row.move.element)} size={18} />
           <span class="info">
             <span class="name">{row.move.name}</span>
             <span class="meta">

@@ -14,7 +14,13 @@ pub struct PalSummary {
     pub slot: usize,
     pub instance_id: String,
     pub character_id: String,
+    pub nickname: Option<String>,
+    pub gender: String,
     pub level: u8,
+    pub condensation: u8,
+    pub ivs: crate::pal::Ivs,
+    /// Official Work Suitability name -> per-instance AddRank bonus.
+    pub work: std::collections::BTreeMap<String, i64>,
     pub is_lucky: bool,
     pub is_alpha: bool,
     pub passives: Vec<String>,
@@ -63,7 +69,12 @@ pub fn list_pals(save: &Save) -> Vec<PalSummary> {
             slot,
             instance_id: slot_instance_id(slot_props),
             character_id,
+            nickname: dto.nickname,
+            gender: dto.gender,
             level: dto.level,
+            condensation: dto.condensation,
+            ivs: dto.ivs,
+            work: dto.work,
             is_lucky: dto.is_lucky,
             is_alpha: dto.is_alpha,
             passives: dto.passives,
@@ -76,7 +87,8 @@ pub fn list_pals(save: &Save) -> Vec<PalSummary> {
 
 /// Read one pal's full editable DTO by box slot.
 pub fn read_pal_at(save: &Save, slot: usize) -> Option<crate::pal::PalDto> {
-    let slots = ue::prop(&save.root.properties, "SaveParameterArray").and_then(ue::array_structs)?;
+    let slots =
+        ue::prop(&save.root.properties, "SaveParameterArray").and_then(ue::array_structs)?;
     let StructValue::Struct(slot_props) = slots.get(slot)? else {
         return None;
     };
@@ -88,8 +100,8 @@ pub fn read_pal_at(save: &Save, slot: usize) -> Option<crate::pal::PalDto> {
 
 /// Mutable access to a pal's `SaveParameter` by slot, for edits.
 pub fn pal_param_mut(save: &mut Save, slot: usize) -> Option<&mut crate::ue::Properties> {
-    let slots =
-        ue::prop_mut(&mut save.root.properties, "SaveParameterArray").and_then(ue::array_structs_mut)?;
+    let slots = ue::prop_mut(&mut save.root.properties, "SaveParameterArray")
+        .and_then(ue::array_structs_mut)?;
     let StructValue::Struct(slot_props) = slots.get_mut(slot)? else {
         return None;
     };
@@ -111,7 +123,9 @@ pub fn pal_param_mut(save: &mut Save, slot: usize) -> Option<&mut crate::ue::Pro
 
 /// Whether a slot value is an empty vacancy (`CharacterID` None/absent/"").
 fn is_empty_slot(sv: &StructValue) -> bool {
-    let Some(props) = ue::struct_value_props(sv) else { return false };
+    let Some(props) = ue::struct_value_props(sv) else {
+        return false;
+    };
     let cid = ue::prop(props, "SaveParameter")
         .and_then(ue::struct_props)
         .and_then(|p| ue::prop(p, "CharacterID"))
@@ -156,7 +170,9 @@ fn box_container(slots: &[StructValue]) -> uesave::FGuid {
 fn next_free_slot_index(slots: &[StructValue], container: &uesave::FGuid) -> i32 {
     let mut used = std::collections::HashSet::new();
     for sv in slots {
-        let Some(slotid) = slot_slotid(sv) else { continue };
+        let Some(slotid) = slot_slotid(sv) else {
+            continue;
+        };
         if slotid_container(slotid) != Some(*container) {
             continue;
         }
@@ -249,7 +265,11 @@ pub fn delete_pal(save: &mut Save, slot: usize) -> Result<(), String> {
         return Err("no pal at slot".to_string());
     }
     // Prefer an actual game-produced empty slot as the template.
-    if let Some(tmpl) = slots.iter().position(|sv| is_empty_slot(sv)).filter(|&i| i != slot) {
+    if let Some(tmpl) = slots
+        .iter()
+        .position(|sv| is_empty_slot(sv))
+        .filter(|&i| i != slot)
+    {
         let blank = slots[tmpl].clone();
         slots[slot] = blank;
     } else {
@@ -283,9 +303,15 @@ mod tests {
             "box slots={:?} occupied={} first={:?}",
             total,
             pals.len(),
-            pals.iter().take(6).map(|p| (p.character_id.as_str(), p.level)).collect::<Vec<_>>(),
+            pals.iter()
+                .take(6)
+                .map(|p| (p.character_id.as_str(), p.level))
+                .collect::<Vec<_>>(),
         );
-        assert!(total.is_some(), "expected a SaveParameterArray (GlobalPalStorage.sav)");
+        assert!(
+            total.is_some(),
+            "expected a SaveParameterArray (GlobalPalStorage.sav)"
+        );
         assert!(!pals.is_empty(), "expected at least one pal in the box");
     }
 
@@ -309,7 +335,10 @@ mod tests {
         let after = read_pal_at(&reloaded, slot).expect("re-read pal");
 
         assert_eq!(after.level, 80, "level edit must survive a save round-trip");
-        eprintln!("edited {} level {} -> {}", after.character_id, before.level, after.level);
+        eprintln!(
+            "edited {} level {} -> {}",
+            after.character_id, before.level, after.level
+        );
     }
 
     #[test]
@@ -325,15 +354,28 @@ mod tests {
         let before = read_pal_at(&save, slot).expect("read pal dto");
         let was_alpha = before.character_id.to_uppercase().starts_with("BOSS_");
 
-        crate::pal::set_species(pal_param_mut(&mut save, slot).expect("mut param"), "CubeTurtle");
+        crate::pal::set_species(
+            pal_param_mut(&mut save, slot).expect("mut param"),
+            "CubeTurtle",
+        );
         let out = write_sav(&save).expect("encode");
         let reloaded = read_sav(&out).expect("re-decode");
         let after = read_pal_at(&reloaded, slot).expect("re-read pal");
 
         // Base species changed; an alpha/lucky BOSS_ prefix is preserved.
-        let expected = if was_alpha { "BOSS_CubeTurtle" } else { "CubeTurtle" };
-        assert_eq!(after.character_id, expected, "species edit must survive round-trip");
-        assert_eq!(after.is_alpha, was_alpha, "changing species must not toggle alpha");
+        let expected = if was_alpha {
+            "BOSS_CubeTurtle"
+        } else {
+            "CubeTurtle"
+        };
+        assert_eq!(
+            after.character_id, expected,
+            "species edit must survive round-trip"
+        );
+        assert_eq!(
+            after.is_alpha, was_alpha,
+            "changing species must not toggle alpha"
+        );
     }
 
     #[test]
@@ -359,14 +401,20 @@ mod tests {
         let after_add = list_pals(&reloaded);
         assert_eq!(after_add.len(), before + 2, "add + clone => two more pals");
         assert_eq!(
-            read_pal_at(&reloaded, added).expect("added pal").character_id,
+            read_pal_at(&reloaded, added)
+                .expect("added pal")
+                .character_id,
             "CubeTurtle",
             "added pal is the default turtle",
         );
         // Unique InstanceIds across the box (no dup identity from clone).
         let ids = collect_instance_ids(&reloaded);
         let unique: std::collections::HashSet<_> = ids.iter().collect();
-        assert_eq!(ids.len(), unique.len(), "every occupied pal has a unique InstanceId");
+        assert_eq!(
+            ids.len(),
+            unique.len(),
+            "every occupied pal has a unique InstanceId"
+        );
 
         // Delete the cloned pal: count drops by one, slot is a vacancy again.
         delete_pal(&mut reloaded, cloned).expect("delete");

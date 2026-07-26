@@ -2,6 +2,32 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Feature branch checkpoint — modular Pal cards
+
+Branch: `feature/modular-pal-cards`.
+
+The Global Palbox now uses one data-driven presentation pipeline rather than independent card
+implementations. `palPresentation.ts` resolves save codes against the in-memory reference bundle
+once for every card density. `BoxTile.svelte` is a small dispatcher over:
+
+- `CompactPalTile.svelte` — portrait, localized nickname/species, level, gender, elements,
+  condensation, variants, and the first assigned group.
+- `ExpandedPalCard.svelte` — the trading-card view with real HP/Attack/Defense IVs, only nonzero
+  Work Suitabilities, the three equipped moves, every passive, variants, and groups.
+
+The box engine summary now exposes the fields needed by those cards from the full Pal record it
+already reads; expanding the box does not issue one command/query per Pal. The expanded view also
+has its own nickname/species search, shared species facets, and box-order/name/level sorting.
+
+Artwork is resolved centrally through `icons.ts`: Pal portraits (including aliases/fallback),
+element badges (using the canonical icon basename from SQLite), Alpha/Lucky emblems, and Work
+Suitability icons. Shared `PalPortrait`, `ElementIcon`, and `WorkIcon` components keep every card
+density on that contract. Reference-backed element colors now flow through the presentation layer;
+CSS token colors are startup fallbacks only.
+
+The main-card gender badge is now a real button. Clicking it toggles Male/Female on the loaded Pal;
+the existing DTO flush/save path persists the change. The zero-state card remains inert.
+
 ## Session 4 (2026-07-25) — real-save editing and editor controls
 
 **The save-editing path has completed its first real game test.** A Pal added through Palbox

@@ -101,6 +101,7 @@ pub struct MoveRef {
 #[serde(rename_all = "camelCase")]
 pub struct ElementRef {
     pub color: String,
+    pub icon: String,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -364,23 +365,30 @@ impl ReferenceDatabase {
         }
 
         let mut elements = BTreeMap::new();
-        let mut statement = self
-            .connection
-            .prepare("SELECT code, COALESCE(color, '') FROM element ORDER BY sort_order")?;
+        let mut statement = self.connection.prepare(
+            "SELECT code, COALESCE(color, ''), COALESCE(icon, '')
+                 FROM element ORDER BY sort_order",
+        )?;
         for row in statement.query_map([], |row| {
-            Ok((row.get::<_, String>(0)?, ElementRef { color: row.get(1)? }))
+            Ok((
+                row.get::<_, String>(0)?,
+                ElementRef {
+                    color: row.get(1)?,
+                    icon: row.get(2)?,
+                },
+            ))
         })? {
             let (code, value) = row?;
             elements.insert(code, value);
         }
 
         let mut friendship_ranks = BTreeMap::new();
-        let mut statement = self.connection.prepare(
-            "SELECT rank, required_point FROM friendship_rank ORDER BY rank",
-        )?;
-        for row in statement.query_map([], |row| {
-            Ok((row.get::<_, i64>(0)?, row.get::<_, i64>(1)?))
-        })? {
+        let mut statement = self
+            .connection
+            .prepare("SELECT rank, required_point FROM friendship_rank ORDER BY rank")?;
+        for row in
+            statement.query_map([], |row| Ok((row.get::<_, i64>(0)?, row.get::<_, i64>(1)?)))?
+        {
             let (rank, required_point) = row?;
             friendship_ranks.insert(rank, required_point);
         }
@@ -823,18 +831,32 @@ mod tests {
         assert_eq!(bundle.species.len(), 406);
         assert_eq!(bundle.moves.len(), 351);
         assert_eq!(bundle.passives.len(), 420);
-        assert!(bundle.passives.values().any(|passive| !passive.effects.is_empty()));
+        assert!(bundle
+            .elements
+            .values()
+            .all(|element| !element.color.is_empty() && !element.icon.is_empty()));
+        assert!(bundle
+            .passives
+            .values()
+            .any(|passive| !passive.effects.is_empty()));
         assert!(bundle.passives.values().all(|passive| {
             !passive.description.trim().is_empty()
                 && !passive.description.contains('<')
                 && !passive.description.contains('{')
         }));
         assert_eq!(
-            bundle.moves.values().filter(|value| value.skill_fruit).count(),
+            bundle
+                .moves
+                .values()
+                .filter(|value| value.skill_fruit)
+                .count(),
             93
         );
         assert_eq!(bundle.friendship_ranks.get(&10), Some(&200_000));
-        assert!(bundle.species.iter().any(|species| !species.passives.is_empty()));
+        assert!(bundle
+            .species
+            .iter()
+            .any(|species| !species.passives.is_empty()));
         assert_eq!(
             bundle
                 .species

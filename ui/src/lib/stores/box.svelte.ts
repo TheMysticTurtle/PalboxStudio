@@ -37,7 +37,12 @@ async function flush() {
     const tile = box.tiles.find((value) => value.slot === box.selectedSlot);
     if (tile) {
       tile.characterId = updated.characterId;
+      tile.nickname = updated.nickname;
+      tile.gender = updated.gender;
       tile.level = updated.level;
+      tile.condensation = updated.condensation;
+      tile.ivs = updated.ivs;
+      tile.work = updated.work;
       tile.isLucky = updated.isLucky;
       tile.isAlpha = updated.isAlpha;
       tile.passives = updated.passives;

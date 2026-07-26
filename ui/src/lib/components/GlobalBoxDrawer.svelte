@@ -30,7 +30,11 @@
 
   let filtered = $derived(
     source.filter((p) => {
-      if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
+      const query = search.trim().toLowerCase();
+      if (
+        query
+        && !`${p.name} ${p.speciesName} ${p.nickname}`.toLowerCase().includes(query)
+      ) return false;
       // Structured facets run against the tile's species reference row.
       const sp = resolveSpecies(p.species);
       if (sp) return speciesMatches(sp, boxFilter);

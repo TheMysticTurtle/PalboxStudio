@@ -3,7 +3,18 @@
   import { ui } from "$lib/stores/ui.svelte";
   import { box, selectSlot } from "$lib/stores/box.svelte";
   import { palToBoxPal, tileDtoToBoxPal } from "$lib/data/mapper";
+  import { resolveSpecies } from "$lib/data/refdata.svelte";
+  import {
+    activeFilterCount,
+    createSpeciesFilter,
+    speciesMatches,
+  } from "$lib/data/speciesFilter.svelte";
   import BoxTile from "./BoxTile.svelte";
+  import SpeciesFilter from "./SpeciesFilter.svelte";
+
+  let search = $state("");
+  let sort = $state<"slot" | "name" | "level">("slot");
+  const filter = createSpeciesFilter();
 
   let source: BoxPal[] = $derived(
     box.open
@@ -14,6 +25,22 @@
         )
       : [],
   );
+  let filtered = $derived.by(() => {
+    const query = search.trim().toLowerCase();
+    const rows = source.filter((pal) => {
+      if (
+        query
+        && !`${pal.name} ${pal.speciesName} ${pal.nickname}`.toLowerCase().includes(query)
+      ) return false;
+      const species = resolveSpecies(pal.species);
+      return species ? speciesMatches(species, filter) : activeFilterCount(filter) === 0;
+    });
+    return rows.sort((a, b) => {
+      if (sort === "name") return a.name.localeCompare(b.name) || a.slot - b.slot;
+      if (sort === "level") return b.level - a.level || a.name.localeCompare(b.name);
+      return a.slot - b.slot;
+    });
+  });
 
   function select(slot: number) {
     if (box.open) selectSlot(slot);
@@ -25,14 +52,29 @@
   <div class="head">
     <span class="diamond"></span>
     <h2>GLOBAL PALBOX</h2>
-    <span class="count">{source.length} pals</span>
+    <span class="count">{filtered.length} / {source.length} pals</span>
     <button class="collapse" onclick={() => (ui.boxExpanded = false)} aria-label="Collapse to drawer">⤡ Collapse</button>
   </div>
+  <div class="controls">
+    <div class="searchbox">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9782A8" stroke-width="1.8" /><path d="m20 20-3.5-3.5" stroke="#9782A8" stroke-width="1.8" stroke-linecap="round" /></svg>
+      <input placeholder="Search nickname or species…" bind:value={search} spellcheck="false" />
+    </div>
+    <label class="sort">
+      <span>Sort</span>
+      <select bind:value={sort}>
+        <option value="slot">Box order</option>
+        <option value="name">Name</option>
+        <option value="level">Level</option>
+      </select>
+    </label>
+  </div>
+  <div class="filters"><SpeciesFilter {filter} showSearch={false} collapsible /></div>
   <div class="grid">
-    {#each source as p (p.slot)}
+    {#each filtered as p (p.slot)}
       <BoxTile pal={p} size="lg" selected={isSelected(p.slot)} onselect={select} />
     {/each}
-    {#if !source.length}<div class="empty">No Pals to display.</div>{/if}
+    {#if !filtered.length}<div class="empty">{source.length ? "No Pals match these filters." : "No Pals to display."}</div>{/if}
   </div>
 </div>
 
@@ -64,12 +106,28 @@
     font-size: 13px;
   }
   .collapse:hover { background: rgba(176, 96, 224, 0.22); }
+  .controls { display: flex; align-items: center; gap: 12px; padding: 12px 30px 0; }
+  .searchbox {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 520px;
+    padding: 9px 12px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+  }
+  .searchbox input { flex: 1; min-width: 0; color: #e6dfee; background: transparent; border: 0; outline: 0; font-size: 13px; }
+  .sort { display: flex; align-items: center; gap: 7px; color: #81758d; font-size: 11px; }
+  .sort select { padding: 8px 10px; border-radius: 8px; color: #c9bdd4; background: #1b1722; border: 1px solid rgba(255, 255, 255, 0.11); }
+  .filters { padding: 10px 30px 0; }
   .grid {
     flex: 1;
     overflow: auto;
     padding: 24px 30px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
     gap: 14px;
     align-content: start;
   }

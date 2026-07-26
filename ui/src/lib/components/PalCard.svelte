@@ -1,8 +1,14 @@
 <script lang="ts">
   import type { Pal, ElementName } from "$lib/data/types";
-  import { LIMITS, ELEMENT_COLOR } from "$lib/data/constants";
+  import { LIMITS } from "$lib/data/constants";
   import { resolveMove, resolveSpecies } from "$lib/data/refdata.svelte";
-  import { palIcon, onPalIconError } from "$lib/data/icons";
+  import { palIcon, onPalIconError, variantIcon } from "$lib/data/icons";
+  import {
+    elementColor,
+    genderSymbol as displayGenderSymbol,
+    nextGender,
+    normalizeElement,
+  } from "$lib/data/palPresentation";
   import { maxHpForPal, reSpecies } from "$lib/data/mapper";
   import SectionHeader from "./SectionHeader.svelte";
   import ElementPill from "./ElementPill.svelte";
@@ -22,7 +28,7 @@
   let moveOpen = $state(false);
   const speciesName = $derived(empty ? "" : (resolveSpecies(pal.species)?.name ?? pal.species));
 
-  const genderSymbol = $derived(pal.gender === "Male" ? "♂" : pal.gender === "Female" ? "♀" : "–");
+  const genderSymbol = $derived(displayGenderSymbol(pal.gender));
   const hpMax = $derived(empty ? 0 : maxHpForPal(pal));
   const hpPct = $derived(hpMax > 0 ? Math.min(100, (pal.stats.hp / hpMax) * 100) : 0);
   const soulTotal = $derived(
@@ -65,6 +71,9 @@
   function toggleLucky() {
     pal.lucky = !pal.lucky;
     if (pal.lucky) pal.alpha = false;
+  }
+  function toggleGender() {
+    pal.gender = nextGender(pal.gender);
   }
 
   function openPassive(index: number | null) {
@@ -195,8 +204,7 @@
   }
 
   // Resolve move codes -> display info from moves.json.
-  const displayElement = (el: string): ElementName =>
-    el && el in ELEMENT_COLOR ? el as ElementName : "Neutral";
+  const displayElement = (el: string): ElementName => normalizeElement(el);
   const asMove = (code: string) => {
     const m = resolveMove(code);
     return { code, name: m?.name ?? code, element: m?.element ?? "", power: m?.power ?? 0 };
@@ -214,7 +222,13 @@
     <div class="idcol">
       <div class="nameline">
         <input class="name" bind:value={pal.name} spellcheck="false" aria-label="Pal name" />
-        <span class="gender {pal.gender.toLowerCase()}">{genderSymbol}</span>
+        <button
+          type="button"
+          class="gender {pal.gender.toLowerCase()}"
+          onclick={toggleGender}
+          title="Change gender to {nextGender(pal.gender)}"
+          aria-label="Gender: {pal.gender}. Change to {nextGender(pal.gender)}"
+        >{genderSymbol}</button>
       </div>
       <div class="subline">
         {#each pal.elements as el}<ElementPill element={el} />{/each}
@@ -232,11 +246,11 @@
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#c9b4e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <button class="variant alpha" class:on={pal.alpha} onclick={toggleAlpha} aria-pressed={pal.alpha} title="Toggle Alpha">
-        <img src="/icons/variants/alpha.webp" alt="" />
+        <img src={variantIcon("alpha")} alt="" />
         <span>Alpha</span>
       </button>
       <button class="variant lucky" class:on={pal.lucky} onclick={toggleLucky} aria-pressed={pal.lucky} title="Toggle Lucky">
-        <img src="/icons/variants/lucky.webp" alt="" />
+        <img src={variantIcon("lucky")} alt="" />
         <span>Lucky</span>
       </button>
     </div>
@@ -248,7 +262,7 @@
     <div class="col left">
       <div>
         <SectionHeader title="PARTNER SKILL" />
-        <div class="partner" style="--c:{ELEMENT_COLOR[pal.partnerSkill.element ?? pal.elements[0] ?? 'Neutral']}">
+        <div class="partner" style="--c:{elementColor(pal.partnerSkill.element ?? pal.elements[0] ?? 'Neutral')}">
           <div class="pname">
             <ElementIcon element={pal.partnerSkill.element ?? pal.elements[0] ?? "Neutral"} size={20} decorative={false} />
             {pal.partnerSkill.name} <span class="lv">Lv {pal.partnerSkill.level}</span>
@@ -272,8 +286,8 @@
     <!-- Center: portrait + level + moves -->
     <div class="col center">
       <div class="portrait">
-        <img class="badge alpha" class:hide={!pal.alpha} src="/icons/variants/alpha.webp" alt="Alpha" />
-        <img class="badge lucky" class:hide={!pal.lucky} src="/icons/variants/lucky.webp" alt="Lucky" />
+        <img class="badge alpha" class:hide={!pal.alpha} src={variantIcon("alpha")} alt="Alpha" />
+        <img class="badge lucky" class:hide={!pal.lucky} src={variantIcon("lucky")} alt="Lucky" />
         <div class="art">
           <img class="palimg" src={iconSrc} alt={pal.name} onerror={onPalIconError} />
         </div>
@@ -602,9 +616,14 @@
     justify-content: center;
     width: 28px;
     height: 28px;
+    padding: 0;
     border-radius: 50%;
+    cursor: pointer;
     font-size: 17px;
+    transition: filter 0.14s, transform 0.14s;
   }
+  .gender:hover { filter: brightness(1.2); transform: scale(1.06); }
+  .gender:focus-visible { outline: 2px solid rgba(143, 227, 242, 0.7); outline-offset: 2px; }
   .gender.male { background: rgba(63, 143, 224, 0.18); border: 1px solid rgba(63, 143, 224, 0.55); color: #8fbef2; }
   .gender.female { background: rgba(224, 95, 192, 0.18); border: 1px solid rgba(224, 95, 192, 0.55); color: #f2a0d8; }
   .gender.unknown { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.14); color: #9aa6b2; }

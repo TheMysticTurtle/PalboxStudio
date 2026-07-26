@@ -46,6 +46,8 @@ export interface MoveRef {
 /** elements.json: element name -> this. */
 export interface ElementInfo {
   color: string;
+  /** Canonical basename for the bundled element badge. */
+  icon: string;
 }
 
 /** schema.json: one per species column; drives filter/display generation. */
@@ -161,12 +163,20 @@ export interface BoxPal {
   instanceId: string;
   slot: number;
   species: string;
+  speciesName: string;
+  nickname: string;
+  /** Nickname when present, otherwise the localized species name. */
   name: string;
+  gender: Gender;
   level: number;
+  condensation: number;
+  ivs: { hp: number; shot: number; defense: number };
   elements: ElementName[];
   alpha?: boolean;
   lucky?: boolean;
   groups?: string[];
+  workSuit: WorkSuit[];
   passives: string[];
+  activeSkills: string[];
   moves: string[];
 }

@@ -217,17 +217,33 @@ export function palToDto(pal: Pal, slot: number): PalDto {
  * show the real species name, elements, and portrait instead of a code name. */
 export function tileDtoToBoxPal(tile: BoxTileDto, groups: string[] = []): BoxPal {
   const sp = resolveSpecies(tile.characterId);
+  const speciesName = sp?.name ?? tile.characterId;
+  const nickname = tile.nickname?.trim() ?? "";
+  const workBase = sp?.work ?? {};
   return {
     instanceId: tile.instanceId,
     slot: tile.slot,
     species: tile.characterId,
-    name: sp?.name ?? tile.characterId,
+    speciesName,
+    nickname,
+    name: nickname || speciesName,
+    gender: (tile.gender as Gender) || "Unknown",
     level: tile.level,
+    condensation: tile.condensation,
+    ivs: { ...tile.ivs },
     elements: (sp?.elements ?? []) as ElementName[],
     alpha: tile.isAlpha,
     lucky: tile.isLucky,
     groups,
+    workSuit: WORK_SUITS
+      .map((work) => ({
+        name: work.name,
+        icon: work.icon,
+        level: Math.max(0, Math.min(10, (workBase[work.name] ?? 0) + (tile.work[work.name] ?? 0))),
+      }))
+      .filter((work) => work.level > 0),
     passives: tile.passives,
+    activeSkills: tile.equippedMoves,
     moves: [...new Set([...tile.equippedMoves, ...tile.learnedMoves])],
   };
 }
@@ -235,17 +251,26 @@ export function tileDtoToBoxPal(tile: BoxTileDto, groups: string[] = []): BoxPal
 /** Live tile projection for the Pal currently open on the main card. */
 export function palToBoxPal(pal: Pal, slot: number, groups: string[] = []): BoxPal {
   const sp = resolveSpecies(pal.species);
+  const speciesName = sp?.name ?? pal.species;
+  const nickname = pal.name !== speciesName ? pal.name : "";
   return {
     instanceId: pal.instanceId,
     slot,
     species: pal.species,
-    name: sp?.name ?? pal.species,
+    speciesName,
+    nickname,
+    name: nickname || speciesName,
+    gender: pal.gender,
     level: pal.level,
+    condensation: pal.condensation,
+    ivs: { ...pal.ivs },
     elements: pal.elements,
     alpha: pal.alpha,
     lucky: pal.lucky,
     groups,
+    workSuit: pal.workSuit,
     passives: pal.passives,
+    activeSkills: pal.activeSkills,
     moves: [...new Set([...pal.activeSkills, ...pal.learnedMoves])],
   };
 }
