@@ -29,6 +29,8 @@
   import MoveSelector from "./MoveSelector.svelte";
   import PalArtwork from "./PalArtwork.svelte";
   import ElementIcon from "./ElementIcon.svelte";
+  import GroupTags from "./GroupTags.svelte";
+  import PassivePresets from "./PassivePresets.svelte";
 
   let { pal, empty = false }: { pal: Pal; empty?: boolean } = $props();
 
@@ -98,6 +100,10 @@
   }
   function removePassive() {
     if (passiveEditing != null) pal.passives.splice(passiveEditing, 1);
+  }
+  function applyPassiveCodes(codes: string[]) {
+    if (empty) return;
+    pal.passives.splice(0, pal.passives.length, ...codes.slice(0, LIMITS.passivesMax));
   }
 
   // Moves: click or drag between/reorder the equipped and inactive zones.
@@ -504,6 +510,14 @@
             <button class="add" onclick={() => openPassive(null)}>+ Filter & add passive</button>
           {/if}
         </div>
+      </div>
+      <div class="preset-block">
+        <SectionHeader title="PASSIVE PRESETS" />
+        <PassivePresets disabled={empty} onapply={applyPassiveCodes} />
+      </div>
+      <div class="group-block">
+        <SectionHeader title="GROUP TAGS" />
+        <GroupTags instanceId={pal.instanceId} disabled={empty} />
       </div>
     </div>
 

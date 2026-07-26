@@ -31,13 +31,16 @@ Gather real game-texture icons as bundled assets where they exist; keep coloured
 ## 3. Central card polish (owner's "make it sweet" goals)
 - [ ] Portrait **glow tinted to primary element**; dual-type = top-half colour 1 / bottom-half
       colour 2. **Lucky → blue** emanating glow; **Alpha → red**.
-- [ ] Presets: apply + create/save (passives / full builds).
+- [x] Passive presets: apply + create/edit/delete named sets of up to four passives through the
+      shared filtered passive picker. Full-build presets remain a possible later extension.
 - [x] Move drag/equip/reorder uses pointer events plus the tested `moveSlots.ts` engine; passive
       add/remove uses the filtered reference-data picker.
 
 ## 4. Drawers / actions
 - [ ] Advanced: bind IV / per-stat souls / condensation to real save fields (engine).
-- [ ] Box: real groups/tags create/rename (SQLite); Sort menu; Add / Clone / Delete wired.
+- [x] Box groups/tags: create/rename/delete in SQLite, assign through a compact shared dropdown
+      from the main card or either Global Palbox view, display on both card densities, and filter
+      with match-all semantics.
 - [ ] Open-file: hand the picked path to the engine to actually load the box.
 
 ## 5. Engine + data (parallel track)
@@ -45,7 +48,8 @@ Gather real game-texture icons as bundled assets where they exist; keep coloured
       scaling + level + IV + souls + condensation; expose via Tauri commands.
 - [x] Scrape **partnerSkill + farmDrops** — DONE: now in the reference DB (348 partner skills,
       Ranch products) via `scripts/scrape_*.py`; see ADR 0003.
-- [ ] **SQLite** store for groups / tags / presets / settings (mutable user data).
+- [x] **SQLite** store for groups / tags / passive presets (schema v2 with automatic v1 migration).
+      Settings can join the same user-data plane later.
 
 ## 6. Polish / correctness
 - [x] Establish a shared readability floor and resize species filters, mini tiles, compact cards,

@@ -9,12 +9,14 @@
   import "@fontsource/barlow-semi-condensed/600.css";
   import "$lib/styles/tokens.css";
   import { loadRefData } from "$lib/data/refdata.svelte";
+  import { loadUserLibrary } from "$lib/stores/library.svelte";
 
   let { children } = $props();
 
   // Load the static reference tables (passives/moves/species/elements/schema) once.
   $effect(() => {
     loadRefData();
+    loadUserLibrary();
   });
 </script>
 

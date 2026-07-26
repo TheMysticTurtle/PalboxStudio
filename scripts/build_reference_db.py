@@ -1463,8 +1463,33 @@ def validate_installed(reference_path: Path, user_path: Path) -> None:
             pass
         else:
             raise ValueError("user DB accepted a fifth passive preset slot")
-        finally:
-            connection.close()
+        schema_version = connection.execute(
+            "SELECT value FROM metadata WHERE key = 'schema_version'"
+        ).fetchone()[0]
+        if schema_version != "2":
+            raise ValueError(f"expected user schema v2, found {schema_version!r}")
+        connection.execute("INSERT INTO pal_group(name) VALUES ('Combat Team')")
+        group_id = connection.execute(
+            "SELECT id FROM pal_group WHERE name = 'Combat Team'"
+        ).fetchone()[0]
+        connection.execute(
+            "INSERT INTO pal_group_member(instance_id, group_id) VALUES (?, ?)",
+            ("validation-instance", group_id),
+        )
+        try:
+            connection.execute("INSERT INTO pal_group(name) VALUES ('combat team')")
+        except sqlite3.IntegrityError:
+            pass
+        else:
+            raise ValueError("user DB accepted a duplicate case-insensitive group name")
+        connection.execute("DELETE FROM pal_group WHERE id = ?", (group_id,))
+        remaining = connection.execute(
+            "SELECT COUNT(*) FROM pal_group_member WHERE instance_id = ?",
+            ("validation-instance",),
+        ).fetchone()[0]
+        if remaining:
+            raise ValueError("deleting a group did not cascade to its memberships")
+        connection.close()
 
 
 def main() -> None:

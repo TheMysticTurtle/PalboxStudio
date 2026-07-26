@@ -25,7 +25,8 @@ pub fn read_sav(bytes: &[u8]) -> Result<PalSave, String> {
 /// Re-encode a save back to its `.sav` byte payload (PlM/Oodle).
 pub fn write_sav(save: &PalSave) -> Result<Vec<u8>, String> {
     let mut buf = Vec::new();
-    save.write_plm(&mut buf).map_err(|e| format!("write_sav: {e}"))?;
+    save.write_plm(&mut buf)
+        .map_err(|e| format!("write_sav: {e}"))?;
     Ok(buf)
 }
 

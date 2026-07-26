@@ -4,6 +4,9 @@ export type PassiveScope = "species" | "normal" | "lucky" | "all";
 export type PassiveTone = "all" | "positive" | "negative";
 export type PassiveSort = "rating" | "name";
 
+/** Every passive-picker entry point starts from the same complete, enabled catalog. */
+export const DEFAULT_PASSIVE_SCOPE: PassiveScope = "all";
+
 export const PASSIVE_GROUPS = [
   "Combat",
   "Element Damage",

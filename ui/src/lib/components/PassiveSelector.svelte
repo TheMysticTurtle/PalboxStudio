@@ -2,6 +2,7 @@
   import { ref, resolveSpecies } from "$lib/data/refdata.svelte";
   import { ratingTone } from "$lib/data/constants";
   import {
+    DEFAULT_PASSIVE_SCOPE,
     PASSIVE_GROUPS,
     passiveMatches,
     type PassiveGroup,
@@ -27,7 +28,7 @@
   } = $props();
 
   let search = $state("");
-  let scope = $state<PassiveScope>("species");
+  let scope = $state<PassiveScope>(DEFAULT_PASSIVE_SCOPE);
   let tone = $state<PassiveTone>("all");
   let group = $state<PassiveGroup | "all">("all");
   let sort = $state<PassiveSort>("rating");
@@ -47,6 +48,9 @@
       })
       .map(([code, passive]) => ({ code, passive, used: used.has(code) }));
   });
+  $effect(() => {
+    if (!open) scope = DEFAULT_PASSIVE_SCOPE;
+  });
 
   function choose(code: string) {
     onpick(code);
@@ -58,7 +62,7 @@
   }
   function clear() {
     search = "";
-    scope = "species";
+    scope = DEFAULT_PASSIVE_SCOPE;
     tone = "all";
     group = "all";
     sort = "rating";

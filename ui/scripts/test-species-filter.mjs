@@ -5,7 +5,12 @@ import {
   toggleOnly,
 } from "../src/lib/data/speciesFilter.ts";
 import { soulBonusPercent } from "../src/lib/data/constants.ts";
+import { matchesAllGroups } from "../src/lib/data/groupFilter.ts";
 import { moveSkill } from "../src/lib/data/moveSlots.ts";
+import {
+  DEFAULT_PASSIVE_SCOPE,
+  passiveMatches,
+} from "../src/lib/data/passiveFilter.ts";
 
 function filter(overrides = {}) {
   return {
@@ -125,4 +130,32 @@ test("dropping onto a full active set returns the displaced third skill to the b
   assert.deepEqual(result.active, ["FireBall", "StoneBlast", "WindCutter"]);
   assert.deepEqual(result.bench, ["DarkLaser"]);
   assert.equal(result.displaced, "DarkLaser");
+});
+
+test("group filters require membership in every selected group", () => {
+  assert.equal(matchesAllGroups([1, 2, 3], [1, 3]), true);
+  assert.equal(matchesAllGroups([1, 2], [1, 3]), false);
+  assert.equal(matchesAllGroups([], []), true);
+});
+
+test("every passive picker defaults to the full enabled catalog", () => {
+  const lunker = {
+    name: "Lunker",
+    description: "Water attack damage increases.",
+    rating: 3,
+    effects: [],
+    availableNormalPal: false,
+    availableLuckyPal: false,
+    disabled: false,
+  };
+
+  assert.equal(DEFAULT_PASSIVE_SCOPE, "all");
+  assert.equal(
+    passiveMatches("Nushi", lunker, "", DEFAULT_PASSIVE_SCOPE, "all", "all", false, new Set()),
+    true,
+  );
+  assert.equal(
+    passiveMatches("Nushi", lunker, "", "species", "all", "all", false, new Set()),
+    false,
+  );
 });

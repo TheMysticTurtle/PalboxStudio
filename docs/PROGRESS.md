@@ -2,6 +2,34 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Feature branch checkpoint — groups and passive presets
+
+Branch: `feature/groups-passive-presets`.
+
+The writable user database is schema v2. Migration `user-v2-groups.sql` upgrades existing v1
+databases in place, adding named groups plus many-to-many membership keyed by a Pal's stable
+`InstanceId`. Groups remain Palbox Studio metadata and never enter `GlobalPalStorage.sav`.
+Rust owns name/foreign-key/membership validation; deleting a group cascades only its app-owned
+memberships. Core tests cover v1 migration, case-insensitive uniqueness, atomic assignment
+replacement, and cascade behavior.
+
+The main card and both Global Palbox views share one compact tag picker. Its anchored dropdown
+selects from every reusable tag without blocking or overflowing the Global Box sidebar; a
+secondary create/manage view owns tag creation, rename, and deletion. Compact cards show the
+first tag, expanded cards show every tag, and both box views can filter for Pals belonging to
+every selected tag.
+
+The existing passive-preset engine now has its UI. Users can build or edit a named preset with up
+to four unique reference-backed passives through the full passive filter, delete presets, and
+apply saved presets from buttons directly below the selected Pal's passive list. Applying changes
+the live in-memory Pal; the normal backed-up **Save Box** operation remains the only write to the
+Palworld save.
+
+The main-card and preset-builder passive pickers are the same shared component with the same
+full-catalog default. New enabled entries such as Lunker therefore appear from the canonical
+in-memory reference data in both places; species, normal-pool, and lucky-pool scopes remain
+available as optional filters.
+
 ## Feature branch checkpoint — readable card and selector scale
 
 Branch: `feature/readability-polish`.

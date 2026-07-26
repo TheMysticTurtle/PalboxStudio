@@ -14,8 +14,8 @@ use palbox_core::globalbox::{
 };
 use palbox_core::pal::{self, PalDto};
 use palbox_core::reference::{
-    validate_passive_codes, PassiveOption, PassivePreset, ReferenceBundle, ReferenceDatabase,
-    UserDatabase,
+    validate_passive_codes, PalGroupMembership, PassiveOption, PassivePreset, ReferenceBundle,
+    ReferenceDatabase, UserDatabase, UserGroup,
 };
 use palbox_core::save::{read_sav, write_sav, PalSave};
 use palbox_core::ue::Properties;
@@ -64,8 +64,15 @@ fn open_box(path: String, state: State<AppState>) -> Result<OpenResult, String> 
     let save = read_sav(&bytes)?;
     let pals = list_pals(&save);
     let slots = slot_count(&save).unwrap_or(0);
-    *state.0.lock().unwrap() = Some(BoxSession { path: PathBuf::from(&path), save });
-    Ok(OpenResult { path, slot_count: slots, pals })
+    *state.0.lock().unwrap() = Some(BoxSession {
+        path: PathBuf::from(&path),
+        save,
+    });
+    Ok(OpenResult {
+        path,
+        slot_count: slots,
+        pals,
+    })
 }
 
 /// Full editable DTO for the pal at `slot`.
@@ -110,7 +117,11 @@ fn add_box_pal(
     // Resolve healthy defaults from the startup cache; never query SQLite per
     // Pal. Level 1, zero IVs/souls/condensation uses the game's base HP formula.
     let base_code = species.strip_prefix("BOSS_").unwrap_or(&species);
-    let species_ref = cache.bundle.species.iter().find(|value| value.code == base_code);
+    let species_ref = cache
+        .bundle
+        .species
+        .iter()
+        .find(|value| value.code == base_code);
     let hp_scaling = species_ref.map(|value| value.scaling.hp).unwrap_or(80) as f64;
     let alpha_rate = if species.to_uppercase().starts_with("BOSS_") {
         1.2
@@ -123,7 +134,10 @@ fn add_box_pal(
         .filter(|value| *value > 0)
         .unwrap_or(300) as f32;
     pal::initialize_new_pal(sp, full_hp, full_food);
-    Ok(BoxMutation { pals: list_pals(&session.save), slot: Some(slot) })
+    Ok(BoxMutation {
+        pals: list_pals(&session.save),
+        slot: Some(slot),
+    })
 }
 
 /// Deep-copy the pal at `slot` into a free slot with a fresh identity.
@@ -132,7 +146,10 @@ fn clone_box_pal(slot: usize, state: State<AppState>) -> Result<BoxMutation, Str
     let mut guard = state.0.lock().unwrap();
     let session = guard.as_mut().ok_or("no box open")?;
     let new_slot = clone_pal(&mut session.save, slot)?;
-    Ok(BoxMutation { pals: list_pals(&session.save), slot: Some(new_slot) })
+    Ok(BoxMutation {
+        pals: list_pals(&session.save),
+        slot: Some(new_slot),
+    })
 }
 
 /// Remove the pal at `slot`, restoring the slot to a vacancy.
@@ -141,7 +158,10 @@ fn delete_box_pal(slot: usize, state: State<AppState>) -> Result<BoxMutation, St
     let mut guard = state.0.lock().unwrap();
     let session = guard.as_mut().ok_or("no box open")?;
     delete_pal(&mut session.save, slot)?;
-    Ok(BoxMutation { pals: list_pals(&session.save), slot: None })
+    Ok(BoxMutation {
+        pals: list_pals(&session.save),
+        slot: None,
+    })
 }
 
 /// Back up the original, then atomically write the edited box. Returns backup path.
@@ -227,6 +247,59 @@ fn delete_passive_preset(id: i64, databases: State<DatabasePaths>) -> Result<boo
         .map_err(|error| error.to_string())
 }
 
+#[tauri::command]
+fn list_groups(databases: State<DatabasePaths>) -> Result<Vec<UserGroup>, String> {
+    UserDatabase::open_or_create(&databases.user)
+        .and_then(|user| user.list_groups())
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn create_group(name: String, databases: State<DatabasePaths>) -> Result<UserGroup, String> {
+    UserDatabase::open_or_create(&databases.user)
+        .and_then(|user| user.create_group(&name))
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn rename_group(
+    id: i64,
+    name: String,
+    databases: State<DatabasePaths>,
+) -> Result<UserGroup, String> {
+    UserDatabase::open_or_create(&databases.user)
+        .and_then(|user| user.rename_group(id, &name))
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn delete_group(id: i64, databases: State<DatabasePaths>) -> Result<bool, String> {
+    UserDatabase::open_or_create(&databases.user)
+        .and_then(|user| user.delete_group(id))
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn list_group_memberships(
+    databases: State<DatabasePaths>,
+) -> Result<Vec<PalGroupMembership>, String> {
+    UserDatabase::open_or_create(&databases.user)
+        .and_then(|user| user.list_group_memberships())
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn set_pal_groups(
+    instance_id: String,
+    group_ids: Vec<i64>,
+    databases: State<DatabasePaths>,
+) -> Result<Vec<i64>, String> {
+    let mut user =
+        UserDatabase::open_or_create(&databases.user).map_err(|error| error.to_string())?;
+    user.set_pal_groups(&instance_id, &group_ids)
+        .map_err(|error| error.to_string())
+}
+
 /// Apply a preset only to the in-memory Pal currently addressed by `slot`.
 /// The preset DB never stores or mirrors that Pal's mutable save values.
 #[tauri::command]
@@ -281,8 +354,14 @@ fn apply_dto(sp: &mut Properties, dto: &PalDto) {
 }
 
 fn backup_path(original: &Path) -> PathBuf {
-    let secs = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
-    let stem = original.file_stem().and_then(|s| s.to_str()).unwrap_or("GlobalPalStorage");
+    let secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let stem = original
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("GlobalPalStorage");
     original
         .parent()
         .unwrap_or_else(|| Path::new("."))
@@ -343,7 +422,13 @@ pub fn run() {
             list_passive_presets,
             save_passive_preset,
             delete_passive_preset,
-            apply_passive_preset
+            apply_passive_preset,
+            list_groups,
+            create_group,
+            rename_group,
+            delete_group,
+            list_group_memberships,
+            set_pal_groups
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

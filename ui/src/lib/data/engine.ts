@@ -71,6 +71,16 @@ export interface PassivePreset {
   passiveCodes: string[];
 }
 
+export interface UserGroup {
+  id: number;
+  name: string;
+}
+
+export interface PalGroupMembership {
+  instanceId: string;
+  groupIds: number[];
+}
+
 /** Result of a box add/clone/delete: refreshed tiles + the slot to select. */
 export interface BoxMutation {
   pals: BoxTileDto[];
@@ -119,3 +129,15 @@ export const deletePassivePreset = (id: number) =>
 /** Applies the preset to the in-memory Pal at slot; persistence still requires saveBox(). */
 export const applyPassivePreset = (slot: number, presetId: number) =>
   invoke<PalDto>("apply_passive_preset", { slot, presetId });
+
+export const listGroups = () => invoke<UserGroup[]>("list_groups");
+export const createGroup = (name: string) =>
+  invoke<UserGroup>("create_group", { name });
+export const renameGroup = (id: number, name: string) =>
+  invoke<UserGroup>("rename_group", { id, name });
+export const deleteGroup = (id: number) =>
+  invoke<boolean>("delete_group", { id });
+export const listGroupMemberships = () =>
+  invoke<PalGroupMembership[]>("list_group_memberships");
+export const setPalGroups = (instanceId: string, groupIds: number[]) =>
+  invoke<number[]>("set_pal_groups", { instanceId, groupIds });

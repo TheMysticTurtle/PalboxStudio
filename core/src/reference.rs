@@ -13,6 +13,8 @@ use rusqlite::{params, Connection, OpenFlags, OptionalExtension};
 use serde::{Deserialize, Serialize};
 
 const USER_SCHEMA: &str = include_str!("../../database/user-schema.sql");
+const USER_MIGRATION_V2: &str = include_str!("../../database/migrations/user-v2-groups.sql");
+const USER_SCHEMA_VERSION: i64 = 2;
 
 #[derive(Debug)]
 pub enum DatabaseError {
@@ -64,6 +66,20 @@ pub struct PassivePreset {
     pub id: i64,
     pub name: String,
     pub passive_codes: Vec<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserGroup {
+    pub id: i64,
+    pub name: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PalGroupMembership {
+    pub instance_id: String,
+    pub group_ids: Vec<i64>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -680,7 +696,7 @@ pub struct UserDatabase {
 }
 
 impl UserDatabase {
-    /// Open the user DB, creating schema v1 when the file does not yet exist.
+    /// Open the user DB, creating the current schema or migrating an older one.
     pub fn open_or_create(path: impl AsRef<Path>) -> Result<Self> {
         let path = path.as_ref();
         if let Some(parent) = path.parent() {
@@ -700,6 +716,19 @@ impl UserDatabase {
         )?;
         if !has_schema {
             connection.execute_batch(USER_SCHEMA)?;
+        }
+        let schema_version: i64 = connection.query_row(
+            "SELECT COALESCE(MAX(version), 0) FROM schema_migrations",
+            [],
+            |row| row.get(0),
+        )?;
+        if schema_version > USER_SCHEMA_VERSION {
+            return Err(DatabaseError::Invalid(format!(
+                "user database schema v{schema_version} is newer than supported v{USER_SCHEMA_VERSION}"
+            )));
+        }
+        if schema_version < 2 {
+            connection.execute_batch(USER_MIGRATION_V2)?;
         }
         let kind: String = connection.query_row(
             "SELECT value FROM metadata WHERE key = 'database_kind'",
@@ -815,6 +844,142 @@ impl UserDatabase {
             passive_codes,
         })
     }
+
+    pub fn list_groups(&self) -> Result<Vec<UserGroup>> {
+        let mut statement = self
+            .connection
+            .prepare("SELECT id, name FROM pal_group ORDER BY name COLLATE NOCASE, id")?;
+        let groups = statement
+            .query_map([], |row| {
+                Ok(UserGroup {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                })
+            })?
+            .collect::<rusqlite::Result<Vec<_>>>()
+            .map_err(DatabaseError::from)?;
+        Ok(groups)
+    }
+
+    pub fn create_group(&self, name: &str) -> Result<UserGroup> {
+        let name = validate_group_name(name)?;
+        self.connection
+            .execute("INSERT INTO pal_group(name) VALUES (?1)", [name])?;
+        self.get_group(self.connection.last_insert_rowid())
+    }
+
+    pub fn rename_group(&self, id: i64, name: &str) -> Result<UserGroup> {
+        let name = validate_group_name(name)?;
+        let changed = self.connection.execute(
+            "UPDATE pal_group SET name = ?1 WHERE id = ?2",
+            params![name, id],
+        )?;
+        if changed == 0 {
+            return Err(DatabaseError::Invalid(format!("group {id} does not exist")));
+        }
+        self.get_group(id)
+    }
+
+    pub fn delete_group(&self, id: i64) -> Result<bool> {
+        Ok(self
+            .connection
+            .execute("DELETE FROM pal_group WHERE id = ?1", [id])?
+            > 0)
+    }
+
+    pub fn list_group_memberships(&self) -> Result<Vec<PalGroupMembership>> {
+        let mut statement = self.connection.prepare(
+            r#"
+            SELECT instance_id, group_id
+            FROM pal_group_member
+            ORDER BY instance_id, group_id
+            "#,
+        )?;
+        let rows = statement.query_map([], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?))
+        })?;
+        let mut memberships = BTreeMap::<String, Vec<i64>>::new();
+        for row in rows {
+            let (instance_id, group_id) = row?;
+            memberships.entry(instance_id).or_default().push(group_id);
+        }
+        Ok(memberships
+            .into_iter()
+            .map(|(instance_id, group_ids)| PalGroupMembership {
+                instance_id,
+                group_ids,
+            })
+            .collect())
+    }
+
+    pub fn set_pal_groups(&mut self, instance_id: &str, group_ids: &[i64]) -> Result<Vec<i64>> {
+        let instance_id = instance_id.trim();
+        if !(1..=128).contains(&instance_id.chars().count()) {
+            return Err(DatabaseError::Invalid(
+                "Pal InstanceId must contain 1 to 128 characters".to_string(),
+            ));
+        }
+        let mut seen = HashSet::new();
+        for group_id in group_ids {
+            if !seen.insert(*group_id) {
+                return Err(DatabaseError::Invalid(format!(
+                    "group {group_id} appears more than once"
+                )));
+            }
+        }
+
+        let transaction = self.connection.transaction()?;
+        for group_id in group_ids {
+            let exists: bool = transaction.query_row(
+                "SELECT EXISTS(SELECT 1 FROM pal_group WHERE id = ?1)",
+                [group_id],
+                |row| row.get(0),
+            )?;
+            if !exists {
+                return Err(DatabaseError::Invalid(format!(
+                    "group {group_id} does not exist"
+                )));
+            }
+        }
+        transaction.execute(
+            "DELETE FROM pal_group_member WHERE instance_id = ?1",
+            [instance_id],
+        )?;
+        for group_id in group_ids {
+            transaction.execute(
+                "INSERT INTO pal_group_member(instance_id, group_id) VALUES (?1, ?2)",
+                params![instance_id, group_id],
+            )?;
+        }
+        transaction.commit()?;
+        Ok(group_ids.to_vec())
+    }
+
+    fn get_group(&self, id: i64) -> Result<UserGroup> {
+        self.connection
+            .query_row(
+                "SELECT id, name FROM pal_group WHERE id = ?1",
+                [id],
+                |row| {
+                    Ok(UserGroup {
+                        id: row.get(0)?,
+                        name: row.get(1)?,
+                    })
+                },
+            )
+            .optional()?
+            .ok_or_else(|| DatabaseError::Invalid(format!("group {id} does not exist")))
+    }
+}
+
+fn validate_group_name(name: &str) -> Result<&str> {
+    let name = name.trim();
+    if !(1..=80).contains(&name.chars().count()) {
+        return Err(DatabaseError::Invalid(
+            "group name must contain 1 to 80 characters".to_string(),
+        ));
+    }
+    Ok(name)
 }
 
 #[cfg(test)]
@@ -968,6 +1133,80 @@ mod tests {
             .save_preset(&valid, Some(preset.id), "Too many", &codes)
             .is_err());
         assert_eq!(user.list_presets().unwrap().len(), 1);
+        drop(user);
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn groups_persist_and_memberships_replace_atomically() {
+        let path = unique_user_path();
+        let mut user = UserDatabase::open_or_create(&path).unwrap();
+        let combat = user.create_group("Combat Team").unwrap();
+        let workers = user.create_group("Base Workers").unwrap();
+        assert!(user.create_group(" combat team ").is_err());
+
+        let assigned = user
+            .set_pal_groups("instance-a", &[combat.id, workers.id])
+            .unwrap();
+        assert_eq!(assigned, vec![combat.id, workers.id]);
+        assert!(user
+            .set_pal_groups("instance-a", &[combat.id, combat.id])
+            .is_err());
+        assert_eq!(
+            user.list_group_memberships().unwrap(),
+            vec![PalGroupMembership {
+                instance_id: "instance-a".to_string(),
+                group_ids: vec![combat.id, workers.id],
+            }]
+        );
+
+        let renamed = user.rename_group(workers.id, "Ranch Crew").unwrap();
+        assert_eq!(renamed.name, "Ranch Crew");
+        assert!(user.delete_group(combat.id).unwrap());
+        assert_eq!(
+            user.list_group_memberships().unwrap()[0].group_ids,
+            vec![workers.id]
+        );
+        drop(user);
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn schema_v1_user_database_migrates_to_groups() {
+        let path = unique_user_path();
+        let connection = Connection::open(&path).unwrap();
+        connection
+            .execute_batch(
+                r#"
+                CREATE TABLE schema_migrations (
+                    version INTEGER PRIMARY KEY,
+                    applied_at TEXT NOT NULL
+                ) STRICT;
+                CREATE TABLE metadata (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL
+                ) STRICT;
+                INSERT INTO schema_migrations(version, applied_at)
+                VALUES (1, '2026-07-25');
+                INSERT INTO metadata(key, value) VALUES
+                    ('database_kind', 'palbox-user'),
+                    ('schema_version', '1');
+                "#,
+            )
+            .unwrap();
+        drop(connection);
+
+        let user = UserDatabase::open_or_create(&path).unwrap();
+        assert_eq!(user.list_groups().unwrap(), Vec::<UserGroup>::new());
+        let version: String = user
+            .connection
+            .query_row(
+                "SELECT value FROM metadata WHERE key = 'schema_version'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(version, "2");
         drop(user);
         fs::remove_file(path).unwrap();
     }

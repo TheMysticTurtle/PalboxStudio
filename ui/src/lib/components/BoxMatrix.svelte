@@ -10,18 +10,23 @@
     speciesMatches,
   } from "$lib/data/speciesFilter.svelte";
   import BoxTile from "./BoxTile.svelte";
+  import GroupFilter from "./GroupFilter.svelte";
+  import GroupTags from "./GroupTags.svelte";
   import SpeciesFilter from "./SpeciesFilter.svelte";
+  import { groupIdsFor, groupNamesFor } from "$lib/stores/library.svelte";
+  import { matchesAllGroups } from "$lib/data/groupFilter";
 
   let search = $state("");
   let sort = $state<"slot" | "name" | "level">("slot");
   const filter = createSpeciesFilter();
+  let selectedGroups = $state(new Set<number>());
 
   let source: BoxPal[] = $derived(
     box.open
       ? box.tiles.map((tile) =>
           tile.slot === box.selectedSlot && box.pal
-            ? palToBoxPal(box.pal, tile.slot)
-            : tileDtoToBoxPal(tile),
+            ? palToBoxPal(box.pal, tile.slot, groupNamesFor(box.pal.instanceId))
+            : tileDtoToBoxPal(tile, groupNamesFor(tile.instanceId)),
         )
       : [],
   );
@@ -32,6 +37,7 @@
         query
         && !`${pal.name} ${pal.speciesName} ${pal.nickname}`.toLowerCase().includes(query)
       ) return false;
+      if (!matchesAllGroups(groupIdsFor(pal.instanceId), selectedGroups)) return false;
       const species = resolveSpecies(pal.species);
       return species ? speciesMatches(species, filter) : activeFilterCount(filter) === 0;
     });
@@ -70,6 +76,15 @@
     </label>
   </div>
   <div class="filters"><SpeciesFilter {filter} showSearch={false} collapsible /></div>
+  <div class="group-controls">
+    <GroupFilter bind:selected={selectedGroups} />
+    {#if box.pal}
+      <div class="selected-groups">
+        <span>EDIT SELECTED</span>
+        <GroupTags instanceId={box.pal.instanceId} />
+      </div>
+    {/if}
+  </div>
   <div class="grid">
     {#each filtered as p (p.slot)}
       <BoxTile pal={p} size="lg" selected={isSelected(p.slot)} onselect={select} />
@@ -122,6 +137,10 @@
   .sort { display: flex; align-items: center; gap: 7px; color: #95889f; font-size: var(--type-caption); }
   .sort select { min-height: var(--control-min); padding: 8px 10px; border-radius: 8px; color: #c9bdd4; background: #1b1722; border: 1px solid rgba(255, 255, 255, 0.11); font-size: var(--type-body); }
   .filters { padding: 10px 30px 0; }
+  .group-controls { display: flex; align-items: center; gap: 18px; padding: 10px 30px 0; }
+  .group-controls :global(.group-filter) { flex: 1; }
+  .selected-groups { min-width: 280px; display: flex; align-items: center; gap: 9px; }
+  .selected-groups > span { flex: none; color: #8f819b; font: 600 var(--type-micro) var(--font-head); letter-spacing: .08em; }
   .grid {
     flex: 1;
     overflow: auto;

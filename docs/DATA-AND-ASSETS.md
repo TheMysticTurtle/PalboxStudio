@@ -89,11 +89,14 @@ verify in the app (`npm run tauri dev`).
 
 ## User metadata — `palbox-user.db`
 
-`database/user-schema.sql` defines the separate writable store. It currently contains named passive
-presets with ordered slots `0..3`, which enforces the four-passive maximum in SQLite as well as Rust.
-The app validates codes against `palbox-reference.db` before saving or applying a preset. No mutable
-Pal state is copied into this database; applying a preset changes only the in-memory Pal loaded from
-`GlobalPalStorage.sav`, and the normal explicit save operation remains required.
+`database/user-schema.sql` defines the separate writable store. Schema v2 contains named passive
+presets with ordered slots `0..3`, plus user-named groups and many-to-many membership keyed by a
+Pal's stable `InstanceId`. Existing v1 databases migrate in place through
+`database/migrations/user-v2-groups.sql`. The app validates passive codes against
+`palbox-reference.db` before saving or applying a preset. No mutable Pal game state is copied into
+this database; applying a preset changes only the in-memory Pal loaded from
+`GlobalPalStorage.sav`, and the normal explicit save operation remains required. Group membership
+never enters the Palworld save.
 
 ## Per-pal data schema (`PalEdit/palworld_pal_edit/resources/data/pals/<Code>.json`)
 ```
