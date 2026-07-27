@@ -166,8 +166,8 @@ Architecture decisions are documented in [`docs/decisions/`](docs/decisions).
 ## 🙏 Acknowledgements
 
 Palbox Studio builds on prior Palworld 1.0 save-editing work by the community. Save serialization
-uses the [`uesave`](https://github.com/oMaN-Rod/uesave-rs) library. Palworld is a trademark of
-Pocketpair, Inc. Palbox Studio is an unofficial, independent tool.
+uses the [`uesave`](https://github.com/oMaN-Rod/uesave-rs) library. Inspired by PalEdit. Palworld is a trademark of
+Pocketpair, Inc. Palbox Studio is an unofficial, fan made, independent tool.
 
 ## 📄 License
 
