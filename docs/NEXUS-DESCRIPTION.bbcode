@@ -1,7 +1,7 @@
-[center][size=6][b]PALBOX STUDIO[/b][/size]
-[size=4][i]A desktop editor for the Palworld 1.0 Global Palbox.[/i][/size][/center]
+[center][size=6][b]PALBOX STUDIO[/b][/size][/center]
+[center][size=4][i]A desktop editor for the Palworld 1.0 Global Palbox.[/i][/size][/center]
 
-[img]REPLACE_WITH_HERO_SCREENSHOT_URL[/img]
+[center][img]https://staticdelivery.nexusmods.com/mods/6063/images/4427/4427-1785098599-1050855958.png[/img][/center]
 
 Palbox Studio is a desktop application for editing the Global Palbox in Palworld 1.0 save files. It reads GlobalPalStorage.sav directly, presents every Pal in the box, and gives full control over each Pal's attributes through a native interface. It runs as a standalone application: it does not modify the game, install into Palworld, or place files in the game directory. Every save operation writes a verified backup before it touches the original file.
 
@@ -10,7 +10,7 @@ Palbox Studio is scoped to the [b]Global Palbox[/b] only. It does not edit world
 [line]
 
 [size=5][b]✨ Features[/b][/size]
-[list]
+[left][list]
 [*]🐾 [b]Full Pal editing[/b] — species, nickname, gender, level, IVs, Pal Souls, condensation, passive skills, active and learned moves, work suitabilities, and the Lucky and Alpha flags.
 [*]📦 [b]Box explorer[/b] — a side panel listing every Pal in the box, or an expanded full-gallery view.
 [*]🔍 [b]Filtering and search[/b] — by element, work suitability, ride/mount capability, ranch drops, and obtainability, with a name and species search.
@@ -18,31 +18,58 @@ Palbox Studio is scoped to the [b]Global Palbox[/b] only. It does not edit world
 [*]🔄 [b]Species selector[/b] — easily change any Pal's species with a searchable, filterable picker.
 [*]➕ [b]Add, clone, and remove[/b] Pals.
 [*]💾 [b]Verified backups[/b] — each save writes a checked backup, then replaces the original atomically.
-[/list]
+[/list][/left]
 All species, stats, moves, Partner Skills, and ranch products are rendered from a bundled game-data database, so displayed values match Palworld 1.0.
 
 [line]
 
-[size=5][b]🖼️ How it works[/b][/size]
-Open your Global Palbox, browse it in the side panel, pick a Pal, and edit — that's the whole flow.
-[i]Upload these to the mod's Gallery, or drop the image URLs in below.[/i]
-[img]REPLACE_WITH_SCREENSHOT_EXPANDED_EXPLORER[/img]
-[img]REPLACE_WITH_SCREENSHOT_SPECIES_SELECTOR[/img]
-[img]REPLACE_WITH_SCREENSHOT_PASSIVE_PICKER[/img]
-[img]REPLACE_WITH_SCREENSHOT_MOVE_PICKER[/img]
+[size=5][b]🖼️ Overview[/b][/size]
+
+[size=4][b]📂 Open your box[/b][/size]
+Click [b]Open Global Palbox[/b] and choose your GlobalPalStorage.sav. Your whole box loads into the side panel, ready to browse and edit — and a verified backup is written before any save.
+
+[size=4][b]📦 The Global Pal Box[/b][/size]
+A side panel lists every Pal in the box with search, filters, and tags for quick navigation. Select a Pal to load it into the editor.
+[center][img]https://staticdelivery.nexusmods.com/mods/6063/images/4427/4427-1785098598-648893239.png[/img][/center]
+
+[size=4][b]🔎 Expanded view[/b][/size]
+The box expands into a full gallery, with each Pal shown as a card carrying its stats, moves, and passives.
+[center][img]https://staticdelivery.nexusmods.com/mods/6063/images/4427/4427-1785098604-755909459.png[/img][/center]
+
+[size=4][b]🎴 The editor[/b][/size]
+The selected Pal is presented on a single card: portrait, typing, stats, Partner Skill, passives, moves, and work suitabilities.
+[center][img]https://staticdelivery.nexusmods.com/mods/6063/images/4427/4427-1785098599-1050855958.png[/img][/center]
+
+[size=4][b]📊 Editable stats[/b][/size]
+IVs, Pal Souls, condensation, level, and work suitabilities, with clear readouts and support for the extended values reachable in Palworld 1.0.
+[center][img]https://staticdelivery.nexusmods.com/mods/6063/images/4427/4427-1785098585-1202244861.png[/img][/center]
+
+[size=4][b]🔄 Species selector[/b][/size]
+Easily change any Pal's species with a searchable, filterable picker. Pick a new one and the card updates to match.
+[center][img]https://staticdelivery.nexusmods.com/mods/6063/images/4427/4427-1785098585-83602723.png[/img][/center]
+
+[size=4][b]⚡ Passive skills[/b][/size]
+Assign passive skills from a searchable, filterable list to find the exact passive you want.
+[center][img]https://staticdelivery.nexusmods.com/mods/6063/images/4427/4427-1785098592-1920023775.png[/img][/center]
+
+[size=4][b]🎯 Moves[/b][/size]
+Choose active skills from a filterable list, with each move's element and power shown.
+[center][img]https://staticdelivery.nexusmods.com/mods/6063/images/4427/4427-1785098592-1291490696.png[/img][/center]
 
 [line]
 
 [size=5][b]⬇️ Installation[/b][/size]
-[b]Installer[/b] — run the setup .exe. It creates a Start-menu shortcut and installs the WebView2 runtime if it is not already present.
-[b]Portable[/b] — unzip the portable .zip and run Palbox Studio.exe. No installation is required; keep the folder contents together.
-[b]Vortex[/b] — the portable folder can be registered as a Vortex tool: on the Palworld dashboard, [b]+ Add Tool -> New...[/b], and set [b]Target[/b] to Palbox Studio.exe.
+[left][list]
+[*][b]Installer[/b] — run the setup .exe. It creates a Start-menu shortcut and installs the WebView2 runtime if it is not already present.
+[*][b]Portable[/b] — unzip the portable .zip and run Palbox Studio.exe. No installation is required; keep the folder contents together.
+[*][b]Vortex[/b] — the portable folder can be registered as a Vortex tool: on the Palworld dashboard, [b]+ Add Tool -> New...[/b], and set [b]Target[/b] to Palbox Studio.exe.
+[/list][/left]
 
 Windows 11 includes the required WebView2 runtime. On earlier versions of Windows, install the Microsoft Edge WebView2 Runtime if the application does not start.
 
-[b]Antivirus / SmartScreen:[/b] Palbox Studio is not code-signed, so Windows SmartScreen or antivirus software may warn about it the first time you run it. This is expected for unsigned, independent software. The complete source is available on GitHub — you are welcome to review it, and to build the application yourself rather than run a prebuilt binary.
+[b][color=#e0b050]🛡️ Antivirus / SmartScreen:[/color][/b] Palbox Studio is not code-signed, so Windows SmartScreen or antivirus software may warn about it the first time you run it. This is expected for unsigned, independent software. The complete source is available on GitHub — you are welcome to review it, and to build the application yourself rather than run a prebuilt binary.
 
-[b][color=#e0b050]Save safety:[/color][/b] A verified backup is written before any save modifies your file. Close Palworld before saving edits. The Global Palbox is located at %LOCALAPPDATA%\Pal\Saved\SaveGames\<id>\GlobalPalStorage.sav. Keeping an independent copy of important saves is recommended.
+[b][color=#e0b050]💾 Save safety:[/color][/b] A verified backup is written before any save modifies your file. Close Palworld before saving edits. The Global Palbox is located at %LOCALAPPDATA%\Pal\Saved\SaveGames\<id>\GlobalPalStorage.sav. Keeping an independent copy of important saves is recommended.
 
 [line]
 
