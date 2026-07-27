@@ -52,11 +52,28 @@
     }),
   );
 
+  // Folder the "open save" dialog starts in. On Windows the Global Palbox lives
+  // under %LOCALAPPDATA%; on Linux the game runs via Proton, so the same tree
+  // sits inside the Steam compatdata prefix. One helper, one explicit per-OS
+  // branch — the Windows/default path is exactly what it has always been.
+  async function defaultSaveDir(): Promise<string> {
+    const { localDataDir, join, homeDir } = await import("@tauri-apps/api/path");
+    const { platform } = await import("@tauri-apps/plugin-os");
+    if (platform() === "linux") {
+      // Steam + Proton (Palworld app id 1623730): the Windows save tree is
+      // mirrored inside the Proton prefix's drive_c.
+      return join(
+        await homeDir(),
+        ".local/share/Steam/steamapps/compatdata/1623730/pfx/drive_c/users/steamuser/AppData/Local/Pal/Saved/SaveGames",
+      );
+    }
+    return join(await localDataDir(), "Pal", "Saved", "SaveGames");
+  }
+
   async function openBoxClicked() {
     try {
       const { open } = await import("@tauri-apps/plugin-dialog");
-      const { localDataDir, join } = await import("@tauri-apps/api/path");
-      const base = await join(await localDataDir(), "Pal", "Saved", "SaveGames");
+      const base = await defaultSaveDir();
       const file = await open({
         title: "Open GlobalPalStorage.sav",
         defaultPath: base,

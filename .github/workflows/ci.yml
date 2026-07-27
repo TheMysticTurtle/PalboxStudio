@@ -1,0 +1,74 @@
+name: CI
+
+# Build + test guardrail. Runs on every push and PR across BOTH target OSes so a
+# Linux-focused change that regressed the Windows build (or vice versa) shows up
+# immediately. This does not bundle installers — see release.yml for that.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+# Cancel an in-flight run when a newer commit lands on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Linux needs the WebKitGTK / GTK toolchain to compile the Tauri shell.
+      # (Windows uses the preinstalled WebView2 SDK — nothing to install.)
+      - name: Install Linux system dependencies
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "v0-rust-${{ matrix.os }}"
+
+      # Root installs @tauri-apps/cli; the UI has its own dependency tree.
+      - name: Install npm dependencies
+        run: |
+          npm install
+          npm --prefix ui install
+
+      - name: Rust format check
+        run: cargo fmt --all -- --check
+
+      - name: Frontend type-check
+        run: npm run check
+
+      # Compiles the UI (via beforeBuildCommand) then the Tauri app for the host
+      # OS. This is the real cross-platform proof — including that the uesave
+      # "oodle" feature builds and links on Linux. No installer bundle produced.
+      - name: Build app (no bundle)
+        run: npm run tauri build -- --no-bundle
+
+      # Engine + shell tests. ui/build now exists from the step above, so the
+      # shell's generate_context! resolves. Save-dependent tests self-skip when
+      # PALBOX_TEST_SAV is unset (as it is here).
+      - name: Run tests
+        run: cargo test
