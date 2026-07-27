@@ -119,6 +119,21 @@ Download the latest build from the [Releases](../../releases) page or from Nexus
 Windows 11 includes the required WebView2 runtime. On earlier versions of Windows, install the
 Microsoft Edge WebView2 Runtime if the application does not start.
 
+### 🐧 Linux
+Download `PalboxStudio-<version>-linux.AppImage` (portable, runs on most modern distributions) or
+`PalboxStudio-<version>-linux.deb` (Debian/Ubuntu).
+
+- **AppImage** — `chmod +x PalboxStudio-<version>-linux.AppImage`, then run it. No installation.
+- **.deb** — `sudo apt install ./PalboxStudio-<version>-linux.deb`.
+
+On Linux the app renders through the system **WebKitGTK** runtime (the counterpart to WebView2 on
+Windows). Most desktops already ship it; if the app does not start, install it with your package
+manager — on Debian/Ubuntu: `sudo apt install libwebkit2gtk-4.1-0`.
+
+If Palworld is installed via Steam/Proton, your Global Palbox lives inside the Proton prefix, and the
+file picker defaults there:
+`~/.local/share/Steam/steamapps/compatdata/1623730/pfx/drive_c/users/steamuser/AppData/Local/Pal/Saved/SaveGames/<id>/GlobalPalStorage.sav`.
+
 ### 🛡️ A note on antivirus / SmartScreen
 Palbox Studio is not code-signed, so Windows SmartScreen or antivirus software may warn about it the
 first time you run it. This is expected for unsigned, independent software. The complete source is in

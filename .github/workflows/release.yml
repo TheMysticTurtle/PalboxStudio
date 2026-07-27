@@ -1,0 +1,152 @@
+name: Build and Release
+
+# Builds Windows + Linux desktop bundles and creates ONE draft GitHub release
+# with every artifact attached. Manually dispatched; publishing the draft is a
+# separate manual step (then upload the assets to Nexus as separate files).
+#
+# The Windows job REUSES scripts/build-release.ps1 verbatim — the single source
+# of truth for the Windows release — so its output matches a local build exactly.
+# That script's pre-bundle gate rebuilds the reference DB from the gitignored
+# PalEdit/psp-reference dump, which isn't present in a clean CI checkout, so it
+# runs with -SkipGate here. ci.yml gates fmt/check/test/build on every push.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release tag (e.g. v1.0.1)"
+        required: true
+      release_name:
+        description: "Release name"
+        required: true
+        default: "Palbox Studio"
+      draft:
+        description: "Create the release as a draft?"
+        required: false
+        default: true
+        type: boolean
+      prerelease:
+        description: "Mark as a prerelease?"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "v0-rust-windows-latest"
+
+      - name: Install npm dependencies
+        run: |
+          npm install
+          npm --prefix ui install
+
+      # Reuses the existing release script (NSIS setup.exe + portable zip).
+      # -SkipGate: the gate's reference-DB rebuild needs the sibling
+      # PalEdit/psp-reference dump, absent in CI; ci.yml is the gate.
+      - name: Build Windows artifacts (build-release.ps1)
+        shell: pwsh
+        run: ./scripts/build-release.ps1 -SkipGate
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            dist/*-setup.exe
+            dist/*-portable.zip
+          if-no-files-found: error
+
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "v0-rust-ubuntu-2204"
+
+      - name: Install npm dependencies
+        run: |
+          npm install
+          npm --prefix ui install
+
+      - name: Build Linux bundles (deb + AppImage)
+        run: npm run tauri build -- --bundles deb,appimage
+
+      - name: Strip host-graphics libs from AppImage
+        run: |
+          appimage=$(ls target/release/bundle/appimage/*.AppImage | head -n 1)
+          bash scripts/appimage-strip-graphics.sh "$appimage"
+
+      # Rename to the same <version> convention the Windows script uses
+      # (source of truth: src-tauri/tauri.conf.json).
+      - name: Collect and rename bundles
+        run: |
+          version=$(jq -r .version src-tauri/tauri.conf.json)
+          mkdir -p dist
+          deb=$(ls target/release/bundle/deb/*.deb | head -n 1)
+          cp "$deb" "dist/PalboxStudio-$version-linux.deb"
+          appimage=$(ls target/release/bundle/appimage/*.AppImage | head -n 1)
+          cp "$appimage" "dist/PalboxStudio-$version-linux.AppImage"
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: dist/*-linux.*
+          if-no-files-found: error
+
+  create-release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create draft release with all OS artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          name: ${{ github.event.inputs.release_name }}
+          draft: ${{ github.event.inputs.draft }}
+          prerelease: ${{ github.event.inputs.prerelease }}
+          files: |
+            artifacts/windows/*
+            artifacts/linux/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
