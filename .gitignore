@@ -30,5 +30,8 @@ psp_data_cache/
 PalboxStudio-backups/
 scratch/
 
-# Local-only visual reference (game screenshots — kept out of git, like PalEdit/psp-reference)
+# Local-only visual reference (game screenshots — kept out of git)
 docs/reference/
+
+# Reference-DB generator — local maintainer tool, kept out of the public tree (see database/README.md)
+scripts/build_reference_db.py

@@ -1,18 +1,18 @@
 # Palworld 1.0 — Technical Specs (authoritative for the core model)
 
-Researched 2026-07-24 against the **latest** sources, deliberately NOT trusting our pre-1.0
-PalEdit inheritance. Sources: the vendored PSP 1.0 Rust editor
-(`PalEdit/psp-reference/psp-core/src/domain/pal.rs` — how it clamps/writes each field) and its
-maintained 1.0 data JSONs (`PalEdit/psp-reference/data/json/*`), cross-checked with 1.0 game
-guides (see Sources). **This file is the source of truth for value ranges in the core + UI.**
+Researched against the **latest** sources, deliberately NOT trusting any pre-1.0 assumptions.
+Values are verified against real 1.0 `GlobalPalStorage.sav` bytes and cross-checked against the
+current public game databases (see Sources). The save-format layout these ranges live inside is
+documented in [SAVE-FORMAT.md](SAVE-FORMAT.md). **This file is the source of truth for value
+ranges in the core + UI.**
 
-## Corrections vs. our old pre-1.0 fork (READ THESE)
-| Field | Old/forked assumption | **Palworld 1.0 (correct)** |
+## Corrections vs. pre-1.0 assumptions (READ THESE)
+| Field | Pre-1.0 assumption | **Palworld 1.0 (correct)** |
 |---|---|---|
-| Work Suitability cap | 5 (spinboxes `to=5`) | **1–10** (wild ~7–8; 9–10 via breed/condense). *Editor: all adjustable 0–10.* |
+| Work Suitability cap | 5 | **1–10** (wild ~7–8; 9–10 via breed/condense). *Editor: all adjustable 0–10.* |
 | Pal Souls per stat | 0–10 (pre-v0.4.11) | **0–20 ranks** (+3%/rank, **+60% max**) |
 | Level cap | 80 | **80** (confirmed; exp table has 100 rows of headroom) |
-| Attack IV | (fork had melee+shot) | **single `Talent_Shot`** — no `Talent_Melee` |
+| Attack IV | melee + shot | **single `Talent_Shot`** — no `Talent_Melee` |
 
 ## Save container (Global box)
 - File `GlobalPalStorage.sav`; **Oodle** compression, magic `PlM`, save_type **`0x31`**.
@@ -20,7 +20,7 @@ guides (see Sources). **This file is the source of truth for value ranges in the
   **empty slot = `CharacterID == "None"`**. `SlotId.SlotIndex` is non-authoritative (dupes).
 - Byte-preserve save_type on write; no-edit round-trip must be byte-identical.
 
-## Per-pal fields & ranges (from `pal.rs` write path + game facts)
+## Per-pal fields & ranges (from the 1.0 save write path + game facts)
 - **IVs / Talents** (breeding traits): `Talent_HP`, `Talent_Shot`, `Talent_Defense`. Stored as
   a **byte, raw 0–255**; PSP clamps 0–255. Game **displays 0–100**. → **UI range 0–100**
   (consider an "unrestricted 0–255" power-user note; the byte allows it).
@@ -33,7 +33,7 @@ guides (see Sources). **This file is the source of truth for value ranges in the
   write only non-zero. *(This is the field the right-drawer "statue levels" edit.)*
 - **Work Suitability**: **Lv 1–10**. Stored in `GotWorkSuitabilityAddRankList` as
   **bonus rank = desired_total − species_base**; **write only non-zero entries** (zero-bloat
-  breaks in-game work — a bug we caused pre-1.0). 12 jobs (see Elements/Jobs below).
+  breaks in-game work — see the corruption traps in [SAVE-FORMAT.md](SAVE-FORMAT.md)). 12 jobs (see Elements/Jobs below).
 - **Moves = Active Skills**: up to **3 equipped** (`EquipWaza`); **learned** in `MasteredWaza`
   (**leave empty unless explicitly mastered** — do NOT auto-fill from learnset). 324 skills
   defined; power **0–1200**; each has an element.
@@ -52,14 +52,14 @@ guides (see Sources). **This file is the source of truth for value ranges in the
 Kindling · Watering · Planting · Generating Electricity · Handiwork · Gathering · Lumbering ·
 Mining · Crude Oil Extraction · Medicine Production · Cooling · Transporting · Farming.
 
-## 1.0 data JSONs we build the app's game-data layer from (`psp-reference/data/json/`)
-`pals.json` (species: elements, scaling, work suitability, skill_set, human flag),
-`active_skills.json` (324), `passive_skills.json` (420, with `rank`), `elements.json` (9),
-`exp.json` (level→exp, 1–100), `presets.json`, `friendship.json`, plus `l10n/<lang>/…` for
-localized display names. These are actively maintained current with patches — our data layer
-mirrors them (as PalEdit's `update_data.py` already did).
+## The 1.0 game-data layer
+The app's static game data — species (elements, scaling, work suitability, learnsets, human
+flag), active skills, passives (with `rank`), elements, the level→exp table, friendship ranks,
+and localized display names — is served from the bundled reference database
+(`data/palbox-reference.db`). Its contents, counts, and provenance are documented in
+[DATA-AND-ASSETS.md](DATA-AND-ASSETS.md).
 
-## Corruption traps to AVOID (we caused these pre-1.0 — do NOT repeat)
+## Corruption traps to AVOID (hard-won — keep them solved; full write-up in [SAVE-FORMAT.md](SAVE-FORMAT.md))
 - Never write the phantom `CraftSpeeds` field (real 1.0 pals don't have it).
 - Never write zero-rank work-suitability entries; write only non-zero bonuses.
 - Never auto-fill `MasteredWaza` from the learnset on load.
@@ -68,16 +68,14 @@ mirrors them (as PalEdit's `update_data.py` already did).
 ## Sources
 
 **Primary technical (for save-format truth — use first):**
-- PSP 1.0 source: `PalEdit/psp-reference/psp-core/src/domain/{pal,gps,containers}.rs`; data:
-  `PalEdit/psp-reference/data/json/*` (actively maintained current with patches).
-- Our own RE notes: `PalEdit/CLAUDE.md`, `PalEdit/docs/save-editing-analysis.md`.
+- Real 1.0 `GlobalPalStorage.sav` bytes, verified on scratchpad copies, and this project's own
+  [SAVE-FORMAT.md](SAVE-FORMAT.md) — the authoritative in-repo write-up of the format.
 
 **Official / best community 1.0 wikis & databases (for game-data truth — cross-check here):**
 - **Official v0.4.11 patch notes** — https://store.steampowered.com/news/app/1623730/view/518574472406499342
   — increased the Statue of Power enhancement limit from 10 to 20; that cap persists in 1.0.
 - **paldb.cc** — https://paldb.cc/en/v1.0.0 — the most technical DB; mirrors game data,
-  pal/skill/passive/element tables, and hosts the icon/texture CDN (PalEdit already pulls
-  icons from it). **Primary data reference.**
+  pal/skill/passive/element tables, and hosts the icon/texture CDN. **Primary data reference.**
 - **palworld.wiki.gg** — https://palworld.wiki.gg/ — the main community wiki.
 - **Fextralife** — https://palworld.wiki.fextralife.com/ — full Paldeck: stats, breeding
   combos, Partner Skills, Work Suitabilities for all 1.0 Pals.

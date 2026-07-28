@@ -5,7 +5,7 @@
 //! Tauri or the frontend — that separation is the whole point (see docs/DIRECTION.md).
 //!
 //! Value ranges here are the verified 1.0 numbers from docs/SPECS-1.0.md — deliberately
-//! NOT the stale pre-1.0 values our old PalEdit fork used.
+//! NOT any stale pre-1.0 values.
 
 pub mod globalbox;
 pub mod pal;

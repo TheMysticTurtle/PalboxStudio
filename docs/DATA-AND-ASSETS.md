@@ -1,7 +1,7 @@
-# Data & Assets — what the first build (PalEdit) already gives us
+# Data & Assets — the game data, icons, and logic map
 
-Quick-reference map so we don't re-derive anything. The first build cleanly gathered the game
-data, icons, and the filtering/legality logic — this catalogs where it all is and how it maps.
+Quick-reference map so we don't re-derive anything. This catalogs where the game data, icons,
+and filtering/legality logic live and how they map.
 
 ## Icons (copied into this repo)
 - **Palbox Studio identity** → authored source `assets/Palbox Studio Logo.png`; deployed web
@@ -9,7 +9,7 @@ data, icons, and the filtering/legality logic — this catalogs where it all is 
   128×128 asset, and `src-tauri/icons/` contains the generated desktop application/icon bundle.
   The earlier image with a baked white/grey transparency grid is not a runtime asset.
 - **Pal portraits** → `ui/static/pals/T_<CodeName>_icon_normal.png` (379). Served at `/pals/…`.
-  Lookup rule (PalEdit `GetImage`): strip a `RAID_` prefix and a trailing `_2` from the
+  Lookup rule: strip a `RAID_` prefix and a trailing `_2` from the
   CharacterID; fall back to `#ERROR.png` when missing (~27 scrapped/quest entities have none —
   placeholder is fine). **In a URL the fallback must be `%23ERROR.png`** (the `#` is a fragment).
   The retained sources contain 296 images at 240×240 and 83 at 128×128, with varying transparent
@@ -17,9 +17,9 @@ data, icons, and the filtering/legality logic — this catalogs where it all is 
   clipped, rounded crop and fallback rule across every card and picker. Keep the original files;
   do not create component-owned copies or per-species CSS corrections.
 - **Work-suitability icons** → `ui/static/icons/work/<name>.png` + `no_<name>.png` (13 active +
-  13 greyed). Names use PalEdit's internal set — see the mapping below.
+  13 greyed). Names use the game's internal set — see the mapping below.
 - **Element badges** → `ui/static/icons/elements/<element>.webp` (9). These are the retained
-  PalEdit/PSP game-style `_icon.webp` assets, copied locally for offline use. Pal species, Partner
+  game-style `_icon.webp` assets, copied locally for offline use. Pal species, Partner
   Skills, move rows, and element filters all render them through the shared `ElementIcon` component;
   cached SQLite element colors drive borders/backgrounds, with the existing `--el-*` tokens as
   startup fallbacks before the reference bundle is available.
@@ -38,12 +38,9 @@ pass their canonical basename to `workIcon`, and Alpha/Lucky use the shared vari
 
 ## SQLite reference dataset — `data/palbox-reference.db`
 
-The desktop app now loads static reference data from normalized SQLite rather than the generated
-JSON tables. Build it with:
-
-```bash
-python scripts/build_reference_db.py --check
-```
+The desktop app loads static reference data from this normalized SQLite database. It is a
+**prebuilt, committed artifact** — it only needs regenerating when Palworld itself changes (see
+[`database/README.md`](../database/README.md) for provenance and the regeneration story).
 
 The schema is `database/reference-schema.sql`; provenance, checksums, and known source conflicts
 are stored in `data_source` and `data_quality_issue`. Current verified counts are:
@@ -68,7 +65,7 @@ See `data/reference-sources/README.md` and ADR 0003.
 
 `is_pal` is not sufficient: the engine marks raid body parts, summon actors, predator encounters,
 tower models, quest helpers, retired models, and uncatchable bosses as Pal-shaped actors too.
-`build_reference_db.py` derives `species.palbox_selectable` from ownership-oriented signals:
+The `species.palbox_selectable` flag is derived from ownership-oriented signals:
 
 - a valid Paldeck index, enabled data, and a normal owned-species actor;
 - no raid/summon/predator/tower/quest/oil-rig actor code;
@@ -98,7 +95,7 @@ this database; applying a preset changes only the in-memory Pal loaded from
 `GlobalPalStorage.sav`, and the normal explicit save operation remains required. Group membership
 never enters the Palworld save.
 
-## Per-pal data schema (`PalEdit/palworld_pal_edit/resources/data/pals/<Code>.json`)
+## Per-pal source-data schema
 ```
 CodeName, Type[2] (element codenames, "None"-padded), Moveset {EPalWazaID::X: unlockLevel},
 RaidMoveset, Scaling {HP, PHY, MAG, DEF}, Suitabilities {13 internal keys: level},
@@ -141,27 +138,26 @@ separate editor metadata in the Advanced drawer.
 Normal→Neutral · Fire · Water · Electricity→Electric · Leaf→Grass · Ice · Earth→Ground · Dark ·
 Dragon. (Type[] pads a 2nd slot with `"None"` for single-element pals.)
 
-## Source data + relationships (`PalEdit/psp-reference/data/json/`)
-`pals.json` · `active_skills.json` (324) · `passive_skills.json` (420, rank −3..5) ·
-`elements.json` (9) · `exp.json` (level→exp) · `friendship.json` (trust ranks) · `presets.json` ·
-`bosses.json` · relics · items · technologies · buildings · missions · map/fast-travel · `l10n/` ·
-`ui/`. The PSP Rust engine reading these: `psp-core/src/domain/{pal,gps,containers,guild}.rs`;
-its **PalDto field list is mapped in [PROGRESS.md](PROGRESS.md)**.
+## Source game-data + relationships
+The upstream game-data extract provides: `pals.json` · `active_skills.json` (324) ·
+`passive_skills.json` (420, rank −3..5) · `elements.json` (9) · `exp.json` (level→exp) ·
+`friendship.json` (trust ranks) · `presets.json` · `bosses.json` · relics · items · technologies ·
+buildings · missions · map/fast-travel · `l10n/` · `ui/`. The per-Pal save-field map is in
+[SAVE-FORMAT.md](SAVE-FORMAT.md).
 
-## Logic we already solved — don't re-derive (see `PalEdit/CLAUDE.md` + `PalEdit.py`)
-- **Data pipeline + field mappings**: `update_data.py` and the mapping table in `PalEdit/CLAUDE.md`
-  (Type←element_types, Moveset←skill_set, Scaling←scaling, Suitabilities←work_suitability,
-  Human←`not is_pal`, passive Rating←rank, display names←l10n).
+## Logic we already solved — don't re-derive
+- **Data field mappings** (from the game-data extract): Type←element_types, Moveset←skill_set,
+  Scaling←scaling, Suitabilities←work_suitability, Human←`not is_pal`, passive Rating←rank,
+  display names←l10n.
 - **Passive legality**: legal = **rollable ∪ innate**. `Rollable` bool (85/420 roll on wild pals),
   per-pal `InnatePassives`, and `Exclusive` species on `Unique_` attacks (239 covered).
-- **Filtering / sorting** (species browser + ability pickers, all in `PalEdit.py`): element +
-  work-suit + name search; **category buckets** — Obtainable (`DeckIndex>=0`) / Boss·Tower
-  (`TowerBoss` or `BOSS_/GYM_/RAID_`) / NPC (`Human=true`). Attack-picker tiers: learnset-only /
-  +fruit-teachable / all.
+- **Filtering / sorting** (species browser + ability pickers): element + work-suit + name search;
+  **category buckets** — Obtainable (`DeckIndex>=0`) / Boss·Tower (`TowerBoss` or `BOSS_/GYM_/RAID_`)
+  / NPC (`Human=true`). Attack-picker tiers: learnset-only / +fruit-teachable / all.
 - **"Storable in the Global Palbox" filter**: use the generated `palbox_selectable` field.
   Human exclusion alone is deliberately insufficient; see the audit above.
-- **Deep save analysis**: `PalEdit/docs/save-editing-analysis.md`.
-- **Value ranges + corruption traps**: `docs/SPECS-1.0.md`, `docs/QUICKREF.md`.
+- **Save format details**: [SAVE-FORMAT.md](SAVE-FORMAT.md).
+- **Value ranges + corruption traps**: [SPECS-1.0.md](SPECS-1.0.md), [QUICKREF.md](QUICKREF.md).
 
 ## Fallback / CDN
 paldb CDN mirror if an icon is ever missing:

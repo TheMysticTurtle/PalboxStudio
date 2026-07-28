@@ -1,24 +1,21 @@
 # Quick Reference — Palbox Studio (Rust)
 
-Practical pointers for building the global-box editor. The two authoritative sources are
-**our own RE notes** and the **vendored PSP Rust source** — both already on disk.
+Practical pointers for building the global-box editor. Every authoritative write-up lives in
+this repo — start here, then follow into the deeper docs.
 
-## Where the knowledge lives (all local, no network needed)
-- **Our RE notes:** [../../PalEdit/CLAUDE.md](../../PalEdit/CLAUDE.md) — the 1.0 format
-  write-up, corruption bugs we found + fixed, data pipeline, testing recipe.
-- **Our deeper analysis:** [../../PalEdit/docs/save-editing-analysis.md](../../PalEdit/docs/save-editing-analysis.md)
-- **PSP Rust source (mechanics reference only — PSP is buggy, don't copy blind):**
-  `PalEdit/psp-reference/psp-core/src/domain/`
-  - `gps.rs` — **GlobalPalStorage** handling (our box! start here)
-  - `pal.rs` — per-pal fields (IVs/talents, souls, passives, moves, level, gender, flags)
-  - `containers.rs` — container/slot model (world uses a Slots array; the global box does NOT)
-  - `guild.rs` / `guild_tail.rs` — the 1.0 guild-tail bytes we couldn't handle in Python
-    (world-save only; out of scope for v1 but here if we ever need it)
-  - `player.rs`, `raw.rs`, `uid_swap.rs`, `relic.rs`, `summaries.rs`, `world*.rs`
-  - DTOs in `psp-core/src/dto/`, tests in `psp-core/tests/`
-- **Game data (source of truth for species/moves/passives):**
-  `PalEdit/psp-reference/data/json/*` — actively maintained, current within ~a day of
-  patches. This is what PalEdit's `update_data.py` pulled from.
+## Where the knowledge lives (all in-repo, no network needed)
+- **Save format:** [SAVE-FORMAT.md](SAVE-FORMAT.md) — the 1.0 `GlobalPalStorage.sav` layout,
+  the per-Pal fields and save-field map, the slot model, and the corruption traps.
+- **Editable value ranges:** [SPECS-1.0.md](SPECS-1.0.md) — the authoritative per-field limits.
+- **Data & assets:** [DATA-AND-ASSETS.md](DATA-AND-ASSETS.md) — the reference database, icons,
+  filtering/legality logic, and game-data field mappings.
+- **The engine itself:** `core/src/` — `globalbox.rs` (the flat 960-slot box), `pal.rs`
+  (per-Pal fields: IVs/talents, souls, passives, moves, level, gender, flags), and `save.rs`
+  (Oodle/GVAS decode/encode with a lossless round-trip). The working implementation of
+  everything above.
+- **Reference database:** `data/palbox-reference.db` — the bundled, normalized game-data source
+  (species, moves, passives, Partner Skills, ranch products, localization) the app reads at
+  startup.
 
 ## Global Pal box format facts (verified on real 1.0 saves)
 - File: `GlobalPalStorage.sav`. Owner's live path (**NEVER edit in place**):
@@ -42,7 +39,7 @@ Practical pointers for building the global-box editor. The two authoritative sou
   Keep all 406 rows for decoding, but offer only the 287 `palbox_selectable` canonical species.
   `species_alias` maps 73 encounter/appearance codes back to their owned species.
 
-## Corruption traps to AVOID (we caused these in PalEdit; do NOT repeat)
+## Corruption traps to AVOID (hard-won — keep them solved)
 - **Never write `CraftSpeeds`** — real 1.0 pals don't have it; it broke work calc.
 - **Never write zero-rank work-suitability entries** into `GotWorkSuitabilityAddRankList`
   (write only non-zero bonuses) — zero-bloat broke in-game work assignment.
@@ -57,6 +54,6 @@ Practical pointers for building the global-box editor. The two authoritative sou
 - One feature per branch; commits explain the *why* + bug/benefit/test notes; ADRs for
   architecture decisions.
 
-## Flavor / nice touches (from PalEdit)
-- Owner is "**The Mystic Testudine**" — a quiet turtle nod is welcome (PalEdit defaults a
-  new pal to CubeTurtle / *Tetroise*). 🐢
+## Flavor / nice touches
+- The owner is **The Mystic Turtle** (`themysticturtle`) — a quiet turtle nod is welcome; a
+  newly added Pal defaults to a turtle (CubeTurtle / *Tetroise*). 🐢

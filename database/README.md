@@ -12,18 +12,20 @@ Read-only, generated static Palworld 1.0 reference data:
 - Partner Skills, rank values, same-species engine-variant inheritance, and Ranch products;
 - filter-field metadata, source provenance, and quality findings.
 
-Generate and validate it from the repository root:
+This database is a **prebuilt, committed artifact** (`data/palbox-reference.db`): because it
+holds static Palworld 1.0 facts, it only needs regenerating when the game itself changes. It
+ships in the Tauri bundle, and Rust opens it with SQLite's read-only flag.
 
-```bash
-python scripts/build_reference_db.py --check
-```
+The generator that produced it is kept as a local maintainer tool and is not part of the public
+tree. A self-contained extractor — building the data directly from the game's own packaged
+assets — is planned future work.
 
-The builder reads the current local `../PalEdit/psp-reference/data/json` extract plus
-the immutable snapshots under `data/reference-sources`. It builds into a temporary
-file, runs SQLite integrity/foreign-key checks, and atomically replaces the output.
-
-The Tauri bundle ships this database as `data/palbox-reference.db` and Rust opens it
-with SQLite's read-only flag.
+**Provenance & attribution.** The data derives from Palworld 1.0's own game data, cross-checked
+against the public community databases ([paldb.cc](https://paldb.cc),
+[wiki.gg](https://palworld.wiki.gg)) and the open-source
+[palworld-save-pal](https://github.com/oMaN-Rod/palworld-save-pal) project. Save serialization
+uses [`uesave-rs`](https://github.com/oMaN-Rod/uesave-rs). Palworld is a trademark of
+Pocketpair, Inc.; Palbox Studio is an unofficial, fan-made tool.
 
 ## `palbox-user.db`
 

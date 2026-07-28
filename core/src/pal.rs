@@ -249,8 +249,8 @@ fn set_character_id(sp: &mut Properties, value: &str) {
     ue::set_prop(sp, "CharacterID", variant);
 }
 
-/// Change the pal's species by rewriting `CharacterID`, mirroring PalEdit's
-/// `SetType`: keep an alpha/lucky `BOSS_` prefix (the game stores the boss
+/// Change the pal's species by rewriting `CharacterID`: keep an alpha/lucky
+/// `BOSS_` prefix (the game stores the boss
 /// variant for those) and preserve the property's on-disk variant (Name/Str/
 /// Enum) so the save round-trips byte-for-byte. The new species' stats, work
 /// suitability and natural learnset are derived by the game from `CharacterID`,
@@ -335,7 +335,7 @@ pub fn set_learned_moves(sp: &mut Properties, codes: Vec<String>) {
 
 pub fn set_work(sp: &mut Properties, work: &BTreeMap<String, i64>) {
     // Rebuild in canonical game order and write only non-zero AddRank entries.
-    // This avoids the zero-rank bloat that broke work assignment in PalEdit.
+    // This avoids the zero-rank bloat that breaks in-game work assignment.
     let mut entries = Vec::new();
     for (internal, official) in WORK {
         let Some(rank) = work.get(official).copied().filter(|value| *value != 0) else {

@@ -7,10 +7,10 @@
 ## What this is
 
 A proper, ground-up application for editing the **global Pal box** in Palworld 1.0 —
-taking everything we learned building/maintaining the PalEdit 1.0 fork and rebuilding it
+taking everything learned maintaining a prior Palworld 1.0 save editor and rebuilding it
 as a real, well-engineered product with a beautiful GUI.
 
-This is a rewrite in *intent*, not a patch on PalEdit.
+This is a rewrite in *intent*, not a patch on an existing tool.
 
 ## North-star principles
 
@@ -26,7 +26,7 @@ This is a rewrite in *intent*, not a patch on PalEdit.
    the engine, and the engine must be usable headless (CLI/tests) without any UI. Owner
    expects to keep tweaking the UI, so make it cheap to add/rearrange panels and components.
 4. **Safety first.** Never touch live saves. Always work on copies, always back up before
-   write, atomic writes only. (Carried over from the PalEdit working rules.)
+   write, atomic writes only. (Carried over from hard-won save-editing experience.)
 5. **Engineering discipline as a first-class feature.** Detailed commits that explain the
    *why*, bugs encountered / perceived benefit, testing approach and results. Decision
    records (ADRs) for anything architectural. Tests around the core from day one.
@@ -87,14 +87,13 @@ clearly labeled; use **official in-game terminology** throughout:
 See [decisions/0001-rust-core-tauri-svelte.md](decisions/0001-rust-core-tauri-svelte.md)
 for the full rationale. Summary:
 
-- **D1 — Core language: Rust.** Our own Palworld domain model, built fresh from our RE
-  knowledge ([PalEdit notes](../../PalEdit/CLAUDE.md)) + the vendored PSP Rust source
-  (`PalEdit/psp-reference/`, mechanics reference only — PSP is buggy, we don't copy blind),
-  on top of a vendored general UE-save Rust crate for the byte-level GVAS/Oodle plumbing.
+- **D1 — Core language: Rust.** Our own Palworld domain model, built fresh from our
+  reverse-engineering knowledge (now consolidated in [SAVE-FORMAT.md](SAVE-FORMAT.md)), on top
+  of a vendored general UE-save Rust crate for the byte-level GVAS/Oodle plumbing.
 - **D2 — Frontend: Svelte + Tauri.** Web-tech UI (best for the Palworld look + clean design
   handoff) in a Tauri shell talking to the Rust core.
 - **D3 — Distribution: single standalone binary.** Clean drop-in for the owner's Vortex tool
-  tile — kills the cx_Freeze / copy-over-the-folder pain we live with in PalEdit today.
+  tile — kills the cx_Freeze / copy-over-the-folder packaging pain of the prior Python tool.
 - **D4 — Reuse the *knowledge*, not the code.** We own the intelligence; fresh Rust
   implementation. Bonus: the world-save guild-tail logic we *couldn't* port to Python is
   native Rust in PSP — no longer a wall (relevant only if scope ever expands; see D5).
@@ -104,7 +103,7 @@ for the full rationale. Summary:
   through it now. Don't scope-creep.
 
 Rejected alternatives (see ADR 0001): Python core + web frontend (the KrisCris model —
-would reuse our PalEdit code but keeps the packaging pain and the Rust→Python wall); C# / Go
+would reuse our existing Python code but keeps the packaging pain and the Rust→Python wall); C# / Go
 (no maintained Palworld-aware save parser to build on).
 
 ## Reference material to gather

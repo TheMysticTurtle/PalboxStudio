@@ -116,7 +116,7 @@ pub fn pal_param_mut(save: &mut Save, slot: usize) -> Option<&mut crate::ue::Pro
 // complete, valid skeleton with CharacterID "None", nil InstanceId, and
 // SlotIndex -1. So: clone = deepcopy an occupied slot into an empty one with a
 // fresh identity; add = claim an empty slot and give it a species; delete =
-// restore a slot to a pristine vacancy. Mirrors the proven PalEdit path.
+// restore a slot to a pristine vacancy.
 //
 // NOTE: GlobalPalStorage.sav has no authoritative Slots array (SlotIndex is
 // non-authoritative and duplicated in real boxes), so an added/cloned pal will

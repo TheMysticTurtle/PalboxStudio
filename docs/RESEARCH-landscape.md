@@ -6,9 +6,9 @@ recency is `pushed_at` (last code push) from the GitHub API on 2026-07-24.
 ## Key correction to an earlier assumption
 "Palworld format knowledge lives in Python, so updates land there first" — **not a durable
 moat.** The canonical Python parser `cheahjs/palworld-save-tools` (863★) last had a code
-push **2024-10-06** — effectively stale upstream. In practice **every serious editor
-maintains its own bundled parser fork**, in whatever language it's written. So we own a
-parser fork regardless of language choice.
+push **2024-10-06**. In practice, active editors tend to maintain their own bundled parser
+fork in whatever language they're written, so we would maintain one regardless of language
+choice.
 
 ## Parsers
 - **cheahjs/palworld-save-tools** — Python, Palworld-aware, 863★. Canonical but upstream
@@ -35,8 +35,8 @@ parser fork regardless of language choice.
   vs. our cx_Freeze pain), fast/safe, the modern convergence point; build on an existing
   1.0-capable Palworld uesave-rs fork rather than porting from scratch. Cost: steeper
   language, slower format iteration, needs Rust appetite.
-- **Path B — Python + Svelte (KrisCris model):** reuse the PalEdit 1.0 parsing we already
-  own; fastest iteration; Python is where most RE happens. Cost: clunky exe packaging.
+- **Path B — Python + Svelte (KrisCris model):** reuse the Python 1.0 save parsing we already
+  maintained; fastest iteration; Python is where most RE happens. Cost: heavier exe packaging.
 
 ## Open input needed
 Appetite for a **Rust** core is the deciding factor between A and B. Distribution quality

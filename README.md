@@ -157,8 +157,9 @@ npm install && npm --prefix ui install   # one-time
 npm run tauri dev                          # run with UI hot-reload
 ```
 
-`npm run build` builds the frontend, `cargo test` runs the engine tests, and
-`python scripts/build_reference_db.py --check` validates the reference database.
+`npm run build` builds the frontend and `cargo test` runs the engine tests. The bundled
+reference database (`data/palbox-reference.db`) ships prebuilt, so no data-generation step is
+needed to build from source.
 
 To produce the installer and portable zip:
 
