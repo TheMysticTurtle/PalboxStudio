@@ -2,6 +2,31 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Session — 2026-07-27: documentation consolidation + audit backlog
+
+Consolidated the project's reverse-engineering and data knowledge into its own documentation, and
+stood up a prioritized backlog from the two engineering audits.
+
+**Done — committed `8ee2b09` (local, not yet pushed):**
+- New `CLAUDE.md` (project front door) and `docs/SAVE-FORMAT.md` (the 1.0 save-format layout,
+  per-Pal fields, save-field map, slot model, and corruption traps, in one reference).
+- QUICKREF, SPECS-1.0, DATA-AND-ASSETS, DIRECTION, RESEARCH-landscape, and `reference/README` now
+  point at the in-repo references.
+- `scripts/build_reference_db.py` untracked (kept locally); the reference DB
+  (`data/palbox-reference.db`) ships prebuilt and committed, with provenance/attribution recorded
+  in `database/README.md`.
+- Tidied related `core/src` comments.
+
+**Decisions this session (captured in [BACKLOG.md](BACKLOG.md)):**
+- Remove the speculative user-DB migration machinery; recreate on an incompatible schema.
+- Adopt core-authoritative validation (single source of truth for editable limits); revisit
+  generated Rust→TS bindings later, only if they earn their keep.
+- A self-owned game-data extractor (e.g. CUE4Parse against the game's packaged assets) is future
+  work.
+
+**Next up:** work the backlog in [BACKLOG.md](BACKLOG.md), Tier 0 (save integrity) first. A fuller
+reconciled write-up of both audits can still be added as `docs/AUDIT-2026-07-27.md` if useful.
+
 ## Packaging handoff
 
 Current working branch: `feature/groups-passive-presets`.
