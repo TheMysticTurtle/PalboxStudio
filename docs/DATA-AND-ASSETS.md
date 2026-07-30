@@ -86,10 +86,11 @@ verify in the app (`npm run tauri dev`).
 
 ## User metadata — `palbox-user.db`
 
-`database/user-schema.sql` defines the separate writable store. Schema v2 contains named passive
+`database/user-schema.sql` defines the separate writable store. Schema v3 contains named passive
 presets with ordered slots `0..3`, plus user-named groups and many-to-many membership keyed by a
-Pal's stable `InstanceId`. Existing v1 databases migrate in place through
-`database/migrations/user-v2-groups.sql`. The app validates passive codes against
+Pal's stable `InstanceId`, and engine-owned app settings for the remembered box and auto-open
+toggle. Existing v1/v2 databases migrate in place through the numbered scripts in
+`database/migrations/`. The app validates passive codes against
 `palbox-reference.db` before saving or applying a preset. No mutable Pal game state is copied into
 this database; applying a preset changes only the in-memory Pal loaded from
 `GlobalPalStorage.sav`, and the normal explicit save operation remains required. Group membership

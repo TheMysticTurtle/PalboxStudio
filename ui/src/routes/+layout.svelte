@@ -26,11 +26,21 @@
   });
 
   onMount(() => {
-    loadBoxPreferences();
-    if (boxPreferences.autoReopen && boxPreferences.lastBoxPath) {
-      void openBoxFile(boxPreferences.lastBoxPath, { automatic: true });
-    }
-    return startBoxSourceMonitor();
+    let active = true;
+    const stopMonitor = startBoxSourceMonitor();
+    void loadBoxPreferences().then(() => {
+      if (
+        active
+        && boxPreferences.autoReopen
+        && boxPreferences.lastBoxPath
+      ) {
+        void openBoxFile(boxPreferences.lastBoxPath, { automatic: true });
+      }
+    });
+    return () => {
+      active = false;
+      stopMonitor();
+    };
   });
 </script>
 

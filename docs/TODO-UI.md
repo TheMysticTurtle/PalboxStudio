@@ -48,7 +48,8 @@ Gather real game-texture icons as bundled assets where they exist; keep coloured
       scaling + level + IV + souls + condensation; expose via Tauri commands.
 - [x] Scrape **partnerSkill + farmDrops** — DONE: now in the reference DB (348 partner skills,
       Ranch products) via `scripts/scrape_*.py`; see ADR 0003.
-- [x] **SQLite** store for groups / tags / passive presets (schema v2 with automatic v1 migration).
+- [x] **SQLite** store for groups, tags, passive presets, and app preferences (schema v3 with
+      automatic v1/v2 migration).
       Settings can join the same user-data plane later.
 
 ## 6. Polish / correctness

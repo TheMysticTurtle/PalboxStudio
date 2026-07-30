@@ -30,15 +30,17 @@ Pocketpair, Inc.; Palbox Studio is an unofficial, fan-made tool.
 ## `palbox-user.db`
 
 Writable local app metadata. The checked-in `data/palbox-user.template.db` proves and
-tests schema v2; the app creates the real DB in its platform application-data folder
-and migrates existing v1 databases automatically.
+tests schema v3; the app creates the real DB in its platform application-data folder
+and migrates existing v1/v2 databases automatically.
 
 The current schema stores:
 
 - passive presets with a unique name, zero to four unique passive codes, explicit
   slot order, and timestamps;
 - unique user-named groups;
-- many-to-many Pal membership keyed by stable `InstanceId`.
+- many-to-many Pal membership keyed by stable `InstanceId`;
+- engine-owned application settings, currently the remembered Global Palbox path and
+  its auto-open toggle.
 
 Passive codes are deliberately not foreign keys inside this file because the
 reference DB is a separate read-only database. `palbox-core` validates every code
@@ -51,6 +53,7 @@ and never creates a second copy of mutable Pal state.
 ## Schema changes
 
 Add a numbered migration to the applicable schema and teach the Rust open path to
-migrate older user databases before adding features. Schema v2 follows this contract
-through `migrations/user-v2-groups.sql`. Rebuild generated DB files; never edit a
-`.db` by hand.
+migrate older user databases before adding features. Schema v2 adds groups through
+`migrations/user-v2-groups.sql`; schema v3 adds app settings through
+`migrations/user-v3-app-settings.sql`. Rebuild generated DB files; never edit a `.db`
+by hand.

@@ -14,8 +14,8 @@ use palbox_core::globalbox::{
 };
 use palbox_core::pal::{self, PalDto};
 use palbox_core::reference::{
-    validate_passive_codes, PalGroupMembership, PassiveOption, PassivePreset, ReferenceBundle,
-    ReferenceDatabase, UserDatabase, UserGroup,
+    validate_passive_codes, AppPreferences, PalGroupMembership, PassiveOption, PassivePreset,
+    ReferenceBundle, ReferenceDatabase, UserDatabase, UserGroup,
 };
 use palbox_core::session::SaveSession;
 use serde::Serialize;
@@ -208,6 +208,24 @@ fn get_reference_data(cache: State<ReferenceCache>) -> ReferenceBundle {
 }
 
 #[tauri::command]
+fn get_app_preferences(databases: State<DatabasePaths>) -> Result<AppPreferences, String> {
+    UserDatabase::open_or_create(&databases.user)
+        .and_then(|user| user.app_preferences())
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn save_app_preferences(
+    preferences: AppPreferences,
+    databases: State<DatabasePaths>,
+) -> Result<AppPreferences, String> {
+    let mut user =
+        UserDatabase::open_or_create(&databases.user).map_err(|error| error.to_string())?;
+    user.save_app_preferences(&preferences)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 fn list_passive_presets(databases: State<DatabasePaths>) -> Result<Vec<PassivePreset>, String> {
     UserDatabase::open_or_create(&databases.user)
         .and_then(|user| user.list_presets())
@@ -365,6 +383,8 @@ pub fn run() {
             delete_box_pal,
             save_box,
             get_reference_data,
+            get_app_preferences,
+            save_app_preferences,
             list_passive_options,
             list_passive_presets,
             save_passive_preset,

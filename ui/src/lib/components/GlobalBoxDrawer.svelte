@@ -192,11 +192,14 @@
         type="checkbox"
         checked={boxPreferences.autoReopen}
         disabled={!boxPreferences.lastBoxPath}
-        onchange={(event) => setAutoReopen(event.currentTarget.checked)}
+        onchange={(event) => void setAutoReopen(event.currentTarget.checked)}
       />
       <span class="switch" aria-hidden="true"></span>
     </label>
   </div>
+  {#if boxPreferences.error}
+    <div class="preference-error">{boxPreferences.error}</div>
+  {/if}
 
   <button class="open" onclick={openBoxClicked} disabled={box.loading}>
     {box.loading ? "Opening…" : "⭳ Open Global Palbox"}
@@ -388,6 +391,7 @@
   }
   .open:hover { background: rgba(63, 199, 224, 0.24); }
   .open:disabled { opacity: 0.6; cursor: default; }
+  .preference-error { font-size: var(--type-caption); color: #e89090; }
   .picked { font-size: var(--type-caption); color: #a18caf; }
   .picked b { color: #c9b4e0; }
   .err { font-size: var(--type-caption); color: #e89090; }

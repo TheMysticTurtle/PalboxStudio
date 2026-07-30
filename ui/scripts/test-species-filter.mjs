@@ -13,7 +13,7 @@ import {
 } from "../src/lib/data/passiveFilter.ts";
 import {
   parseBoxPreferences,
-  serializeBoxPreferences,
+  shouldMigrateLegacyBoxPreferences,
 } from "../src/lib/data/boxPreferences.ts";
 import { classifySourceConflict } from "../src/lib/data/sourceMonitor.ts";
 
@@ -184,16 +184,20 @@ test("last-box preferences are version-safe and reject malformed storage", () =>
   });
 });
 
-test("last-box preferences serialize only the durable path and toggle", () => {
+test("only an empty database preference imports the legacy remembered box", () => {
   assert.equal(
-    serializeBoxPreferences({
-      lastBoxPath: "/tmp/GlobalPalStorage.sav",
-      autoReopen: true,
-    }),
-    JSON.stringify({
-      lastBoxPath: "/tmp/GlobalPalStorage.sav",
-      autoReopen: true,
-    }),
+    shouldMigrateLegacyBoxPreferences(
+      { lastBoxPath: "", autoReopen: false },
+      { lastBoxPath: "/tmp/GlobalPalStorage.sav", autoReopen: true },
+    ),
+    true,
+  );
+  assert.equal(
+    shouldMigrateLegacyBoxPreferences(
+      { lastBoxPath: "D:\\Pal\\GlobalPalStorage.sav", autoReopen: false },
+      { lastBoxPath: "/tmp/stale.sav", autoReopen: true },
+    ),
+    false,
   );
 });
 

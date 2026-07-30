@@ -116,11 +116,17 @@ export async function openBoxFile(
     box.hint = "";
     selectedBaseline = "";
     unavailableStreak = 0;
-    if (options.remember !== false) rememberBoxPath(result.path);
+    if (
+      options.remember !== false
+      && !(await rememberBoxPath(result.path))
+    ) {
+      box.error =
+        "The Global Palbox opened, but Studio could not remember it in palbox-user.db.";
+    }
     return true;
   } catch (error) {
     if (options.automatic) {
-      setAutoReopen(false);
+      await setAutoReopen(false);
       box.error =
         `Could not reopen the last Global Palbox. Auto-open was turned off; choose the file again. ${String(error)}`;
     } else {

@@ -112,6 +112,17 @@ export const saveBox = () => invoke<string>("save_box");
 export const getReferenceData = () =>
   invoke<ReferenceBundle>("get_reference_data");
 
+export interface AppPreferences {
+  lastBoxPath: string;
+  autoReopen: boolean;
+}
+
+export const getAppPreferences = () =>
+  invoke<AppPreferences>("get_app_preferences");
+
+export const saveAppPreferences = (preferences: AppPreferences) =>
+  invoke<AppPreferences>("save_app_preferences", { preferences });
+
 export const listPassiveOptions = (
   search = "",
   includeDisabled = false,

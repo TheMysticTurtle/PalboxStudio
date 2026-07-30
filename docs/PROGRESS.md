@@ -2,14 +2,32 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Session — 2026-07-29: durable preferences and roomier launch
+
+- Increased the default desktop window from 1280×800 to 1440×900 so the compact Global Palbox
+  retains more usable matrix space after adding the Last Palbox control. The existing 1024×680
+  minimum is unchanged, so users can still resize the window down.
+- Advanced `palbox-user.db` to schema v3 with a dedicated `app_setting` table. The engine now owns
+  the remembered Global Palbox path and auto-open preference alongside presets and groups.
+- Existing values stored under the old webview local-storage key are imported into SQLite once,
+  then removed only after a successful database write. Fresh installs and upgrades use the same
+  authoritative preference commands.
+- The v3 migration is idempotent so concurrent preset/group/preference reads during startup cannot
+  race the schema upgrade.
+
+**Verification:** 28 core tests cover preference durability, normalization, concurrent startup,
+v1→v3 migration, and v2 user-metadata preservation;
+12 UI unit tests cover legacy-import selection. Svelte checking and a production build remain the
+release gates.
+
 ## Session — 2026-07-29: seamless reopen and source-conflict monitor
 
 - Added a compact **Last Palbox** row at the top of the Global Palbox drawer. A remembered path can
   be opened in one click, and the adjacent **Open on launch** toggle automatically reopens it on
   future starts. An invalid/moved path disables auto-open and falls back to the normal picker
   without trapping the user in a repeated startup error.
-- The last-box preference is app metadata stored by the webview, not Pal save data. It is updated
-  only after a successful open.
+- The last-box preference is app metadata, not Pal save data. It is updated only after a successful
+  open and is now persisted through the engine-owned user database described above.
 - Added an always-on source monitor while a box is open. The shell asks the core for a freshly
   hashed source status every 1.5 seconds; source changes or disappearance preserve the in-memory
   copy, block Save, show a clear conflict banner, and offer an explicit discard-and-reload action.
@@ -21,7 +39,7 @@ Living log of where the build is and what's next. Read this first when resuming.
 - Opening another box or reloading a conflict warns before discarding unsaved in-memory edits.
 
 **Verification:** core session tests cover current/changed source status; UI unit tests cover
-preference parsing/serialization and post-save conflict classification.
+legacy preference parsing/import and post-save conflict classification.
 
 **Next:** complete deterministic Tier 0 persistence fault injection, then add the remaining
 window-close dirty guard and dirty-conflict snapshot/export.
@@ -198,9 +216,10 @@ do not have to discover the folder manually.
 
 Branch: `feature/groups-passive-presets`.
 
-The writable user database is schema v2. Migration `user-v2-groups.sql` upgrades existing v1
-databases in place, adding named groups plus many-to-many membership keyed by a Pal's stable
-`InstanceId`. Groups remain Palbox Studio metadata and never enter `GlobalPalStorage.sav`.
+The writable user database was schema v2 at this checkpoint. Migration `user-v2-groups.sql`
+upgrades existing v1 databases in place, adding named groups plus many-to-many membership keyed by
+a Pal's stable `InstanceId`. Schema v3 later adds durable app settings. Groups remain Palbox Studio
+metadata and never enter `GlobalPalStorage.sav`.
 Rust owns name/foreign-key/membership validation; deleting a group cascades only its app-owned
 memberships. Core tests cover v1 migration, case-insensitive uniqueness, atomic assignment
 replacement, and cascade behavior.

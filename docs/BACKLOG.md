@@ -11,10 +11,10 @@ Status key: `[ ]` open · `[x]` done · `[~]` in progress · `[?]` needs investi
 
 ## Decisions already made
 
-- **Remove the speculative user-database migration machinery.** No released user has a legacy
-  schema to migrate, and the user database holds only app metadata (groups, tags, presets), never
-  save data. On an incompatible schema, recreate the user database rather than migrate. Confirm the
-  database-open logic and baseline schema first so nothing is lost.
+- **Preserve durable user metadata through numbered migrations.** The user database now holds
+  presets, groups, memberships, and app settings that must survive installer upgrades. Add each
+  compatible schema change as a tested, forward-only migration; reject databases newer than the
+  running app rather than recreating or silently downgrading them.
 - **Adopt core-authoritative validation.** The Rust core is the single source of truth for every
   editable limit; the UI restricts values for convenience only. This removes the editing limits
   that are currently mirrored between the core and the frontend.
@@ -78,10 +78,9 @@ Status key: `[ ]` open · `[x]` done · `[~]` in progress · `[?]` needs investi
 
 ## Tier 3 — deliberate refinements (when the area is next touched)
 
-- [ ] **Remove the migration machinery** (per the decision above): delete
-  `database/migrations/user-v2-groups.sql`, the `USER_MIGRATION_V2` path and the runtime schema
-  migration branch, and the legacy-schema migration tests; recreate the user DB on an incompatible
-  schema.
+- [x] **Make user metadata upgrade-safe.** Numbered v2 and v3 migrations preserve passive presets,
+  groups, memberships, the remembered Palbox path, and auto-open preference across upgrades.
+  Migration and fresh-schema behavior are covered by core tests.
 - [x] **Move domain rules into the core.** New-Pal initialization and DTO application belong behind
   core operations (for example `create_initialized_pal`, `apply_pal_dto`); the Tauri layer manages
   the session and marshals commands.

@@ -14,7 +14,8 @@ use serde::{Deserialize, Serialize};
 
 const USER_SCHEMA: &str = include_str!("../../database/user-schema.sql");
 const USER_MIGRATION_V2: &str = include_str!("../../database/migrations/user-v2-groups.sql");
-const USER_SCHEMA_VERSION: i64 = 2;
+const USER_MIGRATION_V3: &str = include_str!("../../database/migrations/user-v3-app-settings.sql");
+const USER_SCHEMA_VERSION: i64 = 3;
 
 #[derive(Debug)]
 pub enum DatabaseError {
@@ -80,6 +81,13 @@ pub struct UserGroup {
 pub struct PalGroupMembership {
     pub instance_id: String,
     pub group_ids: Vec<i64>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppPreferences {
+    pub last_box_path: String,
+    pub auto_reopen: bool,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -730,6 +738,9 @@ impl UserDatabase {
         if schema_version < 2 {
             connection.execute_batch(USER_MIGRATION_V2)?;
         }
+        if schema_version < 3 {
+            connection.execute_batch(USER_MIGRATION_V3)?;
+        }
         let kind: String = connection.query_row(
             "SELECT value FROM metadata WHERE key = 'database_kind'",
             [],
@@ -741,6 +752,69 @@ impl UserDatabase {
             )));
         }
         Ok(Self { connection })
+    }
+
+    pub fn app_preferences(&self) -> Result<AppPreferences> {
+        let last_box_path = self.app_setting("last_box_path")?;
+        let auto_reopen = match self.app_setting("auto_reopen")?.as_str() {
+            "0" => false,
+            "1" => true,
+            value => {
+                return Err(DatabaseError::Invalid(format!(
+                    "invalid auto_reopen setting {value:?}"
+                )));
+            }
+        };
+        Ok(AppPreferences {
+            last_box_path,
+            auto_reopen,
+        })
+    }
+
+    pub fn save_app_preferences(&mut self, preferences: &AppPreferences) -> Result<AppPreferences> {
+        if preferences.last_box_path.chars().count() > 32_768 {
+            return Err(DatabaseError::Invalid(
+                "last Global Palbox path is too long".to_string(),
+            ));
+        }
+        let preferences = AppPreferences {
+            last_box_path: preferences.last_box_path.clone(),
+            auto_reopen: preferences.auto_reopen && !preferences.last_box_path.is_empty(),
+        };
+        let transaction = self.connection.transaction()?;
+        transaction.execute(
+            r#"
+            INSERT INTO app_setting(key, value)
+            VALUES ('last_box_path', ?1)
+            ON CONFLICT(key) DO UPDATE SET
+                value = excluded.value,
+                updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+            "#,
+            [&preferences.last_box_path],
+        )?;
+        transaction.execute(
+            r#"
+            INSERT INTO app_setting(key, value)
+            VALUES ('auto_reopen', ?1)
+            ON CONFLICT(key) DO UPDATE SET
+                value = excluded.value,
+                updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+            "#,
+            [if preferences.auto_reopen { "1" } else { "0" }],
+        )?;
+        transaction.commit()?;
+        Ok(preferences)
+    }
+
+    fn app_setting(&self, key: &str) -> Result<String> {
+        self.connection
+            .query_row(
+                "SELECT value FROM app_setting WHERE key = ?1",
+                [key],
+                |row| row.get(0),
+            )
+            .optional()?
+            .ok_or_else(|| DatabaseError::Invalid(format!("missing app setting {key:?}")))
     }
 
     pub fn list_presets(&self) -> Result<Vec<PassivePreset>> {
@@ -986,6 +1060,7 @@ fn validate_group_name(name: &str) -> Result<&str> {
 mod tests {
     use super::*;
     use std::path::PathBuf;
+    use std::sync::{Arc, Barrier};
     use std::time::{SystemTime, UNIX_EPOCH};
 
     fn reference_path() -> PathBuf {
@@ -1172,7 +1247,98 @@ mod tests {
     }
 
     #[test]
-    fn schema_v1_user_database_migrates_to_groups() {
+    fn app_preferences_are_durable_and_normalized() {
+        let path = unique_user_path();
+        let mut user = UserDatabase::open_or_create(&path).unwrap();
+        assert_eq!(user.app_preferences().unwrap(), AppPreferences::default());
+
+        let saved = user
+            .save_app_preferences(&AppPreferences {
+                last_box_path: "C:\\Pal\\Saved\\GlobalPalStorage.sav".to_string(),
+                auto_reopen: true,
+            })
+            .unwrap();
+        assert!(saved.auto_reopen);
+        drop(user);
+
+        let mut reopened = UserDatabase::open_or_create(&path).unwrap();
+        assert_eq!(reopened.app_preferences().unwrap(), saved);
+        let normalized = reopened
+            .save_app_preferences(&AppPreferences {
+                last_box_path: String::new(),
+                auto_reopen: true,
+            })
+            .unwrap();
+        assert_eq!(normalized, AppPreferences::default());
+        drop(reopened);
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn concurrent_user_database_initialization_is_idempotent() {
+        let path = Arc::new(unique_user_path());
+        let barrier = Arc::new(Barrier::new(4));
+        let workers = (0..4)
+            .map(|_| {
+                let path = Arc::clone(&path);
+                let barrier = Arc::clone(&barrier);
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    let user = UserDatabase::open_or_create(path.as_ref()).unwrap();
+                    assert_eq!(user.app_preferences().unwrap(), AppPreferences::default());
+                })
+            })
+            .collect::<Vec<_>>();
+        for worker in workers {
+            worker.join().unwrap();
+        }
+        fs::remove_file(path.as_ref()).unwrap();
+    }
+
+    #[test]
+    fn schema_v2_migration_preserves_existing_user_metadata() {
+        let path = unique_user_path();
+        let mut user = UserDatabase::open_or_create(&path).unwrap();
+        let valid_codes = HashSet::from(["Legend".to_string()]);
+        let preset = user
+            .save_preset(&valid_codes, None, "Favorite", &["Legend".to_string()])
+            .unwrap();
+        let group = user.create_group("Workers").unwrap();
+        user.set_pal_groups("instance-1", &[group.id]).unwrap();
+        drop(user);
+
+        let connection = Connection::open(&path).unwrap();
+        connection
+            .execute_batch(
+                r#"
+                DROP TABLE app_setting;
+                DELETE FROM schema_migrations WHERE version = 3;
+                UPDATE metadata SET value = '2' WHERE key = 'schema_version';
+                "#,
+            )
+            .unwrap();
+        drop(connection);
+
+        let migrated = UserDatabase::open_or_create(&path).unwrap();
+        assert_eq!(migrated.list_presets().unwrap(), vec![preset]);
+        assert_eq!(migrated.list_groups().unwrap(), vec![group.clone()]);
+        assert_eq!(
+            migrated.list_group_memberships().unwrap(),
+            vec![PalGroupMembership {
+                instance_id: "instance-1".to_string(),
+                group_ids: vec![group.id],
+            }]
+        );
+        assert_eq!(
+            migrated.app_preferences().unwrap(),
+            AppPreferences::default()
+        );
+        drop(migrated);
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn schema_v1_user_database_migrates_to_current() {
         let path = unique_user_path();
         let connection = Connection::open(&path).unwrap();
         connection
@@ -1206,7 +1372,8 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, "2");
+        assert_eq!(version, "3");
+        assert_eq!(user.app_preferences().unwrap(), AppPreferences::default());
         drop(user);
         fs::remove_file(path).unwrap();
     }
