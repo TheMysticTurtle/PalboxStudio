@@ -4,7 +4,7 @@
 
 <p align="center">
   <img alt="Windows" src="https://img.shields.io/badge/Windows-10%20%2F%2011-0a7bbd">
-  <img alt="Version" src="https://img.shields.io/badge/release-1.0.0-b060e0">
+  <img alt="Version" src="https://img.shields.io/badge/release-1.1.1-b060e0">
   <img alt="Built with" src="https://img.shields.io/badge/built%20with-Rust%20%C2%B7%20Tauri%20%C2%B7%20Svelte-3fc7e0">
   <img alt="License" src="https://img.shields.io/badge/license-PolyForm%20Strict%201.0.0-6e7a86">
 </p>

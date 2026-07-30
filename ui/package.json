@@ -1,6 +1,6 @@
 {
   "name": "palbox-studio-ui",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Palbox Studio frontend (Svelte + Vite).",
   "type": "module",
   "scripts": {

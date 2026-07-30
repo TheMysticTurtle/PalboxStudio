@@ -1,6 +1,6 @@
 [package]
 name = "palbox-core"
-version = "1.0.0"
+version = "1.1.1"
 edition = "2021"
 license = "PolyForm-Strict-1.0.0"
 description = "Palbox Studio headless engine: Palworld 1.0 Global Pal box model, load/write, and mutations. No UI."
