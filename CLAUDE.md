@@ -87,8 +87,9 @@ npm run tauri dev                         # run the app with UI hot-reload
 
 - `npm run build` — build the frontend (Tauri embeds `ui/build`; build it before `cargo build`).
 - `npm run check` — Svelte/TypeScript type-check (expected: 0 errors / 0 warnings).
-- `cargo test` — the engine tests. Set `PALBOX_TEST_SAV` to a **scratchpad copy** of a real
-  `GlobalPalStorage.sav` to include the round-trip test; never point it at a live save.
+- `cargo test` — the engine tests, including the committed sanitized Global Palbox fixture and
+  real encode/decode/edit regressions. Set `PALBOX_TEST_SAV` to a **scratchpad copy** to repeat the
+  same suite against another real file; never point it at a live save.
 - The reference database (`data/palbox-reference.db`) ships as a bundled resource. Its generation is
   maintainer tooling, currently being reworked into a self-owned data pipeline; the shipped app
   needs only the bundled DB.

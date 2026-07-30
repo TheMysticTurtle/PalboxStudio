@@ -46,6 +46,10 @@ this repo — start here, then follow into the deeper docs.
 - **Don't auto-fill `MasteredWaza`** from the learnset on load — real saves keep it empty;
   keep the UI's move view separate from `MasteredWaza`.
 - **Translate condensation at the save boundary:** displayed stars 0–4 ↔ stored `Rank` 1–5.
+- **Register writable property schemas in the core before encoding.** Optional fields absent from
+  every source Pal otherwise have no `uesave` tag and cannot be introduced safely.
+- **Refuse stale writes.** The core fingerprints the opened source and rechecks it before backup and
+  again immediately before replacement.
 
 ## Golden rules
 - **Live saves are sacred** — operate only on scratchpad copies; back up before first write;

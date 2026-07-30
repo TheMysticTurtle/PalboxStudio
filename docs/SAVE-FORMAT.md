@@ -120,6 +120,10 @@ These are specific ways an edit can quietly damage a 1.0 box; the editor avoids 
   byte — is real.
 - **Never write zero-rank Work Suitability entries.** Write only the non-zero bonuses into
   `GotWorkSuitabilityAddRankList`; padding it with zero-rank entries breaks in-game work assignment.
+- **Register schemas for fields the editor can introduce.** `uesave` records Unreal property tags
+  while reading. If an optional property was absent from every source Pal, adding only its value
+  leaves serialization without a tag. The core's insert-only writable-schema registry supplies the
+  canonical tag without replacing any schema recovered from the source save.
 - **Never auto-fill `MasteredWaza` from the learnset on load.** Real saves keep it empty; the
   editor's move view is kept separate, and `MasteredWaza` changes only when the user explicitly
   masters or strips a move.
@@ -127,6 +131,9 @@ These are specific ways an edit can quietly damage a 1.0 box; the editor avoids 
 - **Never write the displayed condensation stars directly to `Rank`.** Translate editor stars
   `0–4` to the save's one-based byte `1–5`; otherwise every edited Pal appears one rank lower
   in-game.
+- **Never overwrite a source that changed after open.** The core records SHA-256, size, and modified
+  time, verifies them before backup and again before atomic replacement, and requires the user to
+  reopen on conflict.
 
 ## Open questions worth an in-game round trip
 

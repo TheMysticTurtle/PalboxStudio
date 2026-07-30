@@ -11,6 +11,8 @@ pub mod globalbox;
 pub mod pal;
 pub mod reference;
 pub mod save;
+pub mod schema;
+pub mod session;
 pub mod ue;
 
 /// Core crate version — surfaced to the UI as a smoke test that the bridge is wired up.

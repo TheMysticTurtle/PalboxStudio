@@ -175,8 +175,9 @@ pub fn read_pal(sp: &Properties, slot: usize) -> PalDto {
 // ---- edit ports (setters over a mutable SaveParameter) ----
 
 pub fn set_level(sp: &mut Properties, level: u8) {
+    let level = level.clamp(crate::limits::LEVEL_MIN, crate::limits::LEVEL_MAX);
     // Level is written only when > 1; absent = level 1 (matches the save format).
-    if level > 1 {
+    if level > crate::limits::LEVEL_MIN {
         ue::set_prop(sp, "Level", ue::byte_prop(level));
     } else {
         ue::remove_prop(sp, "Level");
@@ -198,7 +199,11 @@ pub fn set_iv(sp: &mut Properties, stat: &str, value: u8) {
         "defense" => "Talent_Defense",
         _ => return,
     };
-    ue::set_prop(sp, key, ue::byte_prop(value));
+    ue::set_prop(
+        sp,
+        key,
+        ue::byte_prop(value.clamp(crate::limits::IV_MIN, crate::limits::IV_MAX)),
+    );
 }
 pub fn set_soul(sp: &mut Properties, stat: &str, rank: u8) {
     let key = match stat {
@@ -208,7 +213,8 @@ pub fn set_soul(sp: &mut Properties, stat: &str, rank: u8) {
         "craftSpeed" => "Rank_CraftSpeed",
         _ => return,
     };
-    if rank > 0 {
+    let rank = rank.clamp(crate::limits::SOULS_RANK_MIN, crate::limits::SOULS_RANK_MAX);
+    if rank > crate::limits::SOULS_RANK_MIN {
         ue::set_prop(sp, key, ue::byte_prop(rank));
     } else {
         ue::remove_prop(sp, key);
@@ -303,11 +309,21 @@ pub fn set_variant(sp: &mut Properties, alpha: bool, lucky: bool) {
     set_lucky(sp, lucky);
 }
 pub fn set_passives(sp: &mut Properties, codes: Vec<String>) {
-    ue::set_prop(sp, "PassiveSkillList", ue::name_array_prop(codes));
+    ue::set_prop(
+        sp,
+        "PassiveSkillList",
+        ue::name_array_prop(
+            codes
+                .into_iter()
+                .take(crate::limits::PASSIVES_MAX)
+                .collect(),
+        ),
+    );
 }
 pub fn set_equipped_moves(sp: &mut Properties, codes: Vec<String>) {
     let full = codes
         .into_iter()
+        .take(crate::limits::EQUIPPED_MOVES_MAX)
         .map(|c| {
             if c.starts_with(WAZA) {
                 c
@@ -339,7 +355,15 @@ pub fn set_learned_moves(sp: &mut Properties, codes: Vec<String>) {
     ue::set_prop(sp, "MasteredWaza", ue::enum_array_prop(full));
 }
 
-pub fn set_work(sp: &mut Properties, work: &BTreeMap<String, i64>) {
+pub fn set_work(sp: &mut Properties, work: &BTreeMap<String, i64>) -> Result<(), String> {
+    for (name, rank) in work {
+        if !WORK.iter().any(|(_, official)| official == name) {
+            return Err(format!("unknown Work Suitability: {name}"));
+        }
+        i32::try_from(*rank)
+            .map_err(|_| format!("Work Suitability rank is outside IntProperty range: {rank}"))?;
+    }
+
     // Rebuild in canonical game order and write only non-zero AddRank entries.
     // This avoids the zero-rank bloat that breaks in-game work assignment.
     let mut entries = Vec::new();
@@ -353,11 +377,7 @@ pub fn set_work(sp: &mut Properties, work: &BTreeMap<String, i64>) {
             "WorkSuitability",
             ue::enum_prop(&format!("{WORK_PFX}{internal}")),
         );
-        ue::set_prop(
-            &mut properties,
-            "Rank",
-            ue::int_prop(rank.clamp(i32::MIN as i64, i32::MAX as i64) as i32),
-        );
+        ue::set_prop(&mut properties, "Rank", ue::int_prop(rank as i32));
         entries.push(StructValue::Struct(properties));
     }
     ue::remove_prop(sp, "GotWorkSuitabilityAddRankList");
@@ -368,6 +388,87 @@ pub fn set_work(sp: &mut Properties, work: &BTreeMap<String, i64>) {
             ue::struct_array_prop(entries),
         );
     }
+    Ok(())
+}
+
+/// Apply an edited DTO transactionally through the core's validated mutation
+/// ports. The Tauri layer only marshals this operation; it does not own save
+/// semantics or editing limits.
+pub fn apply_dto(sp: &mut Properties, dto: &PalDto) -> Result<(), String> {
+    // Work validation can fail. Build on a clone so an invalid DTO never leaves
+    // the in-memory Pal partially changed.
+    let mut edited = sp.clone();
+
+    // Species first: the game derives stats/work/learnset from CharacterID.
+    // Variant second so Alpha/Lucky can add or remove the BOSS_ representation.
+    set_species(&mut edited, &dto.character_id);
+    set_variant(&mut edited, dto.is_alpha, dto.is_lucky);
+    set_level(&mut edited, dto.level);
+    if let Some(name) = &dto.nickname {
+        set_nickname(&mut edited, name);
+    }
+    set_gender(&mut edited, &dto.gender);
+    set_iv(&mut edited, "hp", dto.ivs.hp);
+    set_iv(&mut edited, "shot", dto.ivs.shot);
+    set_iv(&mut edited, "defense", dto.ivs.defense);
+    set_soul(&mut edited, "hp", dto.souls.hp);
+    set_soul(&mut edited, "attack", dto.souls.attack);
+    set_soul(&mut edited, "defense", dto.souls.defense);
+    set_soul(&mut edited, "craftSpeed", dto.souls.craft_speed);
+    set_condensation(&mut edited, dto.condensation);
+    set_work(&mut edited, &dto.work)?;
+    set_passives(&mut edited, dto.passives.clone());
+    set_equipped_moves(&mut edited, dto.equipped_moves.clone());
+    set_learned_moves(&mut edited, dto.learned_moves.clone());
+    set_hp(&mut edited, dto.hp);
+    set_sanity(&mut edited, dto.sanity);
+    set_food(&mut edited, dto.food);
+    set_friendship(&mut edited, dto.friendship);
+
+    *sp = edited;
+    Ok(())
+}
+
+/// Apply a DTO after validating species-dependent Work Suitability totals
+/// against the engine's authoritative reference bundle.
+pub fn apply_dto_with_reference(
+    sp: &mut Properties,
+    dto: &PalDto,
+    reference: &crate::reference::ReferenceBundle,
+) -> Result<(), String> {
+    let base_code = dto
+        .character_id
+        .strip_prefix("BOSS_")
+        .or_else(|| dto.character_id.strip_prefix("Boss_"))
+        .or_else(|| dto.character_id.strip_prefix("boss_"))
+        .unwrap_or(&dto.character_id);
+    let species = reference
+        .species
+        .iter()
+        .find(|value| value.code == base_code)
+        .ok_or_else(|| format!("unknown Pal species: {base_code}"))?;
+    if !species.palbox_selectable {
+        return Err(format!(
+            "{} cannot be stored in the Global Palbox",
+            species.name
+        ));
+    }
+
+    for (name, bonus) in &dto.work {
+        let total = species.work.get(name).copied().unwrap_or(0) + bonus;
+        if !(i64::from(crate::limits::WORK_SUITABILITY_MIN)
+            ..=i64::from(crate::limits::WORK_SUITABILITY_MAX))
+            .contains(&total)
+        {
+            return Err(format!(
+                "{name} total level {total} is outside {}..={}",
+                crate::limits::WORK_SUITABILITY_MIN,
+                crate::limits::WORK_SUITABILITY_MAX
+            ));
+        }
+    }
+
+    apply_dto(sp, dto)
 }
 
 /// Healthy defaults for a newly claimed Global Palbox slot. Clearing revive
@@ -486,10 +587,89 @@ mod tests {
         let mut work = BTreeMap::new();
         work.insert("Kindling".to_string(), 2);
         work.insert("Mining".to_string(), 0);
-        set_work(&mut sp, &work);
+        set_work(&mut sp, &work).unwrap();
         let rows = ue::prop(&sp, "GotWorkSuitabilityAddRankList")
             .and_then(ue::array_structs)
             .unwrap();
         assert_eq!(rows.len(), 1);
+    }
+
+    #[test]
+    fn work_mutation_is_canonical_validated_and_removes_an_empty_list() {
+        let mut sp = Properties::default();
+        let mut work = BTreeMap::new();
+        work.insert("Mining".to_string(), 3);
+        work.insert("Kindling".to_string(), 2);
+        set_work(&mut sp, &work).unwrap();
+
+        let rows = ue::prop(&sp, "GotWorkSuitabilityAddRankList")
+            .and_then(ue::array_structs)
+            .unwrap();
+        let names = rows
+            .iter()
+            .filter_map(ue::struct_value_props)
+            .filter_map(|row| ue::prop(row, "WorkSuitability"))
+            .filter_map(ue::as_str)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            names,
+            [
+                "EPalWorkSuitability::EmitFlame",
+                "EPalWorkSuitability::Mining"
+            ]
+        );
+
+        let before_invalid = sp.clone();
+        work.insert("Not a real job".to_string(), 1);
+        assert!(set_work(&mut sp, &work).is_err());
+        assert_eq!(sp, before_invalid, "invalid work must not mutate the Pal");
+
+        let all_zero = WORK
+            .into_iter()
+            .map(|(_, official)| (official.to_string(), 0))
+            .collect();
+        set_work(&mut sp, &all_zero).unwrap();
+        assert!(ue::prop(&sp, "GotWorkSuitabilityAddRankList").is_none());
+    }
+
+    #[test]
+    fn core_setters_enforce_documented_limits() {
+        let mut sp = Properties::default();
+        set_level(&mut sp, u8::MAX);
+        set_iv(&mut sp, "hp", u8::MAX);
+        set_soul(&mut sp, "hp", u8::MAX);
+        set_passives(
+            &mut sp,
+            (0..10).map(|value| format!("Passive{value}")).collect(),
+        );
+        set_equipped_moves(
+            &mut sp,
+            (0..10).map(|value| format!("Move{value}")).collect(),
+        );
+
+        assert_eq!(
+            ue::prop(&sp, "Level").and_then(ue::as_byte),
+            Some(crate::limits::LEVEL_MAX)
+        );
+        assert_eq!(
+            ue::prop(&sp, "Talent_HP").and_then(ue::as_byte),
+            Some(crate::limits::IV_MAX)
+        );
+        assert_eq!(
+            ue::prop(&sp, "Rank_HP").and_then(ue::as_byte),
+            Some(crate::limits::SOULS_RANK_MAX)
+        );
+        assert_eq!(
+            ue::prop(&sp, "PassiveSkillList")
+                .and_then(ue::name_values)
+                .map(Vec::len),
+            Some(crate::limits::PASSIVES_MAX)
+        );
+        assert_eq!(
+            ue::prop(&sp, "EquipWaza")
+                .and_then(ue::enum_values)
+                .map(Vec::len),
+            Some(crate::limits::EQUIPPED_MOVES_MAX)
+        );
     }
 }

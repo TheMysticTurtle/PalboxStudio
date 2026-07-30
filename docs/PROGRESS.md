@@ -2,6 +2,44 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Session — 2026-07-29: engine-owned schemas and safe save session
+
+Started `fix/engine-save-authority` from the isolated condensation fix
+(`fix/condensation-rank-encoding`, commit `e10ee6f`) and addressed the reported multi-user Work
+Suitability save failure:
+
+```text
+write_sav: missing property schema for path:
+SaveParameterArray.SaveParameter.GotWorkSuitabilityAddRankList.WorkSuitability
+```
+
+- Added an insert-only core registry for every property schema Palbox Studio can currently create.
+  The registry is invoked inside `write_sav`; schemas read from the source file always win.
+- Reproduced the exact nested-property error by stripping the source schemas, then proved the core
+  write boundary repairs it. First-row, canonical-order, zero-removal, invalid-name, and range
+  regressions now cover the Work Suitability mutation.
+- Added `core/tests/fixtures/synthetic-global-palbox.sav`: a 960-slot sanitized fixture containing
+  one synthetic `CubeTurtle` and no user identity data. Save-dependent tests no longer self-skip in
+  normal local or CI runs.
+- Moved whole-DTO application, documented limit enforcement, species-dependent Work Suitability
+  validation, and new-Pal initialization into the Rust core. Tauri now marshals those operations.
+- Added the headless `SaveSession`, which owns the parsed save, dirty state, SHA-256/size/mtime
+  source fingerprint, schema preparation, encode/decode validation, verified unique backup,
+  synced/decoded temporary file, second stale-source check, atomic replacement, and post-save
+  fingerprint refresh.
+- A source changed after open is refused before backup/replacement; a source changed during staging
+  is refused before replacement. Encode failures leave the original untouched and create no backup.
+- Pruned five merged local feature branches and the two corresponding obsolete remote branches.
+
+**Verification:** `cargo test` runs 25 core tests plus the shell/doc tests with no skipped
+save-dependent cases. The reported schema failure and a no-schema first bonus both round-trip on the
+committed fixture and on a scratchpad copy of the current real Global Palbox.
+
+**Still to centralize:** replace the UI's full DTO submission with granular typed engine mutations;
+return computed combat stats, trust/EXP, Partner Skill rank/effect, Work Suitability totals, and
+editing limits from the engine; add watcher/post-save overwrite UX and fault injection for every
+staged-write/replacement failure.
+
 ## Session — 2026-07-28: condensation rank encoding fix
 
 Fixed the condensation off-by-one at the core save boundary. Palworld's `Rank` byte is one-based
