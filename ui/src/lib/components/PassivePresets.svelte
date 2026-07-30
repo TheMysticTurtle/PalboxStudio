@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PassivePreset } from "$lib/data/engine";
+  import { LIMITS } from "$lib/data/constants";
   import { resolvePassive } from "$lib/data/refdata.svelte";
   import {
     deleteUserPreset,
@@ -46,7 +47,7 @@
 
   function choosePassive(code: string) {
     if (pickerEditing == null) {
-      if (draftCodes.length < 4 && !draftCodes.includes(code)) draftCodes.push(code);
+      if (draftCodes.length < LIMITS.passivesMax && !draftCodes.includes(code)) draftCodes.push(code);
     } else if (!draftCodes.some((value, index) => value === code && index !== pickerEditing)) {
       draftCodes[pickerEditing] = code;
     }
@@ -110,7 +111,7 @@
         onclick={() => onapply([...preset.passiveCodes])}
       >
         <strong>{preset.name}</strong>
-        <span>{preset.passiveCodes.length}/4</span>
+        <span>{preset.passiveCodes.length}/{LIMITS.passivesMax}</span>
       </button>
       <button
         type="button"
@@ -131,7 +132,7 @@
       <span class="diamond"></span>
       <div>
         <h2>{draftId == null ? "NEW PASSIVE PRESET" : "EDIT PASSIVE PRESET"}</h2>
-        <p>Choose up to four passives from the full filtered reference list.</p>
+        <p>Choose up to {LIMITS.passivesMax} passives from the full filtered reference list.</p>
       </div>
       <button class="close" onclick={() => (builderOpen = false)} aria-label="Close">×</button>
     </header>
@@ -153,9 +154,9 @@
           >×</button>
         </div>
       {/each}
-      {#if draftCodes.length < 4}
+      {#if draftCodes.length < LIMITS.passivesMax}
         <button class="add-passive" onclick={() => openPicker(null)}>
-          + Filter & add passive ({draftCodes.length}/4)
+          + Filter & add passive ({draftCodes.length}/{LIMITS.passivesMax})
         </button>
       {/if}
     </div>

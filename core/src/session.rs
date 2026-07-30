@@ -39,7 +39,7 @@ impl SourceFingerprint {
             .ok()
             .and_then(|value| value.duration_since(UNIX_EPOCH).ok())
             .map(|value| value.as_nanos());
-        let sha256 = Sha256::digest(&bytes).into();
+        let sha256 = Sha256::digest(bytes).into();
         Ok(Self {
             size: bytes.len() as u64,
             modified_nanos,
@@ -309,6 +309,8 @@ mod tests {
 
     #[test]
     fn persistence_creates_verified_backup_and_clears_dirty_state() {
+        let catalog = crate::test_reference_catalog();
+        let limits = catalog.bundle().limits;
         let (root, path) = copied_fixture("persist");
         let original = std::fs::read(&path).unwrap();
         let mut session = SaveSession::open(&path).unwrap();
@@ -316,7 +318,8 @@ mod tests {
         let slot = list_pals(session.save())[0].slot;
         crate::pal::set_level(
             pal_param_mut(session.save_mut(), slot).expect("fixture Pal"),
-            80,
+            limits.level_max as u8,
+            &limits,
         );
         assert!(session.is_dirty());
 
@@ -325,7 +328,7 @@ mod tests {
         assert_ne!(std::fs::read(&path).unwrap(), original);
         assert_eq!(
             read_pal_at(session.save(), slot).unwrap().level,
-            crate::limits::LEVEL_MAX
+            limits.level_max as u8
         );
         assert!(!session.is_dirty());
         assert!(session.source_is_current().unwrap());
@@ -354,13 +357,16 @@ mod tests {
 
     #[test]
     fn external_change_is_refused_without_backup_or_replacement() {
+        let catalog = crate::test_reference_catalog();
+        let limits = catalog.bundle().limits;
         let (root, path) = copied_fixture("stale");
         let mut session = SaveSession::open(&path).unwrap();
         assert!(session.source_is_current().unwrap());
         let slot = list_pals(session.save())[0].slot;
         crate::pal::set_level(
             pal_param_mut(session.save_mut(), slot).expect("fixture Pal"),
-            80,
+            limits.level_max as u8,
+            &limits,
         );
 
         let mut external = std::fs::read(&path).unwrap();

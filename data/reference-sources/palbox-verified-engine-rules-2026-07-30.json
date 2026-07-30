@@ -1,0 +1,52 @@
+{
+  "_meta": {
+    "name": "Palbox Studio verified Palworld engine rules",
+    "kind": "project-verified-game-rules",
+    "game_version": "Palworld 1.0",
+    "verified_at": "2026-07-30",
+    "notes": "Patch-sensitive limits and calculation coefficients verified in SPECS-1.0.md and SAVE-FORMAT.md. Work icon values identify the bundled offline assets."
+  },
+  "work_icons": {
+    "EmitFlame": "kindling",
+    "Watering": "watering",
+    "Seeding": "planting",
+    "GenerateElectricity": "generating",
+    "Handcraft": "handiwork",
+    "Collection": "gathering",
+    "Deforest": "deforesting",
+    "Mining": "mining",
+    "OilExtraction": "extracting",
+    "ProductMedicine": "production",
+    "Cool": "cooling",
+    "Transport": "transporting",
+    "MonsterFarm": "farming"
+  },
+  "limits": {
+    "level": { "min": 1, "max": 80 },
+    "iv": { "min": 0, "max": 100 },
+    "work_suitability": { "min": 0, "max": 10 },
+    "soul_rank": { "min": 0, "max": 20 },
+    "condensation": { "min": 0, "max": 4 },
+    "equipped_moves": { "min": 0, "max": 3 },
+    "passives": { "min": 0, "max": 4 },
+    "sanity": { "min": 0, "max": 100 },
+    "friendship": { "min": -10000, "max": 200000 },
+    "partner_skill_level": { "min": 1, "max": 5 }
+  },
+  "constants": {
+    "soul_bonus_percent_per_rank": 3,
+    "condensation_stat_bonus_percent_per_star": 5,
+    "iv_stat_bonus_ratio_per_point": 0.003,
+    "alpha_hp_multiplier": 1.2,
+    "hp_flat_base": 500,
+    "hp_per_level": 5,
+    "hp_scaling_factor": 0.5,
+    "attack_flat_base": 100,
+    "attack_scaling_factor": 0.075,
+    "defense_flat_base": 50,
+    "defense_scaling_factor": 0.075,
+    "save_hp_scale": 1000,
+    "displayed_stat_min": 1,
+    "partner_skill_level_offset": 1
+  }
+}

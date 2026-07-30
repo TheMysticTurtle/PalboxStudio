@@ -4,7 +4,6 @@ import {
   speciesMatches,
   toggleOnly,
 } from "../src/lib/data/speciesFilter.ts";
-import { soulBonusPercent } from "../src/lib/data/constants.ts";
 import { matchesAllGroups } from "../src/lib/data/groupFilter.ts";
 import { moveSkill } from "../src/lib/data/moveSlots.ts";
 import {
@@ -95,19 +94,13 @@ test("category selection is mutually exclusive and toggleable", () => {
   assert.deepEqual([...toggleOnly(natural, "Natural")], []);
 });
 
-test("Pal Soul percentages share the rank-20, 60-percent cap", () => {
-  assert.equal(soulBonusPercent(0), 0);
-  assert.equal(soulBonusPercent(10), 30);
-  assert.equal(soulBonusPercent(20), 60);
-  assert.equal(soulBonusPercent(255), 60);
-});
-
 test("bench moves can be dragged into any open active slot", () => {
   const result = moveSkill(
     { active: ["FireBall"], bench: ["WindCutter", "DarkLaser"] },
     { code: "DarkLaser", list: "bench", index: 1 },
     "active",
     1,
+    3,
   );
   assert.deepEqual(result.active, ["FireBall", "DarkLaser"]);
   assert.deepEqual(result.bench, ["WindCutter"]);
@@ -120,6 +113,7 @@ test("dragging one active skill onto another swaps their slots", () => {
     { code: "DarkLaser", list: "active", index: 2 },
     "active",
     0,
+    3,
   );
   assert.deepEqual(result.active, ["DarkLaser", "WindCutter", "FireBall"]);
   assert.deepEqual(result.bench, ["StoneBlast"]);
@@ -131,6 +125,7 @@ test("dropping a bench move onto an occupied active slot swaps the two", () => {
     { code: "StoneBlast", list: "bench", index: 0 },
     "active",
     1,
+    3,
   );
   assert.deepEqual(result.active, ["FireBall", "StoneBlast", "DarkLaser"]);
   assert.deepEqual(result.bench, ["WindCutter"]);

@@ -1,7 +1,17 @@
 // Static reference tables, loaded once from the engine's SQLite reference DB and
 // shared. Components resolve codes -> info through here so display always matches
 // the game data and is never hand-written onto a pal.
-import type { PassiveRef, MoveRef, SpeciesRow, ElementInfo, SchemaColumn } from "./types";
+import type {
+  PassiveRef,
+  MoveRef,
+  SpeciesRow,
+  ElementInfo,
+  SchemaColumn,
+  WorkTypeRef,
+  ExpLevelRef,
+  EditorLimits,
+  CalculationRules,
+} from "./types";
 import { getReferenceData } from "./engine";
 
 interface RefData {
@@ -12,7 +22,11 @@ interface RefData {
   speciesByCode: Record<string, SpeciesRow>;
   speciesAliases: Record<string, string>;
   elements: Record<string, ElementInfo>;
+  workTypes: WorkTypeRef[];
   friendshipRanks: Record<string, number>;
+  expLevels: Record<string, ExpLevelRef>;
+  limits: EditorLimits;
+  calculationRules: CalculationRules;
   schema: SchemaColumn[];
 }
 
@@ -24,7 +38,36 @@ export const ref = $state<RefData>({
   speciesByCode: {},
   speciesAliases: {},
   elements: {},
+  workTypes: [],
   friendshipRanks: {},
+  expLevels: {},
+  limits: {
+    levelMin: 0, levelMax: 0, ivMin: 0, ivMax: 0,
+    workSuitabilityMin: 0, workSuitabilityMax: 0,
+    soulRankMin: 0, soulRankMax: 0,
+    condensationMin: 0, condensationMax: 0,
+    equippedMovesMin: 0, equippedMovesMax: 0,
+    passivesMin: 0, passivesMax: 0,
+    sanityMin: 0, sanityMax: 0,
+    friendshipMin: 0, friendshipMax: 0,
+    partnerSkillLevelMin: 0, partnerSkillLevelMax: 0,
+  },
+  calculationRules: {
+    soulBonusPercentPerRank: 0,
+    condensationStatBonusPercentPerStar: 0,
+    ivStatBonusRatioPerPoint: 0,
+    alphaHpMultiplier: 0,
+    hpFlatBase: 0,
+    hpPerLevel: 0,
+    hpScalingFactor: 0,
+    attackFlatBase: 0,
+    attackScalingFactor: 0,
+    defenseFlatBase: 0,
+    defenseScalingFactor: 0,
+    saveHpScale: 1,
+    displayedStatMin: 0,
+    partnerSkillLevelOffset: 0,
+  },
   schema: [],
 });
 
@@ -43,7 +86,11 @@ export async function loadRefData(): Promise<void> {
     ref.speciesByCode = Object.fromEntries(bundle.species.map((s) => [s.code, s]));
     ref.speciesAliases = bundle.speciesAliases;
     ref.elements = bundle.elements;
+    ref.workTypes = bundle.workTypes;
     ref.friendshipRanks = bundle.friendshipRanks;
+    ref.expLevels = bundle.expLevels;
+    ref.limits = bundle.limits;
+    ref.calculationRules = bundle.calculationRules;
     ref.schema = bundle.schema;
     ref.loaded = true;
   } catch (e) {

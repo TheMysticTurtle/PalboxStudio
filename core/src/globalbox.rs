@@ -29,6 +29,14 @@ pub struct PalSummary {
     pub learned_moves: Vec<String>,
 }
 
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PalSummaryView {
+    #[serde(flatten)]
+    pub summary: PalSummary,
+    pub projection: Option<crate::projection::PalProjection>,
+}
+
 fn slot_instance_id(slot_props: &crate::ue::Properties) -> String {
     ue::prop(slot_props, "InstanceId")
         .and_then(ue::struct_props)
@@ -87,6 +95,27 @@ pub fn list_pals(save: &Save) -> Vec<PalSummary> {
     pals
 }
 
+/// Project every lightweight box row through the same engine used by the main
+/// editor. An unknown future species remains listable with `projection = None`
+/// instead of making the whole box impossible to open.
+pub fn list_pal_views(
+    save: &Save,
+    catalog: &crate::reference::ReferenceCatalog,
+) -> Vec<PalSummaryView> {
+    list_pals(save)
+        .into_iter()
+        .map(|summary| {
+            let projection = read_pal_at(save, summary.slot)
+                .and_then(|pal| crate::projection::project_pal(pal, catalog).ok())
+                .map(|view| view.projection);
+            PalSummaryView {
+                summary,
+                projection,
+            }
+        })
+        .collect()
+}
+
 /// Read one pal's full editable DTO by box slot.
 pub fn read_pal_at(save: &Save, slot: usize) -> Option<crate::pal::PalDto> {
     let slots =
@@ -98,6 +127,39 @@ pub fn read_pal_at(save: &Save, slot: usize) -> Option<crate::pal::PalDto> {
     let mut dto = crate::pal::read_pal(param, slot);
     dto.instance_id = slot_instance_id(slot_props);
     Some(dto)
+}
+
+/// Read one occupied slot through the public, semantic engine contract.
+pub fn read_pal_view_at(
+    save: &Save,
+    slot: usize,
+    catalog: &crate::reference::ReferenceCatalog,
+) -> Result<crate::projection::PalView, String> {
+    let pal = read_pal_at(save, slot).ok_or_else(|| "no pal at slot".to_string())?;
+    crate::projection::project_pal(pal, catalog)
+}
+
+/// Apply a semantic edit to one slot and return its freshly projected view.
+/// The stable InstanceId prevents a stale frontend from editing a different Pal
+/// if slot contents changed after it loaded the view.
+pub fn apply_pal_input_at(
+    save: &mut Save,
+    input: &crate::projection::PalInput,
+    catalog: &crate::reference::ReferenceCatalog,
+) -> Result<crate::projection::PalView, String> {
+    let current = read_pal_at(save, input.slot).ok_or_else(|| "no pal at slot".to_string())?;
+    if input.instance_id != current.instance_id {
+        return Err(format!(
+            "Pal identity changed at slot {}; reload before editing",
+            input.slot
+        ));
+    }
+    crate::pal::apply_input(
+        pal_param_mut(save, input.slot).ok_or_else(|| "no pal at slot".to_string())?,
+        input,
+        catalog,
+    )?;
+    read_pal_view_at(save, input.slot, catalog)
 }
 
 /// Mutable access to a pal's `SaveParameter` by slot, for edits.
@@ -140,7 +202,7 @@ fn first_empty(slots: &[StructValue]) -> Option<usize> {
     slots.iter().position(is_empty_slot)
 }
 
-fn slot_slotid<'a>(sv: &'a StructValue) -> Option<&'a crate::ue::Properties> {
+fn slot_slotid(sv: &StructValue) -> Option<&crate::ue::Properties> {
     let props = ue::struct_value_props(sv)?;
     ue::prop(props, "SaveParameter")
         .and_then(ue::struct_props)
@@ -226,7 +288,11 @@ fn slots_mut(save: &mut Save) -> Result<&mut Vec<StructValue>, String> {
 /// Add a brand-new pal of `species` to the first empty slot; returns its slot.
 /// The empty slot is already a clean level-1 skeleton — we claim it, give it a
 /// fresh identity, and set the species/level/gender.
-pub fn add_pal(save: &mut Save, species: &str) -> Result<usize, String> {
+pub fn add_pal(
+    save: &mut Save,
+    species: &str,
+    limits: &crate::reference::EditorLimits,
+) -> Result<usize, String> {
     let slots = slots_mut(save)?;
     let dst = first_empty(slots).ok_or("The Global Palbox has no free slots.")?;
     let container = box_container(slots);
@@ -237,7 +303,7 @@ pub fn add_pal(save: &mut Save, species: &str) -> Result<usize, String> {
         .and_then(ue::struct_props_mut)
         .ok_or("new slot has no SaveParameter")?;
     crate::pal::set_species(param, species);
-    crate::pal::set_level(param, 1);
+    crate::pal::set_level(param, limits.level_min as u8, limits);
     crate::pal::set_gender(param, "Male");
     Ok(dst)
 }
@@ -246,18 +312,11 @@ pub fn add_pal(save: &mut Save, species: &str) -> Result<usize, String> {
 pub fn add_initialized_pal(
     save: &mut Save,
     species: &str,
-    reference: &crate::reference::ReferenceBundle,
+    reference: &crate::reference::ReferenceCatalog,
 ) -> Result<usize, String> {
-    let base_code = species
-        .strip_prefix("BOSS_")
-        .or_else(|| species.strip_prefix("Boss_"))
-        .or_else(|| species.strip_prefix("boss_"))
-        .unwrap_or(species);
     let species_ref = reference
-        .species
-        .iter()
-        .find(|value| value.code == base_code)
-        .ok_or_else(|| format!("unknown Pal species: {base_code}"))?;
+        .species(species)
+        .ok_or_else(|| format!("unknown Pal species: {species}"))?;
     if !species_ref.palbox_selectable {
         return Err(format!(
             "{} cannot be stored in the Global Palbox",
@@ -265,19 +324,26 @@ pub fn add_initialized_pal(
         ));
     }
 
-    let slot = add_pal(save, species)?;
+    let limits = reference.bundle().limits;
+    let rules = reference.bundle().calculation_rules;
+    let slot = add_pal(save, species, &limits)?;
     let hp_scaling = species_ref.scaling.hp as f64;
     let alpha_rate = if species.to_uppercase().starts_with("BOSS_") {
-        1.2
+        rules.alpha_hp_multiplier
     } else {
         1.0
     };
-    let full_hp = (500.0 + 5.0 + hp_scaling * 0.5 * alpha_rate).floor() as i64 * 1000;
+    let full_hp = ((rules.hp_flat_base
+        + rules.hp_per_level * limits.level_min as f64
+        + hp_scaling * rules.hp_scaling_factor * limits.level_min as f64 * alpha_rate)
+        .floor()
+        * rules.save_hp_scale) as i64;
     let full_food = species_ref.max_stomach.max(1) as f32;
     crate::pal::initialize_new_pal(
         pal_param_mut(save, slot).ok_or("new Pal has no SaveParameter")?,
         full_hp,
         full_food,
+        &limits,
     );
     Ok(slot)
 }
@@ -307,11 +373,7 @@ pub fn delete_pal(save: &mut Save, slot: usize) -> Result<(), String> {
         return Err("no pal at slot".to_string());
     }
     // Prefer an actual game-produced empty slot as the template.
-    if let Some(tmpl) = slots
-        .iter()
-        .position(|sv| is_empty_slot(sv))
-        .filter(|&i| i != slot)
-    {
+    if let Some(tmpl) = slots.iter().position(is_empty_slot).filter(|&i| i != slot) {
         let blank = slots[tmpl].clone();
         slots[slot] = blank;
     } else {
@@ -357,6 +419,8 @@ mod tests {
     /// Read a full pal DTO, edit it (level -> 80), save, re-read: the edit persists.
     #[test]
     fn read_edit_save_first_pal() {
+        let catalog = crate::test_reference_catalog();
+        let limits = catalog.bundle().limits;
         let path = crate::save::test_fixture_path();
         let bytes = std::fs::read(path).expect("read fixture");
         let mut save = read_sav(&bytes).expect("decode");
@@ -365,12 +429,19 @@ mod tests {
         let before = read_pal_at(&save, slot).expect("read pal dto");
         eprintln!("full DTO: {}", serde_json::to_string(&before).unwrap());
 
-        crate::pal::set_level(pal_param_mut(&mut save, slot).expect("mut param"), 80);
+        crate::pal::set_level(
+            pal_param_mut(&mut save, slot).expect("mut param"),
+            limits.level_max as u8,
+            &limits,
+        );
         let out = write_sav(&mut save).expect("encode");
         let reloaded = read_sav(&out).expect("re-decode");
         let after = read_pal_at(&reloaded, slot).expect("re-read pal");
 
-        assert_eq!(after.level, 80, "level edit must survive a save round-trip");
+        assert_eq!(
+            after.level, limits.level_max as u8,
+            "level edit must survive a save round-trip"
+        );
         eprintln!(
             "edited {} level {} -> {}",
             after.character_id, before.level, after.level
@@ -413,13 +484,15 @@ mod tests {
 
     #[test]
     fn add_clone_delete_round_trip() {
+        let catalog = crate::test_reference_catalog();
+        let limits = catalog.bundle().limits;
         let path = crate::save::test_fixture_path();
         let bytes = std::fs::read(path).expect("read fixture");
         let mut save = read_sav(&bytes).expect("decode");
         let before = list_pals(&save).len();
 
         // Add a default turtle.
-        let added = add_pal(&mut save, "CubeTurtle").expect("add");
+        let added = add_pal(&mut save, "CubeTurtle", &limits).expect("add");
         // Clone the first existing pal.
         let src = list_pals(&save)[0].slot;
         let cloned = clone_pal(&mut save, src).expect("clone");
@@ -458,32 +531,23 @@ mod tests {
         );
     }
 
-    fn reference_bundle() -> crate::reference::ReferenceBundle {
-        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("data")
-            .join("palbox-reference.db");
-        crate::reference::ReferenceDatabase::open(path)
-            .unwrap()
-            .load_ui_bundle()
-            .unwrap()
-    }
-
     #[test]
     fn initialized_add_and_species_dependent_work_validation_live_in_core() {
         let bytes = std::fs::read(crate::save::test_fixture_path()).expect("read fixture");
         let mut save = read_sav(&bytes).expect("decode");
-        let reference = reference_bundle();
+        let reference = crate::test_reference_catalog();
         let before = list_pals(&save).len();
 
         let slot = add_initialized_pal(&mut save, "CubeTurtle", &reference).unwrap();
         let dto = read_pal_at(&save, slot).unwrap();
-        let species = reference
-            .species
-            .iter()
-            .find(|value| value.code == "CubeTurtle")
-            .unwrap();
-        let expected_hp = (500.0 + 5.0 + species.scaling.hp as f64 * 0.5).floor() as i64 * 1000;
+        let species = reference.species("CubeTurtle").unwrap();
+        let limits = reference.bundle().limits;
+        let rules = reference.bundle().calculation_rules;
+        let expected_hp = ((rules.hp_flat_base
+            + rules.hp_per_level * limits.level_min as f64
+            + species.scaling.hp as f64 * rules.hp_scaling_factor * limits.level_min as f64)
+            .floor()
+            * rules.save_hp_scale) as i64;
         assert_eq!(dto.hp, expected_hp);
         assert_eq!(dto.food, species.max_stomach as f32);
 
@@ -494,14 +558,19 @@ mod tests {
             "an invalid species must not claim a slot"
         );
 
-        let mut invalid = dto;
-        let base = species.work.get("Kindling").copied().unwrap_or(0);
-        invalid.work.insert(
-            "Kindling".to_string(),
-            i64::from(crate::limits::WORK_SUITABILITY_MAX) - base + 1,
-        );
+        let mut invalid = crate::projection::project_pal(dto, &reference)
+            .unwrap()
+            .editable;
+        let kindling = reference
+            .work_types()
+            .iter()
+            .find(|work_type| work_type.name == "Kindling")
+            .unwrap();
+        invalid
+            .work
+            .insert(kindling.code.clone(), limits.work_suitability_max + 1);
         let before_invalid = pal_param_mut(&mut save, slot).unwrap().clone();
-        let result = crate::pal::apply_dto_with_reference(
+        let result = crate::pal::apply_input(
             pal_param_mut(&mut save, slot).unwrap(),
             &invalid,
             &reference,
@@ -511,6 +580,76 @@ mod tests {
             pal_param_mut(&mut save, slot).unwrap(),
             &before_invalid,
             "invalid totals must not partially mutate the Pal"
+        );
+    }
+
+    #[test]
+    fn semantic_edit_converts_work_totals_and_rejects_stale_identity() {
+        let catalog = crate::test_reference_catalog();
+        let bytes = std::fs::read(crate::save::test_fixture_path()).expect("read fixture");
+        let mut save = read_sav(&bytes).expect("decode");
+        let slot = list_pals(&save)[0].slot;
+        let mut input = read_pal_view_at(&save, slot, &catalog).unwrap().editable;
+        let work = catalog.work_types().first().expect("Work catalog");
+        let species = catalog.species(&input.character_id).expect("known species");
+        let base = species.work.get(&work.code).copied().unwrap_or(0);
+        let maximum = catalog.bundle().limits.work_suitability_max;
+        let desired_total = (base + 1).min(maximum);
+        input.work.insert(work.code.clone(), desired_total);
+
+        let updated = apply_pal_input_at(&mut save, &input, &catalog).unwrap();
+        let projected = updated
+            .projection
+            .work
+            .iter()
+            .find(|value| value.code == work.code)
+            .unwrap();
+        assert_eq!(projected.total_level, desired_total);
+        assert_eq!(projected.bonus_level, desired_total - base);
+        assert_eq!(
+            read_pal_at(&save, slot)
+                .unwrap()
+                .work
+                .get(&work.code)
+                .copied(),
+            (desired_total != base).then_some(desired_total - base)
+        );
+
+        let before = save.root.properties.clone();
+        input.instance_id.push_str("-stale");
+        assert!(apply_pal_input_at(&mut save, &input, &catalog).is_err());
+        assert_eq!(
+            save.root.properties, before,
+            "identity mismatch must not mutate the in-memory save"
+        );
+    }
+
+    #[test]
+    fn semantic_edit_clears_nickname_and_rejects_unexposed_or_invalid_inputs() {
+        let catalog = crate::test_reference_catalog();
+        let bytes = std::fs::read(crate::save::test_fixture_path()).expect("read fixture");
+        let mut save = read_sav(&bytes).expect("decode");
+        let slot = list_pals(&save)[0].slot;
+        let mut input = read_pal_view_at(&save, slot, &catalog).unwrap().editable;
+        input.nickname = None;
+
+        let updated = apply_pal_input_at(&mut save, &input, &catalog).unwrap();
+        assert_eq!(updated.editable.nickname, None);
+        let properties = pal_param_mut(&mut save, slot).unwrap();
+        assert!(ue::prop(properties, "NickName").is_none());
+        assert!(ue::prop(properties, "FilteredNickName").is_none());
+
+        let before = save.root.properties.clone();
+        input.exp += 1;
+        assert!(apply_pal_input_at(&mut save, &input, &catalog).is_err());
+        assert_eq!(save.root.properties, before);
+        input.exp -= 1;
+
+        input.trust.rank = updated.projection.trust.min_rank - 1;
+        assert!(apply_pal_input_at(&mut save, &input, &catalog).is_err());
+        assert_eq!(
+            save.root.properties, before,
+            "invalid semantic input must be transactional"
         );
     }
 
@@ -531,13 +670,18 @@ mod tests {
     }
 
     fn first_fixture_pal_with_work(rank: i64) -> Save {
+        let reference = crate::test_reference_catalog();
         let bytes = std::fs::read(crate::save::test_fixture_path()).expect("read fixture");
         let mut save = read_sav(&bytes).expect("decode");
         let slot = list_pals(&save)[0].slot;
         let mut work = std::collections::BTreeMap::new();
-        work.insert("Kindling".to_string(), rank);
-        crate::pal::set_work(pal_param_mut(&mut save, slot).expect("mut param"), &work)
-            .expect("valid work");
+        work.insert("EmitFlame".to_string(), rank);
+        crate::pal::set_work(
+            pal_param_mut(&mut save, slot).expect("mut param"),
+            &work,
+            &reference,
+        )
+        .expect("valid work");
         save
     }
 
@@ -552,7 +696,7 @@ mod tests {
         let out = write_sav(&mut save).expect("engine registers missing writable schemas");
         let reloaded = read_sav(&out).expect("re-decode");
         let pal = read_pal_at(&reloaded, list_pals(&reloaded)[0].slot).expect("re-read Pal");
-        assert_eq!(pal.work.get("Kindling"), Some(&2));
+        assert_eq!(pal.work.get("EmitFlame"), Some(&2));
     }
 
     #[test]
@@ -572,7 +716,7 @@ mod tests {
         let out = write_sav(&mut save).expect("core write boundary repairs missing schemas");
         let reloaded = read_sav(&out).expect("re-decode");
         let pal = read_pal_at(&reloaded, list_pals(&reloaded)[0].slot).expect("re-read Pal");
-        assert_eq!(pal.work.get("Kindling"), Some(&3));
+        assert_eq!(pal.work.get("EmitFlame"), Some(&3));
     }
 
     /// InstanceId GUID strings for every occupied slot (for uniqueness checks).

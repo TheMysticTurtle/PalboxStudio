@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { ElementName, Category } from "$lib/data/types";
-  import { WORK_SUITS } from "$lib/data/constants";
   import { elementColor } from "$lib/data/palPresentation";
+  import { ref } from "$lib/data/refdata.svelte";
   import {
     type SpeciesFilterState,
     toggleIn,
@@ -9,7 +9,6 @@
     clearFilter,
     activeFilterCount,
     ranchDropOptions,
-    CATEGORY_LABELS,
   } from "$lib/data/speciesFilter.svelte";
   import ElementIcon from "./ElementIcon.svelte";
   import WorkIcon from "./WorkIcon.svelte";
@@ -31,10 +30,15 @@
     placeholder?: string;
   } = $props();
 
-  const elements: ElementName[] = [
-    "Neutral", "Fire", "Water", "Grass", "Electric", "Ice", "Ground", "Dark", "Dragon",
-  ];
+  const elements = $derived(
+    Object.entries(ref.elements)
+      .sort(([, left], [, right]) => left.sortOrder - right.sortOrder)
+      .map(([code]) => code as ElementName),
+  );
   const ranchOptions = ranchDropOptions();
+  const categoryOptions = $derived(
+    ref.schema.find((field) => field.key === "category")?.options ?? [],
+  );
   let count = $derived(activeFilterCount(filter));
   // Non-search facets start collapsed when collapsible; otherwise always open.
   let userExpanded = $state(false);
@@ -89,12 +93,12 @@
   <div class="grp">
     <span class="lbl">Work</span>
     <div class="works">
-      {#each WORK_SUITS as w (w.name)}
+      {#each ref.workTypes as w (w.code)}
         <button
-          class="worktog" class:on={filter.work.has(w.name)}
-          onclick={() => (filter.work = toggleIn(filter.work, w.name))}
-          title={w.name} aria-label={w.name} aria-pressed={filter.work.has(w.name)}
-        ><WorkIcon icon={w.icon} name={w.name} size={22} muted={!filter.work.has(w.name)} /></button>
+          class="worktog" class:on={filter.work.has(w.code)}
+          onclick={() => (filter.work = toggleIn(filter.work, w.code))}
+          title={w.name} aria-label={w.name} aria-pressed={filter.work.has(w.code)}
+        ><WorkIcon icon={w.icon} name={w.name} size={22} muted={!filter.work.has(w.code)} /></button>
       {/each}
     </div>
   </div>
@@ -107,7 +111,7 @@
       aria-pressed={filter.rideable}
     >🐎 Rideable mount</button>
     {#if showCategories}
-      {#each CATEGORY_LABELS as c (c.value)}
+      {#each categoryOptions as c (c.value)}
         <button
           class="pill cat" class:on={filter.categories.has(c.value)}
           onclick={() => (filter.categories = toggleOnly(filter.categories, c.value as Category))}

@@ -3,8 +3,9 @@
 Researched against the **latest** sources, deliberately NOT trusting any pre-1.0 assumptions.
 Values are verified against real 1.0 `GlobalPalStorage.sav` bytes and cross-checked against the
 current public game databases (see Sources). The save-format layout these ranges live inside is
-documented in [SAVE-FORMAT.md](SAVE-FORMAT.md). **This file is the source of truth for value
-ranges in the core + UI.**
+documented in [SAVE-FORMAT.md](SAVE-FORMAT.md). This file records the verified meaning;
+the generated `palbox-reference.db` is the runtime source of truth for patch-sensitive
+ranges, progression rows, and formula operands consumed by the core and UI.
 
 ## Corrections vs. pre-1.0 assumptions (READ THESE)
 | Field | Pre-1.0 assumption | **Palworld 1.0 (correct)** |
@@ -34,14 +35,15 @@ ranges in the core + UI.**
   write only non-zero. *(This is the field the right-drawer "statue levels" edit.)*
 - **Work Suitability**: **Lv 1–10**. Stored in `GotWorkSuitabilityAddRankList` as
   **bonus rank = desired_total − species_base**; **write only non-zero entries** (zero-bloat
-  breaks in-game work — see the corruption traps in [SAVE-FORMAT.md](SAVE-FORMAT.md)). 12 jobs (see Elements/Jobs below).
+  breaks in-game work — see the corruption traps in [SAVE-FORMAT.md](SAVE-FORMAT.md)). 13 jobs (see Elements/Jobs below).
 - **Moves = Active Skills**: up to **3 equipped** (`EquipWaza`); **learned** in `MasteredWaza`
   (**leave empty unless explicitly mastered** — do NOT auto-fill from learnset). 324 skills
   defined; power **0–1200**; each has an element.
 - **Passive Skills**: up to **4** per pal (`PassiveSkillList`). 420 defined; **rank −3..5**
   (no 0; **rank 5 is the 1.0 addition**). Legality = rollable ∪ innate (per species).
 - **Identity/other**: `NickName` (+ `FilteredNickName`), gender, `Exp`, **Trust** /
-  `FriendshipPoint` (int), Lucky/Boss/Alpha flags, `IsPlayer` written **`False`** on every pal
+  `FriendshipPoint` (int; DB-backed Trust ranks **−3..10**), Lucky/Boss/Alpha flags,
+  `IsPlayer` written **`False`** on every pal
   (detect players by value, not key presence).
 
 ## Elements (9) — internal codename → official UI name

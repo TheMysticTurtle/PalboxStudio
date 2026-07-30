@@ -8,6 +8,10 @@
 > plane is now generated read-only SQLite, and the first user DB schema uses normalized
 > passive-preset tables rather than JSON payloads. The three-plane separation and rule
 > against duplicating per-Pal save state remain unchanged.
+>
+> **2026-07-30 amendment:** ADR 0004 records the implemented authority boundary:
+> patch-sensitive facts in SQLite, reusable behavior/projections in the headless
+> engine, and presentation-only logic in the UI.
 
 ## The three data planes
 

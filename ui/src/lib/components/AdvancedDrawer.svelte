@@ -2,9 +2,9 @@
   import type { Pal } from "$lib/data/types";
   import {
     LIMITS,
-    SOUL_BONUS_PERCENT_PER_RANK,
     soulBonusPercent,
   } from "$lib/data/constants";
+  import { ref } from "$lib/data/refdata.svelte";
   import { STATUE_OF_POWER_ART } from "$lib/data/icons";
   import SectionHeader from "./SectionHeader.svelte";
 
@@ -79,7 +79,7 @@
       <div class="souls">
         <div class="soulhead">
           <span>Pal Soul Enhancement</span>
-          <span class="muted">rank 0–{LIMITS.soulsMax} · +{SOUL_BONUS_PERCENT_PER_RANK}%/rank</span>
+          <span class="muted">rank 0–{LIMITS.soulsMax} · +{ref.calculationRules.soulBonusPercentPerRank}%/rank</span>
         </div>
         {#each soulStats as s (s.key)}
           <div class="soulrow" style="--c:{s.color}">

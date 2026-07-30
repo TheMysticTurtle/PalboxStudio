@@ -55,7 +55,13 @@ are stored in `data_source` and `data_quality_issue`. Current verified counts ar
   61 same-name/same-tribe engine variants), and **29** Ranch species / **42** product links.
 - All 13 Work Suitabilities, the level/EXP table, friendship ranks, and **59,192**
   localization rows across the languages present in the game-data dump.
+- Typed editing limits and numeric calculation operands used by the headless engine.
 - Self-describing `filter_field` and `filter_option` rows for UI filter generation.
+
+For direct inspection in a SQLite viewer, use the `v_species_*`,
+`v_partner_skill_progression`, `v_move_*`, `v_passive_*`, and
+`v_reference_sources` views. They place internal codes, readable names, values,
+and provenance together without sacrificing the normalized runtime schema.
 
 The source order is deliberate: the Palworld Save Pal 1.0 game-data extract is authoritative for
 codes and fields it exposes; retained web snapshots only fill Partner Skill and Ranch relationships.
@@ -86,12 +92,13 @@ verify in the app (`npm run tauri dev`).
 
 ## User metadata — `palbox-user.db`
 
-`database/user-schema.sql` defines the separate writable store. Schema v3 contains named passive
-presets with ordered slots `0..3`, plus user-named groups and many-to-many membership keyed by a
+`database/user-schema.sql` defines the separate writable store. Schema v4 contains named passive
+presets with ordered entries, plus user-named groups and many-to-many membership keyed by a
 Pal's stable `InstanceId`, and engine-owned app settings for the remembered box and auto-open
-toggle. Existing v1/v2 databases migrate in place through the numbered scripts in
+toggle. Existing v1/v2/v3 databases migrate in place through the numbered scripts in
 `database/migrations/`. The app validates passive codes against
-`palbox-reference.db` before saving or applying a preset. No mutable Pal game state is copied into
+`palbox-reference.db` before saving or applying a preset. The current passive count limit also
+comes from the reference DB; it is not duplicated in the durable user schema. No mutable Pal game state is copied into
 this database; applying a preset changes only the in-memory Pal loaded from
 `GlobalPalStorage.sav`, and the normal explicit save operation remains required. Group membership
 never enters the Palworld save.
@@ -111,14 +118,13 @@ Human (bool), InnatePassives[], DeckIndex (>=0 = obtainable), TowerBoss (bool)
 ## Derived combat stats
 
 Global Palbox saves carry the inputs for Attack and Defense, not ready-made display values.
-`ui/src/lib/data/palStats.ts` is the shared calculator for every card density and the main editor:
+`core/src/projection.rs` is the single calculator for every frontend and card density:
 species scaling + level + IVs + Pal Soul ranks + condensation + the Alpha HP bonus + static
-self-targeted Max HP/Attack/Defense passive effects. It deliberately excludes party, riding,
-equipment, food, and server modifiers because those depend on runtime context outside the Global
-Palbox file. Soul ranks are 0–20 at +3% per rank (+60% maximum for each trained stat). IVs remain
-separate editor metadata in the Advanced drawer.
+self-targeted Max HP/Attack/Defense passive effects. Formula operands come from the typed
+`calculation_rules` row in SQLite. It deliberately excludes party, riding, equipment, food,
+and server modifiers because those depend on runtime context outside the Global Palbox file.
 
-## Work Suitability — **13** (internal → current 1.0 UI). We had 12; add **Crude Oil Extraction**.
+## Work Suitability — **13** (internal → current 1.0 UI)
 | internal key / icon file          | official UI name        |
 |-----------------------------------|-------------------------|
 | EmitFlame / kindling              | Kindling                |

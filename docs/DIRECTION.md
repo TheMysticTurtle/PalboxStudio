@@ -47,7 +47,7 @@ clearly labeled; use **official in-game terminology** throughout:
 - **Stats** — Attack / Defense / Work Speed (+ HP, SAN, hunger/food) — adjustable, with the
   in-game "boosted" up-arrow treatment where relevant.
 - **Partner Skill**, **Passive Skills** (2×2 chips, rating-colored; easy add/filter).
-- **Work Suitability** (all 12 jobs, greyed when N/A, level shown when active).
+- **Work Suitability** (all 13 jobs, greyed when N/A, level shown when active).
 - **Moves = Active Skills** live on the **right side of the card** (element-colored rows with
   power values, like in-game).
 - **Presets:** "apply preset" + author/save presets (passives / builds).

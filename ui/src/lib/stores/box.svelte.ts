@@ -76,19 +76,43 @@ async function flush() {
   // returns the canonical BOSS_ representation after Alpha/Lucky changes.
   const tile = box.tiles.find((value) => value.slot === box.selectedSlot);
   if (tile) {
-    tile.characterId = updated.characterId;
-    tile.nickname = updated.nickname;
-    tile.gender = updated.gender;
-    tile.level = updated.level;
-    tile.condensation = updated.condensation;
-    tile.ivs = updated.ivs;
-    tile.souls = updated.souls;
-    tile.work = updated.work;
-    tile.isLucky = updated.isLucky;
-    tile.isAlpha = updated.isAlpha;
-    tile.passives = updated.passives;
-    tile.equippedMoves = updated.equippedMoves;
-    tile.learnedMoves = updated.learnedMoves;
+    const editable = updated.editable;
+    tile.characterId = editable.characterId;
+    tile.nickname = editable.nickname;
+    tile.gender = editable.gender;
+    tile.level = editable.level;
+    tile.condensation = editable.condensation;
+    tile.ivs = editable.ivs;
+    tile.souls = editable.souls;
+    tile.isLucky = editable.isLucky;
+    tile.isAlpha = editable.isAlpha;
+    tile.passives = editable.passives;
+    tile.equippedMoves = editable.equippedMoves;
+    tile.learnedMoves = editable.learnedMoves;
+    tile.projection = updated.projection;
+  }
+}
+
+/** Commit pending edits, then let the engine change species and re-project every
+ * dependent value while preserving the save-backed Work bonuses. */
+export async function changeSelectedSpecies(characterId: string) {
+  if (!box.pal || box.selectedSlot < 0) return;
+  try {
+    box.error = "";
+    await flush();
+    const submitted = palToDto(box.pal, box.selectedSlot);
+    submitted.characterId = characterId;
+    const updated = await updatePal(submitted);
+    box.pal = dtoToPal(updated);
+    selectedBaseline = selectedSnapshot();
+    box.dirty = true;
+    const tile = box.tiles.find((value) => value.slot === box.selectedSlot);
+    if (tile) {
+      tile.characterId = updated.editable.characterId;
+      tile.projection = updated.projection;
+    }
+  } catch (error) {
+    box.error = String(error);
   }
 }
 

@@ -29,11 +29,12 @@ CREATE TABLE IF NOT EXISTS passive_preset (
     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 ) STRICT;
 
--- slot is both the display/apply order and the hard database-level limit:
--- only slots 0..3 can exist, so a preset can never contain more than four.
+-- slot preserves display/apply order. The current maximum comes from the
+-- reference DB and is enforced by palbox-core, so game updates do not require
+-- reshaping this durable user database.
 CREATE TABLE IF NOT EXISTS passive_preset_entry (
     preset_id   INTEGER NOT NULL REFERENCES passive_preset(id) ON DELETE CASCADE,
-    slot        INTEGER NOT NULL CHECK (slot BETWEEN 0 AND 3),
+    slot        INTEGER NOT NULL CHECK (slot >= 0),
     passive_code TEXT NOT NULL CHECK (length(trim(passive_code)) > 0),
     PRIMARY KEY (preset_id, slot),
     UNIQUE (preset_id, passive_code)
@@ -106,11 +107,12 @@ END;
 INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES
     (1, '2026-07-25'),
     (2, '2026-07-25'),
-    (3, '2026-07-29');
+    (3, '2026-07-29'),
+    (4, '2026-07-30');
 
 INSERT OR IGNORE INTO metadata(key, value) VALUES
     ('database_kind', 'palbox-user'),
-    ('schema_version', '3');
+    ('schema_version', '4');
 
 INSERT OR IGNORE INTO app_setting(key, value) VALUES
     ('last_box_path', ''),

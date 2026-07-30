@@ -50,10 +50,10 @@ Status key: `[ ]` open · `[x]` done · `[~]` in progress · `[?]` needs investi
 
 ## Tier 1 — correctness
 
-- [ ] **Derive Partner Skill level from condensation.** Partner Skill level is a function of
+- [x] **Derive Partner Skill level from condensation.** Partner Skill level is a function of
   condensation rank; derive it live (`min(5, condensation + 1)`) rather than storing a separate
   copy that can go stale when condensation or species changes.
-- [ ] **Surface rank-specific Partner Skill effects.** The reference schema already models
+- [x] **Surface rank-specific Partner Skill effects.** The reference schema already models
   `partner_skill_rank` (levels 1–5). Carry those rows into the UI bundle and show the active rank's
   effect, so changing condensation also updates the displayed Partner Skill effect.
 - [?] **Confirm condensation ↔ Work Suitability coupling.** In 1.0, each rank-up also raises a Work
@@ -78,17 +78,16 @@ Status key: `[ ]` open · `[x]` done · `[~]` in progress · `[?]` needs investi
 
 ## Tier 3 — deliberate refinements (when the area is next touched)
 
-- [x] **Make user metadata upgrade-safe.** Numbered v2 and v3 migrations preserve passive presets,
+- [x] **Make user metadata upgrade-safe.** Numbered v2, v3, and v4 migrations preserve passive presets,
   groups, memberships, the remembered Palbox path, and auto-open preference across upgrades.
   Migration and fresh-schema behavior are covered by core tests.
 - [x] **Move domain rules into the core.** New-Pal initialization and DTO application belong behind
   core operations (for example `create_initialized_pal`, `apply_pal_dto`); the Tauri layer manages
   the session and marshals commands.
-- [~] **Single source of truth for limits and computed stats.** Setter limits and
-  species-dependent Work Suitability validation now live in the core. Replace full-DTO submission
-  with granular typed mutations, expose limits to the UI, and return computed combat stats,
-  trust/EXP, Partner Skill rank/effects, and Work Suitability totals from the engine. Consider
-  generated Rust→TS bindings once the DTO surface is stable.
+- [x] **Single source of truth for limits and computed stats.** Patch-sensitive facts, limits,
+  progression rows, and formula operands live in the reference DB. The validated in-memory
+  catalog drives transactional semantic mutations and engine-computed combat stats, Trust/EXP,
+  Partner Skill rank/effects, and Work totals. The UI owns presentation only; see ADR 0004.
 - [ ] **Release provenance.** Publish checksums, a software bill of materials, and dependency-audit
   evidence; consider code signing when the audience and cost justify it.
 - [ ] **Performance profile with a near-full box.** Measure startup, reference load, filtering,

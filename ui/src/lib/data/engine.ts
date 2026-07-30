@@ -6,7 +6,9 @@ import type { ReferenceBundle } from "./types";
 export interface PalDtoSouls { hp: number; attack: number; defense: number; craftSpeed: number }
 export interface PalDtoIvs { hp: number; shot: number; defense: number }
 
-/** Mirrors palbox_core::pal::PalDto (raw editable save values). */
+export interface TrustInput { rank: number; progress: number }
+
+/** Engine-owned semantic edit input. No save-only encodings cross this boundary. */
 export interface PalDto {
   slot: number;
   instanceId: string;
@@ -18,17 +20,67 @@ export interface PalDto {
   condensation: number;
   souls: PalDtoSouls;
   ivs: PalDtoIvs;
-  /** official work name -> AddRank bonus */
+  /** Internal Work Suitability code -> desired effective total. */
   work: Record<string, number>;
   passives: string[];
   equippedMoves: string[];
   learnedMoves: string[];
   isLucky: boolean;
   isAlpha: boolean;
+  /** User-facing whole HP. */
   hp: number;
   sanity: number;
-  food: number;
-  friendship: number;
+  foodPercent: number;
+  trust: TrustInput;
+}
+
+export interface WorkSuitabilityView {
+  code: string;
+  name: string;
+  icon: string;
+  baseLevel: number;
+  bonusLevel: number;
+  totalLevel: number;
+  available: boolean;
+}
+
+export interface PalProjection {
+  speciesName: string;
+  elements: string[];
+  maxStomach: number;
+  work: WorkSuitabilityView[];
+  stats: { hp: number; attack: number; defense: number };
+  trust: {
+    rank: number;
+    minRank: number;
+    maxRank: number;
+    progress: number;
+    points: number;
+    rankStartPoints: number;
+    nextRankPoints: number;
+  };
+  exp: {
+    points: number;
+    levelStartPoints: number;
+    nextLevelPoints: number;
+    toNextLevel: number;
+    progress: number;
+  };
+  partnerSkill: {
+    name: string;
+    description: string;
+    category: string | null;
+    element: string | null;
+    gearName: string | null;
+    technologyLevel: number | null;
+    level: number;
+    activeRank: { rank: number; valueText: string; valueNumber: number | null } | null;
+  } | null;
+}
+
+export interface PalView {
+  editable: PalDto;
+  projection: PalProjection;
 }
 
 export interface BoxTileDto {
@@ -41,13 +93,14 @@ export interface BoxTileDto {
   condensation: number;
   ivs: PalDtoIvs;
   souls: PalDtoSouls;
-  /** Official Work Suitability name -> per-instance AddRank bonus. */
+  /** Internal Work Suitability code -> per-instance AddRank bonus (engine-only detail). */
   work: Record<string, number>;
   isLucky: boolean;
   isAlpha: boolean;
   passives: string[];
   equippedMoves: string[];
   learnedMoves: string[];
+  projection: PalProjection | null;
 }
 
 export interface OpenResult {
@@ -94,10 +147,10 @@ export interface BoxMutation {
 }
 
 export const openBox = (path: string) => invoke<OpenResult>("open_box", { path });
-export const getPal = (slot: number) => invoke<PalDto>("get_pal", { slot });
+export const getPal = (slot: number) => invoke<PalView>("get_pal", { slot });
 export const getBoxSessionStatus = () =>
   invoke<BoxSessionStatus>("box_session_status");
-export const updatePal = (dto: PalDto) => invoke<PalDto>("update_pal", { dto });
+export const updatePal = (dto: PalDto) => invoke<PalView>("update_pal", { dto });
 
 /** Add a new pal (default: the turtle CubeTurtle) to a free slot. */
 export const addBoxPal = (species: string | null = null) =>
@@ -147,7 +200,7 @@ export const deletePassivePreset = (id: number) =>
 
 /** Applies the preset to the in-memory Pal at slot; persistence still requires saveBox(). */
 export const applyPassivePreset = (slot: number, presetId: number) =>
-  invoke<PalDto>("apply_passive_preset", { slot, presetId });
+  invoke<PalView>("apply_passive_preset", { slot, presetId });
 
 export const listGroups = () => invoke<UserGroup[]>("list_groups");
 export const createGroup = (name: string) =>

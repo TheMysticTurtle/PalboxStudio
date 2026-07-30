@@ -9,13 +9,13 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 use palbox_core::globalbox::{
-    add_initialized_pal, clone_pal, delete_pal, list_pals, pal_param_mut, read_pal_at, slot_count,
-    PalSummary,
+    add_initialized_pal, apply_pal_input_at, clone_pal, delete_pal, list_pal_views,
+    read_pal_view_at, slot_count, PalSummaryView,
 };
-use palbox_core::pal::{self, PalDto};
+use palbox_core::projection::{PalInput, PalView};
 use palbox_core::reference::{
     validate_passive_codes, AppPreferences, PalGroupMembership, PassiveOption, PassivePreset,
-    ReferenceBundle, ReferenceDatabase, UserDatabase, UserGroup,
+    ReferenceBundle, ReferenceCatalog, ReferenceDatabase, UserDatabase, UserGroup,
 };
 use palbox_core::session::SaveSession;
 use serde::Serialize;
@@ -32,7 +32,7 @@ struct DatabasePaths {
 /// The read-only reference materialized into memory once at startup, so reference
 /// commands never re-open the bundled 17 MB DB.
 struct ReferenceCache {
-    bundle: ReferenceBundle,
+    catalog: ReferenceCatalog,
     passive_options: Vec<PassiveOption>,
     passive_codes: HashSet<String>,
 }
@@ -42,7 +42,7 @@ struct ReferenceCache {
 struct OpenResult {
     path: String,
     slot_count: usize,
-    pals: Vec<PalSummary>,
+    pals: Vec<PalSummaryView>,
 }
 
 #[derive(Serialize)]
@@ -61,9 +61,13 @@ fn core_version() -> String {
 
 /// Open a `GlobalPalStorage.sav`: decode, hold in memory, return the box tiles.
 #[tauri::command]
-fn open_box(path: String, state: State<AppState>) -> Result<OpenResult, String> {
+fn open_box(
+    path: String,
+    state: State<AppState>,
+    cache: State<ReferenceCache>,
+) -> Result<OpenResult, String> {
     let session = SaveSession::open(&path)?;
-    let pals = list_pals(session.save());
+    let pals = list_pal_views(session.save(), &cache.catalog);
     let slots = slot_count(session.save()).unwrap_or(0);
     *state.0.lock().unwrap() = Some(session);
     Ok(OpenResult {
@@ -75,10 +79,14 @@ fn open_box(path: String, state: State<AppState>) -> Result<OpenResult, String> 
 
 /// Full editable DTO for the pal at `slot`.
 #[tauri::command]
-fn get_pal(slot: usize, state: State<AppState>) -> Result<PalDto, String> {
+fn get_pal(
+    slot: usize,
+    state: State<AppState>,
+    cache: State<ReferenceCache>,
+) -> Result<PalView, String> {
     let guard = state.0.lock().unwrap();
     let session = guard.as_ref().ok_or("no box open")?;
-    read_pal_at(session.save(), slot).ok_or_else(|| "no pal at slot".to_string())
+    read_pal_view_at(session.save(), slot, &cache.catalog)
 }
 
 /// Lightweight source monitor for the UI. The fresh content hash is
@@ -102,18 +110,16 @@ fn box_session_status(state: State<AppState>) -> Result<BoxSessionStatus, String
     })
 }
 
-/// Apply an edited DTO to the in-memory box; returns the freshly re-read DTO.
+/// Apply semantic input through the headless engine and return its fresh view.
 #[tauri::command]
 fn update_pal(
-    dto: PalDto,
+    dto: PalInput,
     state: State<AppState>,
     cache: State<ReferenceCache>,
-) -> Result<PalDto, String> {
+) -> Result<PalView, String> {
     let mut guard = state.0.lock().unwrap();
     let session = guard.as_mut().ok_or("no box open")?;
-    let sp = pal_param_mut(session.save_mut(), dto.slot).ok_or("no pal at slot")?;
-    pal::apply_dto_with_reference(sp, &dto, &cache.bundle)?;
-    read_pal_at(session.save(), dto.slot).ok_or_else(|| "re-read failed".to_string())
+    apply_pal_input_at(session.save_mut(), &dto, &cache.catalog)
 }
 
 /// Result of a box add/clone/delete: the refreshed tiles and the slot the UI
@@ -121,7 +127,7 @@ fn update_pal(
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct BoxMutation {
-    pals: Vec<PalSummary>,
+    pals: Vec<PalSummaryView>,
     slot: Option<usize>,
 }
 
@@ -135,33 +141,41 @@ fn add_box_pal(
     let mut guard = state.0.lock().unwrap();
     let session = guard.as_mut().ok_or("no box open")?;
     let species = species.unwrap_or_else(|| "CubeTurtle".to_string());
-    let slot = add_initialized_pal(session.save_mut(), &species, &cache.bundle)?;
+    let slot = add_initialized_pal(session.save_mut(), &species, &cache.catalog)?;
     Ok(BoxMutation {
-        pals: list_pals(session.save()),
+        pals: list_pal_views(session.save(), &cache.catalog),
         slot: Some(slot),
     })
 }
 
 /// Deep-copy the pal at `slot` into a free slot with a fresh identity.
 #[tauri::command]
-fn clone_box_pal(slot: usize, state: State<AppState>) -> Result<BoxMutation, String> {
+fn clone_box_pal(
+    slot: usize,
+    state: State<AppState>,
+    cache: State<ReferenceCache>,
+) -> Result<BoxMutation, String> {
     let mut guard = state.0.lock().unwrap();
     let session = guard.as_mut().ok_or("no box open")?;
     let new_slot = clone_pal(session.save_mut(), slot)?;
     Ok(BoxMutation {
-        pals: list_pals(session.save()),
+        pals: list_pal_views(session.save(), &cache.catalog),
         slot: Some(new_slot),
     })
 }
 
 /// Remove the pal at `slot`, restoring the slot to a vacancy.
 #[tauri::command]
-fn delete_box_pal(slot: usize, state: State<AppState>) -> Result<BoxMutation, String> {
+fn delete_box_pal(
+    slot: usize,
+    state: State<AppState>,
+    cache: State<ReferenceCache>,
+) -> Result<BoxMutation, String> {
     let mut guard = state.0.lock().unwrap();
     let session = guard.as_mut().ok_or("no box open")?;
     delete_pal(session.save_mut(), slot)?;
     Ok(BoxMutation {
-        pals: list_pals(session.save()),
+        pals: list_pal_views(session.save(), &cache.catalog),
         slot: None,
     })
 }
@@ -204,7 +218,7 @@ fn list_passive_options(
 /// The normalized reference tables shaped for the existing UI model.
 #[tauri::command]
 fn get_reference_data(cache: State<ReferenceCache>) -> ReferenceBundle {
-    cache.bundle.clone()
+    cache.catalog.bundle().clone()
 }
 
 #[tauri::command]
@@ -233,7 +247,7 @@ fn list_passive_presets(databases: State<DatabasePaths>) -> Result<Vec<PassivePr
 }
 
 /// Create or replace a named preset. The core validates every passive code
-/// against the 1.0 reference DB and enforces the four-slot limit.
+/// against the reference DB and enforces its DB-backed slot limit.
 #[tauri::command]
 fn save_passive_preset(
     id: Option<i64>,
@@ -244,8 +258,14 @@ fn save_passive_preset(
 ) -> Result<PassivePreset, String> {
     let mut user =
         UserDatabase::open_or_create(&databases.user).map_err(|error| error.to_string())?;
-    user.save_preset(&cache.passive_codes, id, &name, &passive_codes)
-        .map_err(|error| error.to_string())
+    user.save_preset(
+        &cache.passive_codes,
+        cache.catalog.bundle().limits.passives_max as usize,
+        id,
+        &name,
+        &passive_codes,
+    )
+    .map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -317,19 +337,23 @@ fn apply_passive_preset(
     box_state: State<AppState>,
     cache: State<ReferenceCache>,
     databases: State<DatabasePaths>,
-) -> Result<PalDto, String> {
+) -> Result<PalView, String> {
     let user = UserDatabase::open_or_create(&databases.user).map_err(|error| error.to_string())?;
     let preset = user
         .get_preset(preset_id)
         .map_err(|error| error.to_string())?;
-    validate_passive_codes(&preset.passive_codes, &cache.passive_codes)
-        .map_err(|error| error.to_string())?;
+    validate_passive_codes(
+        &preset.passive_codes,
+        &cache.passive_codes,
+        cache.catalog.bundle().limits.passives_max as usize,
+    )
+    .map_err(|error| error.to_string())?;
 
     let mut guard = box_state.0.lock().unwrap();
     let session = guard.as_mut().ok_or("no box open")?;
-    let sp = pal_param_mut(session.save_mut(), slot).ok_or("no pal at slot")?;
-    pal::set_passives(sp, preset.passive_codes);
-    read_pal_at(session.save(), slot).ok_or_else(|| "re-read failed".to_string())
+    let mut input = read_pal_view_at(session.save(), slot, &cache.catalog)?.editable;
+    input.passives = preset.passive_codes;
+    apply_pal_input_at(session.save_mut(), &input, &cache.catalog)
 }
 
 fn database_paths(app: &tauri::App) -> Result<DatabasePaths, Box<dyn std::error::Error>> {
@@ -363,7 +387,7 @@ pub fn run() {
             // then serve from RAM instead of re-opening the bundled DB per call.
             let reference = ReferenceDatabase::open(&paths.reference)?;
             let cache = ReferenceCache {
-                bundle: reference.load_ui_bundle()?,
+                catalog: reference.load_catalog()?,
                 passive_options: reference.list_passives("", true, true)?,
                 passive_codes: reference.passive_code_set()?,
             };

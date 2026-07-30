@@ -2,6 +2,46 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Session — 2026-07-30: DB facts, engine authority, and semantic Pal views
+
+Completed the authority migration on `fix/engine-save-authority` without changing
+the Global Palbox lifecycle or the backed-up atomic save contract:
+
+- Advanced the generated reference DB to schema v4. Typed `editor_limits` and
+  `calculation_rules` rows now own patch-sensitive ranges and formula operands;
+  Work icons/order, EXP, Friendship, and Partner Skill rank rows are loaded with
+  the existing species/move/passive catalog.
+- Added a validated, indexed in-memory `ReferenceCatalog`. The database is opened
+  once at startup; projections, validations, presets, and box tiles reuse the
+  cache instead of issuing render-time queries.
+- Added semantic engine input plus engine-owned projections for combat stats,
+  Work base/bonus/total levels, Trust, EXP, and Partner Skill level/rank effect.
+  The engine alone translates whole HP, food percentage, Trust progress, Work
+  bonuses, and condensation's one-based save encoding.
+- Added identity-checked, transactional slot mutation. A stale frontend cannot
+  write through a reused slot after its `InstanceId` changes.
+- Removed the UI combat-stat calculator and duplicated Work/element/category
+  catalogs. Main and box cards now consume the same engine projections; species
+  changes go through the engine and preserve raw Work bonuses.
+- Exposed the complete DB-backed Trust range, including ranks −3 through 10, so
+  editing another field cannot silently normalize negative Friendship to zero.
+- Advanced `palbox-user.db` to schema v4. Existing v1/v2/v3 databases migrate
+  forward without losing presets, groups, memberships, or preferences. The user
+  DB preserves ordered preset entries but no longer duplicates Palworld's current
+  passive-slot limit; the reference catalog and engine enforce it.
+- Added readable SQLite views for species, Work, Partner Skill progression,
+  moves/effects, passives/effects, and source provenance. Internal codes and
+  human-readable names appear together for direct DB Browser inspection.
+- Recorded the final authority boundary in ADR 0004.
+
+**Verification:** 32 Rust/core tests pass; 11 UI unit tests pass; Svelte checking
+reports 0 errors and 0 warnings; the production UI build succeeds; deterministic
+reference/user database generation and installed-database validation pass.
+
+**Next:** no additional architecture rewrite is expected for this slice. The next
+engineering priority remains deterministic persistence fault injection, followed
+by the window-close dirty guard and a safe dirty-conflict snapshot/export.
+
 ## Session — 2026-07-30: consistent cards and verified condenser controls
 
 - Standardized compact Global Palbox cards at 190px, enough for the optional species subtitle,

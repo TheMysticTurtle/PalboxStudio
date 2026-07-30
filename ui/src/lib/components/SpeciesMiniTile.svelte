@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { SpeciesRow } from "$lib/data/types";
-  import { WORK_SUITS } from "$lib/data/constants";
   import { palIcon } from "$lib/data/icons";
   import { elementColor } from "$lib/data/palPresentation";
+  import { ref } from "$lib/data/refdata.svelte";
   import ElementIcon from "./ElementIcon.svelte";
   import PalArtwork from "./PalArtwork.svelte";
   import WorkIcon from "./WorkIcon.svelte";
@@ -20,8 +20,8 @@
   const primary = $derived(elementColor(species.elements[0]));
   const secondary = $derived(elementColor(species.elements[1] ?? species.elements[0]));
   const work = $derived(
-    WORK_SUITS.flatMap((definition) => {
-      const level = species.work[definition.name] ?? 0;
+    ref.workTypes.flatMap((definition) => {
+      const level = species.work[definition.code] ?? 0;
       return level > 0 ? [{ ...definition, level }] : [];
     }),
   );

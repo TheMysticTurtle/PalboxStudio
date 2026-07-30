@@ -23,9 +23,11 @@
   let category = $state("All");
   let sort = $state<"power" | "name">("power");
 
-  const elementOptions: ElementName[] = [
-    "Neutral", "Fire", "Water", "Grass", "Electric", "Ice", "Ground", "Dark", "Dragon",
-  ];
+  let elementOptions = $derived(
+    Object.entries(ref.elements)
+      .sort(([, left], [, right]) => left.sortOrder - right.sortOrder)
+      .map(([code]) => code as ElementName),
+  );
   let categories = $derived([
     "All",
     ...Array.from(new Set(Object.values(ref.moves).map((m) => m.category).filter(Boolean))).sort(),

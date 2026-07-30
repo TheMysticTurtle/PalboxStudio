@@ -1,62 +1,32 @@
-// Map between the engine's raw PalDto (save values) and the UI's display `Pal`,
-// joining the species reference table. Only verified save-backed or computed
-// values are surfaced by the UI.
+// Thin presentation mapping over engine-owned semantic inputs and projections.
+// No save encoding, game formula, Work base/bonus, Trust, EXP, or progression
+// calculation belongs in this layer.
 import type { Pal, BoxPal, ElementName, Gender } from "./types";
-import type { BoxTileDto, PalDto } from "./engine";
-import { ref, resolveSpecies } from "./refdata.svelte";
-import { WORK_SUITS } from "./constants";
-import { calculateCombatStats } from "./palStats";
-
-const FALLBACK_TRUST_RANKS = [
-  0, 6_000, 13_000, 21_000, 30_000, 40_000, 55_000, 80_000, 110_000, 150_000, 200_000,
-];
-
-function trustThreshold(rank: number): number {
-  return ref.friendshipRanks[String(rank)] ?? FALLBACK_TRUST_RANKS[rank] ?? 0;
-}
-
-export function friendshipToTrust(points: number): Pal["trust"] {
-  const clamped = Math.max(0, Math.min(trustThreshold(10), Math.round(points)));
-  let rank = 0;
-  for (let value = 1; value <= 10; value += 1) {
-    if (clamped < trustThreshold(value)) break;
-    rank = value;
-  }
-  if (rank >= 10) return { rank: 10, progress: 1 };
-  const start = trustThreshold(rank);
-  const end = trustThreshold(rank + 1);
-  return { rank, progress: end > start ? (clamped - start) / (end - start) : 0 };
-}
-
-export function trustToFriendship(trust: Pal["trust"]): number {
-  const rank = Math.max(0, Math.min(10, Math.round(trust.rank)));
-  if (rank >= 10) return trustThreshold(10);
-  const start = trustThreshold(rank);
-  const end = trustThreshold(rank + 1);
-  const progress = Math.max(0, Math.min(1, trust.progress));
-  return Math.round(start + (end - start) * progress);
-}
+import type { BoxTileDto, PalDto, PalView } from "./engine";
+import { resolveSpecies } from "./refdata.svelte";
 
 export function maxHpForPal(pal: Pal): number {
-  const stats = calculateCombatStats(pal);
-  // The plain browser preview has no Tauri bridge/reference bundle. Preserve the
-  // mapped/sample maximum there instead of collapsing the slider to a base-only value.
-  return stats?.hp ?? Math.max(1, pal.stats.hpMax);
+  return Math.max(1, pal.stats.hpMax);
 }
 
-export function dtoToPal(dto: PalDto): Pal {
-  const sp = resolveSpecies(dto.characterId);
-  const elements = (sp?.elements ?? []) as ElementName[];
-  const displayName = dto.nickname || sp?.name || dto.characterId;
-  const workBase = sp?.work ?? {};
+export function dtoToPal(view: PalView): Pal {
+  const dto = view.editable;
+  const projection = view.projection;
+  const species = resolveSpecies(dto.characterId);
+  const elements = projection.elements as ElementName[];
+  const displayName = dto.nickname || projection.speciesName || dto.characterId;
   const equipped = dto.equippedMoves;
   const learned = dto.learnedMoves;
-  const hp = Math.max(0, Math.round(dto.hp / 1000));
-  const pal: Pal = {
+  const activeRank = projection.partnerSkill?.activeRank;
+
+  return {
     instanceId: dto.instanceId,
     species: dto.characterId,
     name: displayName,
-    paldexNo: sp && sp.deckIndex >= 0 ? `No. ${String(sp.deckIndex).padStart(3, "0")}` : "",
+    paldexNo:
+      species && species.deckIndex >= 0
+        ? `No. ${String(species.deckIndex).padStart(3, "0")}`
+        : "",
     gender: (dto.gender as Gender) || "Unknown",
     elements,
     level: dto.level,
@@ -72,90 +42,56 @@ export function dtoToPal(dto: PalDto): Pal {
       craftSpeed: dto.souls.craftSpeed,
     },
     stats: {
-      hp,
-      hpMax: 1,
+      hp: dto.hp,
+      hpMax: projection.stats.hp,
+      attack: projection.stats.attack,
+      defense: projection.stats.defense,
       san: Math.round(dto.sanity),
-      foodPct: sp?.maxStomach ? Math.min(1, dto.food / sp.maxStomach) : 0.5,
+      foodPct: dto.foodPercent,
     },
-    trust: friendshipToTrust(dto.friendship),
+    trust: {
+      rank: projection.trust.rank,
+      minRank: projection.trust.minRank,
+      maxRank: projection.trust.maxRank,
+      progress: projection.trust.progress,
+    },
     partnerSkill: {
-      name: sp?.partnerSkill?.name ?? "—",
-      level: Math.min(5, dto.condensation + 1),
-      description: sp?.partnerSkill?.description || "No Partner Skill reference is available for this species.",
-      element: sp?.partnerSkill?.element ?? elements[0],
+      name: projection.partnerSkill?.name ?? "—",
+      level: projection.partnerSkill?.level ?? 0,
+      description:
+        projection.partnerSkill?.description
+        || "No Partner Skill reference is available for this species.",
+      element:
+        (projection.partnerSkill?.element as ElementName | null) ?? elements[0],
+      rankEffect: activeRank?.valueText,
     },
     passives: dto.passives,
-    activeSkills: dto.equippedMoves,
+    activeSkills: equipped,
     learnedMoves: learned,
-    // Keep explicit mastered moves separate so natural moves are never written
-    // into MasteredWaza merely because the UI displayed them.
-    benchMoves: [...new Set([...learned, ...(sp?.moves ?? [])])].filter(
+    // Explicitly mastered moves and the DB-backed natural learnset are display
+    // inputs only; natural moves are never written into MasteredWaza.
+    benchMoves: [...new Set([...learned, ...(species?.moves ?? [])])].filter(
       (move) => !equipped.includes(move),
     ),
-    workSuit: WORK_SUITS
-      .filter((work) => (workBase[work.name] ?? 0) > 0 || (dto.work[work.name] ?? 0) !== 0)
-      .map((work) => ({
-        name: work.name,
-        icon: work.icon,
-        level: (workBase[work.name] ?? 0) + (dto.work[work.name] ?? 0),
-      })),
-  };
-  pal.stats.hpMax = maxHpForPal(pal);
-  return pal;
-}
-
-/** Change a loaded pal's species in place: rewrite the species code and re-derive
- *  the species-dependent display fields (elements, Paldex no., Partner Skill, bench
- *  learnset) from the reference table. Per-instance edits (level, IVs, souls,
- *  passives, equipped moves) are kept. A pal whose name still matches its old
- *  species (i.e. no custom nickname) follows to the new species name. Persisted on
- *  save: palToDto sends the new characterId, and the engine's set_species writes it. */
-export function reSpecies(pal: Pal, code: string): void {
-  const oldSp = resolveSpecies(pal.species);
-  const sp = resolveSpecies(code);
-  const oldWorkBase = oldSp?.work ?? {};
-  const workBonus = Object.fromEntries(
-    pal.workSuit.map((work) => [work.name, work.level - (oldWorkBase[work.name] ?? 0)]),
-  );
-  if (!pal.name || pal.name === oldSp?.name) pal.name = sp?.name ?? code;
-  pal.species = code;
-  pal.elements = (sp?.elements ?? []) as ElementName[];
-  pal.paldexNo = sp && sp.deckIndex >= 0 ? `No. ${String(sp.deckIndex).padStart(3, "0")}` : "";
-  pal.partnerSkill = {
-    name: sp?.partnerSkill?.name ?? "—",
-    level: pal.partnerSkill.level,
-    description:
-      sp?.partnerSkill?.description || "No Partner Skill reference is available for this species.",
-    element: sp?.partnerSkill?.element ?? pal.elements[0],
-  };
-  // Bench = explicit mastered moves + the new natural learnset, excluding active.
-  pal.benchMoves = [...new Set([...pal.learnedMoves, ...(sp?.moves ?? [])])].filter(
-    (move) => !pal.activeSkills.includes(move),
-  );
-  const workBase = sp?.work ?? {};
-  pal.workSuit = WORK_SUITS
-    .filter((work) => (workBase[work.name] ?? 0) > 0 || (workBonus[work.name] ?? 0) !== 0)
-    .map((work) => ({
+    workSuit: projection.work.map((work) => ({
+      code: work.code,
       name: work.name,
       icon: work.icon,
-      level: Math.max(0, Math.min(10, (workBase[work.name] ?? 0) + (workBonus[work.name] ?? 0))),
-    }));
+      level: work.totalLevel,
+    })),
+  };
 }
 
-/** Build the editable DTO back from the display `Pal` for saving. */
+/** Build semantic edit input. The engine translates these user-facing values
+ * into Palworld's save-only encodings and returns a fresh canonical view. */
 export function palToDto(pal: Pal, slot: number): PalDto {
-  const sp = resolveSpecies(pal.species);
-  const workBase = sp?.work ?? {};
-  const work: Record<string, number> = {};
-  for (const w of pal.workSuit) {
-    const addRank = w.level - (workBase[w.name] ?? 0);
-    if (addRank !== 0) work[w.name] = addRank; // only non-zero bonuses
-  }
+  const speciesName = resolveSpecies(pal.species)?.name ?? pal.species;
+  const nickname = pal.name.trim();
   return {
     slot,
     instanceId: pal.instanceId,
     characterId: pal.species,
-    nickname: pal.name,
+    nickname: nickname && nickname !== speciesName ? nickname : null,
     gender: pal.gender,
     level: pal.level,
     exp: pal.exp,
@@ -167,27 +103,34 @@ export function palToDto(pal: Pal, slot: number): PalDto {
       craftSpeed: pal.soulRanks.craftSpeed,
     },
     ivs: { hp: pal.ivs.hp, shot: pal.ivs.shot, defense: pal.ivs.defense },
-    work,
+    work: Object.fromEntries(
+      pal.workSuit.map((work) => [work.code, work.level]),
+    ),
     passives: pal.passives,
     equippedMoves: pal.activeSkills,
     learnedMoves: pal.learnedMoves,
     isLucky: pal.lucky,
     isAlpha: pal.alpha,
-    hp: Math.round(Math.max(0, pal.stats.hp) * 1000),
+    hp: Math.round(Math.max(0, pal.stats.hp)),
     sanity: pal.stats.san,
-    food: Math.max(0, Math.min(1, pal.stats.foodPct)) * (sp?.maxStomach || 300),
-    friendship: trustToFriendship(pal.trust),
+    foodPercent: Math.max(0, Math.min(1, pal.stats.foodPct)),
+    trust: {
+      rank: pal.trust.rank,
+      progress: pal.trust.progress,
+    },
   };
 }
 
-/** Join a lightweight engine tile to the in-memory species reference table.
- * `resolveSpecies` strips the BOSS_ storage prefix, so Alpha/Lucky tiles always
- * show the real species name, elements, and portrait instead of a code name. */
-export function tileDtoToBoxPal(tile: BoxTileDto, groups: string[] = []): BoxPal {
-  const sp = resolveSpecies(tile.characterId);
-  const speciesName = sp?.name ?? tile.characterId;
+/** Engine-projected lightweight row for either Global Palbox density. */
+export function tileDtoToBoxPal(
+  tile: BoxTileDto,
+  groups: string[] = [],
+): BoxPal {
+  const species = resolveSpecies(tile.characterId);
+  const projection = tile.projection;
+  const speciesName =
+    projection?.speciesName ?? species?.name ?? tile.characterId;
   const nickname = tile.nickname?.trim() ?? "";
-  const workBase = sp?.work ?? {};
   return {
     instanceId: tile.instanceId,
     slot: tile.slot,
@@ -200,27 +143,34 @@ export function tileDtoToBoxPal(tile: BoxTileDto, groups: string[] = []): BoxPal
     condensation: tile.condensation,
     ivs: { ...tile.ivs },
     soulRanks: { ...tile.souls },
-    elements: (sp?.elements ?? []) as ElementName[],
+    elements: (projection?.elements ?? species?.elements ?? []) as ElementName[],
     alpha: tile.isAlpha,
     lucky: tile.isLucky,
     groups,
-    workSuit: WORK_SUITS
-      .map((work) => ({
-        name: work.name,
-        icon: work.icon,
-        level: Math.max(0, Math.min(10, (workBase[work.name] ?? 0) + (tile.work[work.name] ?? 0))),
-      }))
-      .filter((work) => work.level > 0),
+    stats: projection?.stats ?? { hp: 0, attack: 0, defense: 0 },
+    workSuit:
+      projection?.work
+        .filter((work) => work.totalLevel > 0)
+        .map((work) => ({
+          code: work.code,
+          name: work.name,
+          icon: work.icon,
+          level: work.totalLevel,
+        })) ?? [],
     passives: tile.passives,
     activeSkills: tile.equippedMoves,
     moves: [...new Set([...tile.equippedMoves, ...tile.learnedMoves])],
   };
 }
 
-/** Live tile projection for the Pal currently open on the main card. */
-export function palToBoxPal(pal: Pal, slot: number, groups: string[] = []): BoxPal {
-  const sp = resolveSpecies(pal.species);
-  const speciesName = sp?.name ?? pal.species;
+/** Live card row for the selected Pal, already projected by the engine. */
+export function palToBoxPal(
+  pal: Pal,
+  slot: number,
+  groups: string[] = [],
+): BoxPal {
+  const species = resolveSpecies(pal.species);
+  const speciesName = species?.name ?? pal.species;
   const nickname = pal.name !== speciesName ? pal.name : "";
   return {
     instanceId: pal.instanceId,
@@ -238,6 +188,11 @@ export function palToBoxPal(pal: Pal, slot: number, groups: string[] = []): BoxP
     alpha: pal.alpha,
     lucky: pal.lucky,
     groups,
+    stats: {
+      hp: pal.stats.hpMax,
+      attack: pal.stats.attack,
+      defense: pal.stats.defense,
+    },
     workSuit: pal.workSuit,
     passives: pal.passives,
     activeSkills: pal.activeSkills,

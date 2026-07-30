@@ -24,10 +24,12 @@ Use two databases:
 2. `palbox-user.db` is created in the platform app-data directory and opened
    read-write. It contains only user-authored Palbox Studio metadata.
 
-Schema v1 introduced named passive presets containing ordered slots `0..3`. Schema v2
+Schema v1 introduced named passive presets containing ordered entries. Schema v2
 adds user-named groups and many-to-many membership keyed by stable Pal `InstanceId`.
 Schema v3 adds engine-owned app settings, initially the remembered Global Palbox path
-and auto-open toggle. Automatic numbered migrations preserve existing user metadata.
+and auto-open toggle. Schema v4 removes the duplicated four-passive database constraint;
+the current limit comes from the reference DB and is enforced by the engine. Automatic
+numbered migrations preserve existing user metadata.
 Rust validates each passive code against the reference DB before writing or applying
 it. Applying a preset modifies only the addressed in-memory Pal; persistence still
 goes through the existing backed-up, atomic save workflow. Groups and settings remain
@@ -56,5 +58,5 @@ referential-integrity errors and records non-fatal corrections or omissions in
 - Remembered-box and auto-open preferences survive application upgrades without relying on the
   webview profile.
 - The app carries a bundled SQLite dependency and a roughly 17 MB reference resource.
-- Browser-only UI preview still needs the legacy JSON fallback until a mock Tauri
-  transport replaces it.
+- Browser-only UI preview has no authoritative reference-data fallback; validate
+  reference-driven behavior through the desktop engine.

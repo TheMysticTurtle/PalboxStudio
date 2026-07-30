@@ -105,7 +105,7 @@ CREATE INDEX species_element_element_idx ON species_element(element_code);
 CREATE TABLE work_type (
     code       TEXT PRIMARY KEY,
     name       TEXT NOT NULL UNIQUE,
-    icon       TEXT,
+    icon       TEXT NOT NULL,
     sort_order INTEGER NOT NULL UNIQUE
 ) STRICT;
 
@@ -276,6 +276,54 @@ CREATE TABLE friendship_rank (
     source_id      INTEGER NOT NULL REFERENCES data_source(id)
 ) STRICT;
 
+-- Patch-sensitive game/editor domains. A single strongly typed row makes a
+-- missing field a schema/load failure rather than a late string-key lookup.
+CREATE TABLE editor_limits (
+    id                         INTEGER PRIMARY KEY CHECK (id = 1),
+    level_min                  INTEGER NOT NULL,
+    level_max                  INTEGER NOT NULL CHECK (level_max >= level_min),
+    iv_min                     INTEGER NOT NULL,
+    iv_max                     INTEGER NOT NULL CHECK (iv_max >= iv_min),
+    work_suitability_min       INTEGER NOT NULL,
+    work_suitability_max       INTEGER NOT NULL CHECK (work_suitability_max >= work_suitability_min),
+    soul_rank_min              INTEGER NOT NULL,
+    soul_rank_max              INTEGER NOT NULL CHECK (soul_rank_max >= soul_rank_min),
+    condensation_min           INTEGER NOT NULL,
+    condensation_max           INTEGER NOT NULL CHECK (condensation_max >= condensation_min),
+    equipped_moves_min         INTEGER NOT NULL,
+    equipped_moves_max         INTEGER NOT NULL CHECK (equipped_moves_max >= equipped_moves_min),
+    passives_min               INTEGER NOT NULL,
+    passives_max               INTEGER NOT NULL CHECK (passives_max >= passives_min),
+    sanity_min                 INTEGER NOT NULL,
+    sanity_max                 INTEGER NOT NULL CHECK (sanity_max >= sanity_min),
+    friendship_min             INTEGER NOT NULL,
+    friendship_max             INTEGER NOT NULL CHECK (friendship_max >= friendship_min),
+    partner_skill_level_min    INTEGER NOT NULL,
+    partner_skill_level_max    INTEGER NOT NULL CHECK (partner_skill_level_max >= partner_skill_level_min),
+    source_id                  INTEGER NOT NULL REFERENCES data_source(id)
+) STRICT;
+
+-- Numeric coefficients used by reusable engine projections. Formula structure
+-- remains engine behavior; patch-sensitive operands live in this typed row.
+CREATE TABLE calculation_rules (
+    id                                           INTEGER PRIMARY KEY CHECK (id = 1),
+    soul_bonus_percent_per_rank                  REAL NOT NULL,
+    condensation_stat_bonus_percent_per_star     REAL NOT NULL,
+    iv_stat_bonus_ratio_per_point                REAL NOT NULL,
+    alpha_hp_multiplier                          REAL NOT NULL,
+    hp_flat_base                                 REAL NOT NULL,
+    hp_per_level                                 REAL NOT NULL,
+    hp_scaling_factor                            REAL NOT NULL,
+    attack_flat_base                             REAL NOT NULL,
+    attack_scaling_factor                        REAL NOT NULL,
+    defense_flat_base                            REAL NOT NULL,
+    defense_scaling_factor                       REAL NOT NULL,
+    save_hp_scale                                REAL NOT NULL CHECK (save_hp_scale > 0),
+    displayed_stat_min                           REAL NOT NULL,
+    partner_skill_level_offset                   INTEGER NOT NULL,
+    source_id                                    INTEGER NOT NULL REFERENCES data_source(id)
+) STRICT;
+
 CREATE TABLE localization (
     entity_type TEXT NOT NULL,
     entity_code TEXT NOT NULL,
@@ -339,5 +387,104 @@ FROM species AS s
 LEFT JOIN species_element AS se ON se.species_code = s.code
 GROUP BY s.code;
 
+CREATE VIEW v_species_work_suitability AS
+SELECT
+    s.code AS species_code,
+    s.name AS species_name,
+    wt.code AS work_code,
+    wt.name AS work_name,
+    wt.icon AS work_icon,
+    sw.base_level,
+    wt.sort_order
+FROM species_work AS sw
+JOIN species AS s ON s.code = sw.species_code
+JOIN work_type AS wt ON wt.code = sw.work_code;
+
+CREATE VIEW v_partner_skill_progression AS
+SELECT
+    s.code AS species_code,
+    s.name AS species_name,
+    ps.name AS partner_skill_name,
+    psr.rank,
+    psr.value_text,
+    psr.value_number
+FROM partner_skill AS ps
+JOIN species AS s ON s.code = ps.species_code
+LEFT JOIN partner_skill_rank AS psr ON psr.species_code = ps.species_code;
+
+CREATE VIEW v_move_catalog AS
+SELECT
+    m.code AS move_code,
+    m.name AS move_name,
+    e.name AS element_name,
+    m.category,
+    m.power,
+    m.cooldown,
+    EXISTS (
+        SELECT 1
+        FROM item AS skill_fruit
+        WHERE skill_fruit.code = 'SkillCard_' || m.code
+          AND skill_fruit.type_b = 'ConsumeWazaMachine'
+          AND skill_fruit.disabled = 0
+    ) AS has_skill_fruit,
+    ds.name AS source_name,
+    ds.version AS source_version
+FROM move AS m
+LEFT JOIN element AS e ON e.code = m.element_code
+JOIN data_source AS ds ON ds.id = m.source_id;
+
+CREATE VIEW v_move_effect_catalog AS
+SELECT
+    m.code AS move_code,
+    m.name AS move_name,
+    me.position AS effect_position,
+    me.type AS effect_type,
+    me.value AS effect_value,
+    me.value_ex AS secondary_value
+FROM move_effect AS me
+JOIN move AS m ON m.code = me.move_code;
+
+CREATE VIEW v_passive_catalog AS
+SELECT
+    p.code AS passive_code,
+    p.name AS passive_name,
+    p.rating,
+    p.description,
+    p.available_normal_pal,
+    p.available_lucky_pal,
+    p.disabled,
+    ds.name AS source_name,
+    ds.version AS source_version
+FROM passive AS p
+JOIN data_source AS ds ON ds.id = p.source_id;
+
+CREATE VIEW v_passive_effect_catalog AS
+SELECT
+    p.code AS passive_code,
+    p.name AS passive_name,
+    p.rating,
+    pe.position AS effect_position,
+    pe.type AS effect_type,
+    pe.value AS effect_value,
+    pe.target AS effect_target
+FROM passive_effect AS pe
+JOIN passive AS p ON p.code = pe.passive_code;
+
+CREATE VIEW v_reference_sources AS
+SELECT
+    id AS source_id,
+    name AS source_name,
+    kind AS source_kind,
+    version,
+    revision,
+    retrieved_at,
+    url,
+    sha256,
+    notes
+FROM data_source;
+
 INSERT INTO schema_migrations(version, applied_at)
-VALUES (2, '2026-07-25');
+VALUES
+    (2, '2026-07-25'),
+    (3, '2026-07-30'),
+    (4, '2026-07-30');
