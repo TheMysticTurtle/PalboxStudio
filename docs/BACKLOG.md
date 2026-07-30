@@ -23,13 +23,24 @@ Status key: `[ ]` open · `[x]` done · `[~]` in progress · `[?]` needs investi
 
 ## Tier 0 — save integrity (do first)
 
-- [ ] **Detect external save changes.** Record a fingerprint of the source file when a box is
+- [x] **Register all writable Global Palbox property schemas.** The core now installs an
+  insert-only canonical schema registry before every encode, including the Work Suitability array,
+  nested enum, and rank paths that caused the reported multi-user failure. Schemas recovered from
+  the source save always win.
+- [x] **Detect external save changes.** Record a fingerprint of the source file when a box is
   opened; before saving, compare it and decline to overwrite if the file changed since (for example
   if Palworld or another tool wrote it), with a clear reopen/reload prompt.
-- [ ] **Test the write-recovery paths.** Cover backup creation, staged-write failure, decode
+- [ ] **Add an external-change watcher and conflict UI.** Use watcher events for early notice, but
+  keep the core's fresh fingerprint comparison authoritative at replacement time.
+- [ ] **Detect post-save overwrite.** Warn if Palworld replaces Studio's newly written file during
+  the same session.
+- [ ] **Preserve dirty work during conflicts.** Add a safe app-level snapshot/export so a user can
+  keep unsaved edits without overwriting an externally changed source.
+- [~] **Test the write-recovery paths.** Success, exact-backup uniqueness, encode failure, and stale
+  source refusal are covered. Add deterministic fault injection for staged-write failure, decode
   failure, replacement failure, cleanup, and manual restore, on Windows and Linux. Every failure
   path should leave either the untouched original or a verified backup, with no orphaned temp file.
-- [ ] **Commit a safe save fixture and run it in CI.** Add a sanitized or synthetic
+- [x] **Commit a safe save fixture and run it in CI.** Add a sanitized or synthetic
   `GlobalPalStorage.sav` that is safe to distribute, so the real-save round-trip test runs on every
   build instead of self-skipping when `PALBOX_TEST_SAV` is unset.
 - [ ] **Add property / fuzz tests for the parser.** Exercise truncated files, unknown properties,
@@ -58,8 +69,9 @@ Status key: `[ ]` open · `[x]` done · `[~]` in progress · `[?]` needs investi
   mismatch.
 - [ ] **Run the UI unit tests in CI and the release gate.** The `test:unit` script exists but is not
   run automatically.
-- [ ] **Add dirty-state and close/open guards.** Mark the session dirty after the first edit; warn
-  before closing or opening another box with unsaved changes; do not prompt when nothing changed.
+- [~] **Add dirty-state and close/open guards.** The core session now tracks dirty state and clears
+  it only after successful persistence. Expose it through the shell and warn before closing or
+  opening another box with unsaved changes; do not prompt when nothing changed.
 - [ ] **Make an explicit CSP decision.** Either define a restrictive Content Security Policy for the
   UI or document why the local threat model makes the current setting acceptable.
 
@@ -69,12 +81,14 @@ Status key: `[ ]` open · `[x]` done · `[~]` in progress · `[?]` needs investi
   `database/migrations/user-v2-groups.sql`, the `USER_MIGRATION_V2` path and the runtime schema
   migration branch, and the legacy-schema migration tests; recreate the user DB on an incompatible
   schema.
-- [ ] **Move domain rules into the core.** New-Pal initialization and DTO application belong behind
+- [x] **Move domain rules into the core.** New-Pal initialization and DTO application belong behind
   core operations (for example `create_initialized_pal`, `apply_pal_dto`); the Tauri layer manages
   the session and marshals commands.
-- [ ] **Single source of truth for limits and computed stats.** Have the core expose the editing
-  limits and computed display stats the UI currently mirrors or recomputes; consider generated
-  Rust→TS bindings once the DTO surface is stable.
+- [~] **Single source of truth for limits and computed stats.** Setter limits and
+  species-dependent Work Suitability validation now live in the core. Replace full-DTO submission
+  with granular typed mutations, expose limits to the UI, and return computed combat stats,
+  trust/EXP, Partner Skill rank/effects, and Work Suitability totals from the engine. Consider
+  generated Rust→TS bindings once the DTO surface is stable.
 - [ ] **Release provenance.** Publish checksums, a software bill of materials, and dependency-audit
   evidence; consider code signing when the audience and cost justify it.
 - [ ] **Performance profile with a near-full box.** Measure startup, reference load, filtering,
@@ -84,6 +98,19 @@ Status key: `[ ]` open · `[x]` done · `[~]` in progress · `[?]` needs investi
   and 125% scaling, and on Linux/WebKitGTK.
 - [ ] **Contributor / extension guide.** A short data-flow diagram and notes on where new save
   fields, reference data, commands, and UI panels belong.
+
+## Quality of life
+
+- [ ] **Remember and auto-reopen the last box.** Store the last-opened `GlobalPalStorage.sav` path,
+  with a user toggle to reopen it automatically on launch instead of prompting for the file each
+  time — so it feels like a proper Palbox companion. Store the path and toggle in app settings;
+  validate the path still exists on launch and fall back to the file picker if it doesn't.
+- [ ] **Add ascending/descending box sorting.** Add a visible direction toggle beside the sort
+  selector with stable tie-breaking and no mutation of save order.
+- [ ] **Share explorer state between compact and expanded views.** Search, filters, groups, sort
+  key, and direction should persist when switching layouts.
+- [ ] **Add Condensation as a sort key.** The value already exists on `BoxPal`; add it after the
+  explorer's sorting state is shared.
 
 ## Future projects
 

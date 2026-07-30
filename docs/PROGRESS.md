@@ -40,6 +40,12 @@ return computed combat stats, trust/EXP, Partner Skill rank/effect, Work Suitabi
 editing limits from the engine; add watcher/post-save overwrite UX and fault injection for every
 staged-write/replacement failure.
 
+**Recommended next slice:** finish the Tier 0 persistence contract with deterministic fault
+injection for staged writes, staged decode, atomic replacement, cleanup, and manual restore. Then
+add watcher/conflict and post-save-overwrite UX on top of the fingerprint authority already in the
+core. After that safety boundary is closed, continue the authority migration with granular typed
+engine mutations and engine-computed display values.
+
 ## Session — 2026-07-28: condensation rank encoding fix
 
 Fixed the condensation off-by-one at the core save boundary. Palworld's `Rank` byte is one-based
