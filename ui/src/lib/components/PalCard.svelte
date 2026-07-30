@@ -21,6 +21,7 @@
   import { maxHpForPal, palToBoxPal, reSpecies } from "$lib/data/mapper";
   import SectionHeader from "./SectionHeader.svelte";
   import ElementPill from "./ElementPill.svelte";
+  import GenderIcon from "./GenderIcon.svelte";
   import PassiveChip from "./PassiveChip.svelte";
   import WorkSuitRow from "./WorkSuitRow.svelte";
   import SpeciesSelector from "./SpeciesSelector.svelte";
@@ -321,19 +322,7 @@
             title="Change gender to {nextGender(pal.gender)}"
             aria-label="Gender: {pal.gender}. Change to {nextGender(pal.gender)}"
           >
-            {#if pal.gender === "Male"}
-              <svg class="gender-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="9" cy="15" r="5"></circle>
-                <path d="M12.5 11.5 20 4M15 4h5v5"></path>
-              </svg>
-            {:else if pal.gender === "Female"}
-              <svg class="gender-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="8" r="5"></circle>
-                <path d="M12 13v8M8.5 17.5h7"></path>
-              </svg>
-            {:else}
-              <span class="gender-unknown">—</span>
-            {/if}
+            <GenderIcon gender={pal.gender} size={25} />
             <span class="gender-label">{pal.gender}</span>
           </button>
         </div>
@@ -701,21 +690,10 @@
   }
   .gender:hover { filter: brightness(1.2); transform: scale(1.06); }
   .gender:focus-visible { outline: 2px solid rgba(143, 227, 242, 0.7); outline-offset: 2px; }
-  .gender-icon {
-    width: 23px;
-    height: 23px;
-    flex: none;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
   .gender-label {
     font: 700 var(--type-caption) var(--font-head);
     letter-spacing: .04em;
   }
-  .gender-unknown { font-size: 22px; line-height: 1; }
   .gender.male { background: rgba(63, 143, 224, 0.18); border: 1px solid rgba(63, 143, 224, 0.55); color: #8fbef2; }
   .gender.female { background: rgba(224, 95, 192, 0.18); border: 1px solid rgba(224, 95, 192, 0.55); color: #f2a0d8; }
   .gender.unknown { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.14); color: #9aa6b2; }
@@ -1024,7 +1002,6 @@
     text-shadow: 0 3px 18px rgba(0, 0, 0, 0.5);
   }
   .gender { min-width: 90px; height: 40px; }
-  .gender-icon { width: 25px; height: 25px; }
   .elements { min-height: 27px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 
   .level-and-stats { min-width: 0; display: grid; grid-template-columns: 155px minmax(0, 1fr); gap: 14px; }

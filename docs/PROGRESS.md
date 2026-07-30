@@ -2,6 +2,28 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Session — 2026-07-30: consistent cards and verified condenser controls
+
+- Standardized compact Global Palbox cards at 190px, enough for the optional species subtitle,
+  condensation count, and group tag without producing staggered rows.
+- Standardized species-picker cards at 250px, enough for Work Suitability chips to wrap to a
+  second row without making that species taller than its neighbors.
+- Replaced font-dependent male/female characters with one reusable stroked SVG icon across compact,
+  expanded, and editable Pal cards. The badges retain their existing gender color and accessible
+  label while rendering consistently in the desktop WebView.
+- Audited the current source of Palworld Save Pal and the other Pal editors used as references.
+  Their terminology confirms that “ascension,” “rank,” “condensation,” and the Pal Essence
+  Condenser refer to the same progression field. PSP's normal control displays four stars and
+  writes `pal.rank = displayed stars + 1`; Pal Souls and Work Suitability are separate controls and
+  save properties.
+- Kept the existing progression control instead of introducing a conflicting duplicate. It is now
+  labeled **Pal Essence Condenser** and reports both the user-facing 0–4 stars and save-facing
+  `Rank` 1–5. It does not silently rewrite Work Suitability bonuses; the controlled-save coupling
+  question remains open below.
+
+**Verification:** 12 UI unit tests pass; Svelte checking reports 0 errors and 0 warnings; the
+production build succeeds.
+
 ## Session — 2026-07-29: durable preferences and roomier launch
 
 - Increased the default desktop window from 1280×800 to 1440×900 so the compact Global Palbox

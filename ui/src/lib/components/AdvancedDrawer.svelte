@@ -107,16 +107,28 @@
     </div>
   </div>
 
-  <!-- Condensation -->
+  <!-- Pal Essence Condenser -->
   <div>
-    <SectionHeader title="CONDENSATION" accent="var(--accent-amber)" color="#F5C97A" />
+    <SectionHeader title="PAL ESSENCE CONDENSER" accent="var(--accent-amber)" color="#F5C97A" />
     <div class="cond">
       <div class="stars">
         {#each Array(LIMITS.condensationMax) as _, i (i)}
-          <button class="star" class:on={i < pal.condensation} onclick={() => setCondensation(i)} aria-label="Condensation {i + 1} stars">★</button>
+          <button
+            class="star"
+            class:on={i < pal.condensation}
+            onclick={() => setCondensation(i)}
+            aria-label={pal.condensation === i + 1
+              ? `Lower condensation to ${i} stars`
+              : `Set condensation to ${i + 1} stars`}
+            title="{i + 1} condensation stars · save Rank {i + 2}"
+          >★</button>
         {/each}
       </div>
-      <div class="condnote">{pal.condensation} / {LIMITS.condensationMax} stars · +{pal.condensation * 5}% HP·Atk·Def</div>
+      <div class="condnote">
+        Condensation / ascension: {pal.condensation} / {LIMITS.condensationMax} stars
+        · save Rank {pal.condensation + 1} / {LIMITS.condensationMax + 1}
+        · +{pal.condensation * 5}% HP·Atk·Def
+      </div>
     </div>
   </div>
 

@@ -2,6 +2,7 @@
   import type { BoxPal } from "$lib/data/types";
   import { presentBoxPal } from "$lib/data/palPresentation";
   import ElementIcon from "./ElementIcon.svelte";
+  import GenderIcon from "./GenderIcon.svelte";
   import PalPortrait from "./PalPortrait.svelte";
 
   let {
@@ -34,7 +35,16 @@
       {#each card.elements as element}<ElementIcon {element} size={18} />{/each}
     </span>
     <span class="level">Lv.{card.level}</span>
-    <span class="gender" class:male={card.gender === "Male"} class:female={card.gender === "Female"}>{card.genderSymbol}</span>
+    <span
+      class="gender"
+      class:male={card.gender === "Male"}
+      class:female={card.gender === "Female"}
+      title={card.gender}
+      aria-label={card.gender}
+      role="img"
+    >
+      <GenderIcon gender={card.gender} size={14} />
+    </span>
   </span>
   {#if card.condensation > 0 || card.groups.length}
     <span class="foot">
@@ -48,7 +58,7 @@
   .tile {
     position: relative;
     min-width: 0;
-    min-height: 158px;
+    height: 190px;
     display: flex;
     flex-direction: column;
     align-items: center;

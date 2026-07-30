@@ -143,7 +143,10 @@ controlled before/after saves on scratchpad copies and diff the relevant fields:
 - **Condensation ↔ Work Suitability coupling.** Because in-game rank-ups also grant Work Suitability
   increases, editing `Rank` alone may leave a Pal whose star rank does not carry the job gains normal
   condensation would have produced. It's worth confirming how (and whether) the game derives those
-  gains before deciding how the editor should present the two controls.
+  gains before deciding how the editor should present the two controls. Palworld Save Pal,
+  Palworld-Pal-Editor, and PalEdit all expose condenser/rank, Souls, and Work Suitability as separate
+  editing concepts; that supports keeping our mutations independent, but it does **not** replace a
+  controlled before/after capture of the game's own condenser action.
 - **Runtime normalization.** The game may normalize some runtime values (current HP, food, sanity,
   trust) on load, so an in-game round trip is the final word on how an edited value settles.
 

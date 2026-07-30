@@ -78,7 +78,7 @@
   .tile {
     position: relative;
     min-width: 0;
-    min-height: 212px;
+    height: 250px;
     display: flex;
     flex-direction: column;
     align-items: center;

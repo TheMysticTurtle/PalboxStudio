@@ -27,7 +27,6 @@ export interface PalCardPresentation {
   speciesName: string;
   showSpeciesSubtitle: boolean;
   gender: Gender;
-  genderSymbol: string;
   level: number;
   condensation: number;
   stats: CombatStats;
@@ -41,10 +40,6 @@ export interface PalCardPresentation {
   workSuit: WorkSuit[];
   passives: PresentedPassive[];
   moves: PresentedMove[];
-}
-
-export function genderSymbol(gender: Gender): string {
-  return gender === "Male" ? "♂" : gender === "Female" ? "♀" : "–";
 }
 
 export function nextGender(gender: Gender): Gender {
@@ -68,7 +63,6 @@ export function presentBoxPal(pal: BoxPal): PalCardPresentation {
     speciesName: pal.speciesName,
     showSpeciesSubtitle: !!pal.nickname && pal.nickname !== pal.speciesName,
     gender: pal.gender,
-    genderSymbol: genderSymbol(pal.gender),
     level: pal.level,
     condensation: pal.condensation,
     stats,
