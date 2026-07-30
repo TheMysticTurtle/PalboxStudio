@@ -35,10 +35,11 @@ authoritative source for the exact editable limits.
   byte (0–255); the game **displays 0–100**, so the editor works in 0–100. Palworld 1.0 uses a
   **single** attack IV, `Talent_Shot` — there is no `Talent_Melee`.
 - **Level and experience:** `Level` (a byte, written only when above 1; cap **80**) and `Exp`.
-- **Condensation:** the `Rank` property, **0–4 stars** (rank 4 is max). Stored as a byte and written
-  only when non-zero. Beyond the flat stat bonus, each in-game rank-up also raises one Work
-  Suitability, and reaching max rank raises all of them — worth keeping in mind, because editing
-  `Rank` directly does not replay that progression (see *Open questions* below).
+- **Condensation:** the `Rank` byte is stored **one-based from 1–5**, while the game and editor show
+  **0–4 stars**. An uncondensed Pal therefore stores `Rank = 1`; four stars stores `Rank = 5`.
+  Beyond the flat stat bonus, each in-game rank-up also raises one Work Suitability, and reaching
+  max rank raises all of them — worth keeping in mind, because editing `Rank` directly does not
+  replay that progression (see *Open questions* below).
 - **Pal Souls (Statue of Power):** per-stat ranks **0–20** — `Rank_HP`, `Rank_Attack`,
   `Rank_Defence`, and `Rank_CraftSpeed` (Work Speed). Each rank is +3%, to +60% per stat at rank 20.
   Stored as a byte and written only when non-zero.
@@ -66,7 +67,7 @@ A quick decoder from raw save property to what the editor shows:
 | `NickName` / `FilteredNickName`   | Nickname                                        |
 | `Talent_HP` / `Talent_Shot` / `Talent_Defense` | IVs (display 0–100, raw byte 0–255) |
 | `Level` / `Exp`                   | Level and experience                            |
-| `Rank`                            | Condensation stars (0–4)                        |
+| `Rank`                            | Condensation (stored 1–5 → displayed 0–4 stars) |
 | `Rank_HP` / `Rank_Attack` / `Rank_Defence` / `Rank_CraftSpeed` | Pal Soul ranks (0–20) |
 | `GotWorkSuitabilityAddRankList`   | Work Suitability bonuses (total − species base) |
 | `EquipWaza`                       | Equipped active skills (up to 3)                |
@@ -123,6 +124,9 @@ These are specific ways an edit can quietly damage a 1.0 box; the editor avoids 
   editor's move view is kept separate, and `MasteredWaza` changes only when the user explicitly
   masters or strips a move.
 - **Never re-add `Talent_Melee`.** It is gone in 1.0; the single attack IV is `Talent_Shot`.
+- **Never write the displayed condensation stars directly to `Rank`.** Translate editor stars
+  `0–4` to the save's one-based byte `1–5`; otherwise every edited Pal appears one rank lower
+  in-game.
 
 ## Open questions worth an in-game round trip
 

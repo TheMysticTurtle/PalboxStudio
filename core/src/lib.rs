@@ -38,7 +38,8 @@ pub mod limits {
     pub const SOULS_RANK_MIN: u8 = 0;
     pub const SOULS_RANK_MAX: u8 = 20;
 
-    /// Condensation rank, shown as 0..=4 gold stars.
+    /// Condensation shown as 0..=4 gold stars. The save's `Rank` byte is
+    /// one-based (1..=5); `pal` translates it at the engine boundary.
     pub const CONDENSATION_MIN: u8 = 0;
     pub const CONDENSATION_MAX: u8 = 4;
 

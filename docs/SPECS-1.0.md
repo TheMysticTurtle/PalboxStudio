@@ -25,9 +25,10 @@ ranges in the core + UI.**
   a **byte, raw 0–255**; PSP clamps 0–255. Game **displays 0–100**. → **UI range 0–100**
   (consider an "unrestricted 0–255" power-user note; the byte allows it).
 - **Level**: byte; written only when >1; **cap 80** (exp table `exp.json` = levels 1–100).
-- **Condensation** (`Rank`): **0–4 stars** (rank 4 = max). Needs **48** same-species (was 116).
-  +5% HP/Atk/Def per rank (**+20% at ★4**); each rank-up also **+1 to a work suitability**,
-  max rank raises **all**. PSP stores as byte (writes only when non-zero).
+- **Condensation** (`Rank`): the editor/game display **0–4 stars**, encoded in the save as the
+  one-based byte **1–5** (`stored Rank = displayed stars + 1`). Needs **48** same-species (was
+  116). +5% HP/Atk/Def per displayed rank (**+20% at ★4**); each rank-up also **+1 to a work
+  suitability**, and max rank raises **all**.
 - **Pal Souls** (Statue of Power): per-stat ranks **0–20** — `Rank_HP`, `Rank_Attack`,
   `Rank_Defence`, `Rank_CraftSpeed` (Work Speed). +3%/rank, **+60% max per stat**. Byte;
   write only non-zero. *(This is the field the right-drawer "statue levels" edit.)*
@@ -64,6 +65,7 @@ and localized display names — is served from the bundled reference database
 - Never write zero-rank work-suitability entries; write only non-zero bonuses.
 - Never auto-fill `MasteredWaza` from the learnset on load.
 - Never re-add `Talent_Melee`.
+- Never write 0–4 displayed condensation stars directly to `Rank`; store 1–5.
 
 ## Sources
 

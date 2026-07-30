@@ -2,6 +2,32 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Session — 2026-07-28: condensation rank encoding fix
+
+Fixed the condensation off-by-one at the core save boundary. Palworld's `Rank` byte is one-based
+(1–5), while the game and editor display 0–4 stars. The engine now subtracts one on read and adds
+one on write, including `Rank = 1` for an uncondensed Pal, with regression coverage for every rank.
+The consolidated save-format, specs, and quick-reference docs now state both domains explicitly.
+
+**Why we got confused:** during the documentation consolidation, the displayed star count and raw
+save value were accidentally collapsed into one 0–4 range. The resulting docs said `Rank` was 0–4
+and should be omitted at zero, and the first Rust setter implemented that description literally.
+The older PalEdit adapter and the separate `palworld-reference` notes already had the correct
+translation (`display = Rank - 1`, `Rank = display + 1`), but that distinction did not make it into
+Palbox Studio's new engine contract. Existing tests only proved that our reader and writer agreed
+with each other; they did not exercise every condensation value against the game's one-based
+meaning. The new boundary test covers all five values and asserts both representations explicitly.
+
+**Released-save safety audit:** version 1.1.0 did not clamp a loaded raw `Rank = 5` to 4. The old
+core reader passed 5 through, `dtoToPal` and `palToDto` both copied it unchanged, and the old setter
+wrote 5 back. Saving flushes the selected Pal's full DTO, but even an unrelated edit therefore
+preserved its original condensation byte; unselected Pals were never passed through the mutation
+path at all. A max-condensed Pal could drop from raw 5 to raw 4 only when the user clicked a
+condensation star (including the apparently already-selected fourth star), which explicitly
+replaced the value with the UI's 1–4 button value. The released bug affected display, Partner Skill
+level/stat previews, and deliberate condensation edits — it did not silently lower condensation
+across an opened or otherwise edited box.
+
 ## Session — 2026-07-27: documentation consolidation + audit backlog
 
 Consolidated the project's reverse-engineering and data knowledge into its own documentation, and

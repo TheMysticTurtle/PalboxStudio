@@ -48,7 +48,9 @@ pub struct Ivs {
     pub defense: u8,
 }
 
-/// One pal's editable fields, keyed by box `slot`. Raw save values.
+/// One pal's editable fields, keyed by box `slot`. Save-backed values use the
+/// editor's documented domains; save-only encodings (such as condensation's
+/// stored 1..=5 rank versus its displayed 0..=4 stars) are translated here.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PalDto {
@@ -130,7 +132,12 @@ pub fn read_pal(sp: &Properties, slot: usize) -> PalDto {
         gender,
         level: byte("Level").unwrap_or(1),
         exp: ue::prop(sp, "Exp").and_then(ue::as_i64).unwrap_or(0),
-        condensation: byte("Rank").unwrap_or(0),
+        // Palworld stores condensation as rank 1..=5, but presents it as
+        // 0..=4 stars. Keep that one-based encoding inside the save boundary.
+        condensation: byte("Rank")
+            .unwrap_or(1)
+            .saturating_sub(1)
+            .min(crate::limits::CONDENSATION_MAX),
         souls: Souls {
             hp: byte("Rank_HP").unwrap_or(0),
             attack: byte("Rank_Attack").unwrap_or(0),
@@ -208,11 +215,10 @@ pub fn set_soul(sp: &mut Properties, stat: &str, rank: u8) {
     }
 }
 pub fn set_condensation(sp: &mut Properties, rank: u8) {
-    if rank > 0 {
-        ue::set_prop(sp, "Rank", ue::byte_prop(rank));
-    } else {
-        ue::remove_prop(sp, "Rank");
-    }
+    // The DTO/UI value is the number of visible stars (0..=4). The save field
+    // is always one-based (1..=5), including Rank=1 for an uncondensed Pal.
+    let stars = rank.min(crate::limits::CONDENSATION_MAX);
+    ue::set_prop(sp, "Rank", ue::byte_prop(stars + 1));
 }
 pub fn set_hp(sp: &mut Properties, value: i64) {
     ue::set_prop(sp, "Hp", ue::fixed_point64_prop(value.max(0)));
@@ -386,6 +392,39 @@ pub fn initialize_new_pal(sp: &mut Properties, hp: i64, food: f32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn condensation_translates_between_display_stars_and_save_rank() {
+        let mut sp = Properties::default();
+
+        // A missing Rank is treated like the game's baseline Rank=1.
+        assert_eq!(read_pal(&sp, 0).condensation, 0);
+
+        for stars in 0..=crate::limits::CONDENSATION_MAX {
+            set_condensation(&mut sp, stars);
+            assert_eq!(
+                ue::prop(&sp, "Rank").and_then(ue::as_byte),
+                Some(stars + 1),
+                "{stars} displayed stars must be stored one rank higher"
+            );
+            assert_eq!(
+                read_pal(&sp, 0).condensation,
+                stars,
+                "stored rank must map back to the same displayed stars"
+            );
+        }
+
+        // Keep the public mutation port inside the verified game range.
+        set_condensation(&mut sp, u8::MAX);
+        assert_eq!(
+            ue::prop(&sp, "Rank").and_then(ue::as_byte),
+            Some(crate::limits::CONDENSATION_MAX + 1)
+        );
+        assert_eq!(
+            read_pal(&sp, 0).condensation,
+            crate::limits::CONDENSATION_MAX
+        );
+    }
 
     #[test]
     fn alpha_and_lucky_keep_character_id_and_rare_flag_in_sync() {

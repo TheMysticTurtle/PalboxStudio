@@ -31,7 +31,7 @@ this repo — start here, then follow into the deeper docs.
   a single attack IV (`Talent_Shot`; `Talent_Melee` is gone — don't re-add it).
 - **Work Suitability 1–10** (all adjustable to 10 in our editor); **Pal Souls 0–20 per stat**
   (**+3% per rank, +60% max**);
-  **Condensation 0–4 stars**; **IV/talents 0–100** (raw byte 0–255). **See
+  **Condensation 0–4 stars** (stored as `Rank` 1–5); **IV/talents 0–100** (raw byte 0–255). **See
   [SPECS-1.0.md](SPECS-1.0.md) — the authoritative source for all value ranges** (don't trust
   our pre-1.0 numbers).
 - `IsPlayer` is written `False` on every pal — detect players by *value*, not key-presence.
@@ -45,6 +45,7 @@ this repo — start here, then follow into the deeper docs.
   (write only non-zero bonuses) — zero-bloat broke in-game work assignment.
 - **Don't auto-fill `MasteredWaza`** from the learnset on load — real saves keep it empty;
   keep the UI's move view separate from `MasteredWaza`.
+- **Translate condensation at the save boundary:** displayed stars 0–4 ↔ stored `Rank` 1–5.
 
 ## Golden rules
 - **Live saves are sacred** — operate only on scratchpad copies; back up before first write;
