@@ -3,6 +3,7 @@
   import { presentBoxPal } from "$lib/data/palPresentation";
   import { ratingTone } from "$lib/data/constants";
   import ElementIcon from "./ElementIcon.svelte";
+  import GenderIcon from "./GenderIcon.svelte";
   import PalPortrait from "./PalPortrait.svelte";
   import WorkIcon from "./WorkIcon.svelte";
 
@@ -35,8 +36,15 @@
       <span class="meta">
         <span class="elements">{#each card.elements as element}<ElementIcon {element} size={20} />{/each}</span>
         <span>Lv.{card.level}</span>
-        <span class="gender" class:male={card.gender === "Male"} class:female={card.gender === "Female"}>
-          {card.genderSymbol}
+        <span
+          class="gender"
+          class:male={card.gender === "Male"}
+          class:female={card.gender === "Female"}
+          title={card.gender}
+          aria-label={card.gender}
+          role="img"
+        >
+          <GenderIcon gender={card.gender} size={17} />
         </span>
         {#if card.condensation > 0}<span class="cond">★{card.condensation}</span>{/if}
       </span>
@@ -140,9 +148,17 @@
   .species { color: #91869c; font-size: var(--type-caption); }
   .meta { display: flex; align-items: center; gap: 6px; color: #aba1b5; font-size: var(--type-caption); }
   .elements { display: flex; align-items: center; gap: 1px; }
-  .gender { font: 700 var(--type-body) var(--font-head); color: #929ca7; }
-  .gender.male { color: #8fc8ff; }
-  .gender.female { color: #f2a0d8; }
+  .gender {
+    width: 22px;
+    height: 22px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 50%;
+    color: #929ca7;
+    background: rgba(255, 255, 255, 0.055);
+  }
+  .gender.male { color: #8fc8ff; background: rgba(63, 143, 224, 0.16); }
+  .gender.female { color: #f2a0d8; background: rgba(224, 95, 192, 0.16); }
   .cond { color: #f1c95e; font: 700 var(--type-label) var(--font-head); }
   .variants { position: absolute; top: 0; right: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
   .variants span { padding: 3px 7px; border-radius: 8px; font: 700 var(--type-micro) var(--font-head); letter-spacing: .08em; }

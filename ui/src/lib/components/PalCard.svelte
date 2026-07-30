@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Pal, ElementName } from "$lib/data/types";
   import {
-    ACTIVE_SKILL_DEFAULT_CONTROLS,
+    activeSkillDefaultControl,
     LIMITS,
     soulBonusPercent,
   } from "$lib/data/constants";
@@ -10,7 +10,7 @@
     type MoveDrag,
     type MoveList,
   } from "$lib/data/moveSlots";
-  import { resolveMove, resolveSpecies } from "$lib/data/refdata.svelte";
+  import { ref, resolveMove, resolveSpecies } from "$lib/data/refdata.svelte";
   import { APP_LOGO_ART, palIcon, variantIcon } from "$lib/data/icons";
   import {
     elementColor,
@@ -18,9 +18,11 @@
     normalizeElement,
     presentBoxPal,
   } from "$lib/data/palPresentation";
-  import { maxHpForPal, palToBoxPal, reSpecies } from "$lib/data/mapper";
+  import { maxHpForPal, palToBoxPal } from "$lib/data/mapper";
+  import { changeSelectedSpecies } from "$lib/stores/box.svelte";
   import SectionHeader from "./SectionHeader.svelte";
   import ElementPill from "./ElementPill.svelte";
+  import GenderIcon from "./GenderIcon.svelte";
   import PassiveChip from "./PassiveChip.svelte";
   import WorkSuitRow from "./WorkSuitRow.svelte";
   import SpeciesSelector from "./SpeciesSelector.svelte";
@@ -43,6 +45,20 @@
   const cardView = $derived(presentBoxPal(palToBoxPal(pal, -1)));
   const hpMax = $derived(empty ? 0 : maxHpForPal(pal));
   const hpPct = $derived(hpMax > 0 ? Math.min(100, (pal.stats.hp / hpMax) * 100) : 0);
+  const sanityPct = $derived(
+    ref.limits.sanityMax > ref.limits.sanityMin
+      ? Math.max(
+          0,
+          Math.min(
+            100,
+            ((pal.stats.san - ref.limits.sanityMin)
+              / (ref.limits.sanityMax - ref.limits.sanityMin)) * 100,
+          ),
+        )
+      : 0,
+  );
+  const trustRankMin = $derived(pal.trust.minRank);
+  const trustRankMax = $derived(pal.trust.maxRank);
 
   function setLevel(v: number) {
     const n = Math.round(v);
@@ -55,18 +71,28 @@
     pal.stats.hp = Math.round(Math.max(0, Math.min(hpMax, finiteOr(value, pal.stats.hp))));
   }
   function setSanity(value: number) {
-    pal.stats.san = Math.round(Math.max(0, Math.min(100, finiteOr(value, pal.stats.san))));
+    pal.stats.san = Math.round(
+      Math.max(
+        ref.limits.sanityMin,
+        Math.min(ref.limits.sanityMax, finiteOr(value, pal.stats.san)),
+      ),
+    );
   }
   function setFoodPercent(value: number) {
     const percent = Math.max(0, Math.min(100, finiteOr(value, pal.stats.foodPct * 100)));
     pal.stats.foodPct = percent / 100;
   }
   function setTrustRank(value: number) {
-    pal.trust.rank = Math.round(Math.max(0, Math.min(10, finiteOr(value, pal.trust.rank))));
-    if (pal.trust.rank === 10) pal.trust.progress = 1;
+    pal.trust.rank = Math.round(
+      Math.max(
+        trustRankMin,
+        Math.min(trustRankMax, finiteOr(value, pal.trust.rank)),
+      ),
+    );
+    if (pal.trust.rank === trustRankMax) pal.trust.progress = 1;
   }
   function setTrustProgress(value: number) {
-    if (pal.trust.rank >= 10) {
+    if (pal.trust.rank >= trustRankMax) {
       pal.trust.progress = 1;
       return;
     }
@@ -321,19 +347,7 @@
             title="Change gender to {nextGender(pal.gender)}"
             aria-label="Gender: {pal.gender}. Change to {nextGender(pal.gender)}"
           >
-            {#if pal.gender === "Male"}
-              <svg class="gender-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="9" cy="15" r="5"></circle>
-                <path d="M12.5 11.5 20 4M15 4h5v5"></path>
-              </svg>
-            {:else if pal.gender === "Female"}
-              <svg class="gender-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="8" r="5"></circle>
-                <path d="M12 13v8M8.5 17.5h7"></path>
-              </svg>
-            {:else}
-              <span class="gender-unknown">—</span>
-            {/if}
+            <GenderIcon gender={pal.gender} size={25} />
             <span class="gender-label">{pal.gender}</span>
           </button>
         </div>
@@ -404,20 +418,20 @@
             <input
               class="stat-number"
               type="number"
-              min="0"
-              max="100"
+              min={ref.limits.sanityMin}
+              max={ref.limits.sanityMax}
               value={pal.stats.san}
               oninput={(event) => setSanity(event.currentTarget.valueAsNumber)}
               aria-label="Sanity"
             />
           </div>
           <div class="track">
-            <div class="fill san" style="width:{pal.stats.san}%"></div>
+            <div class="fill san" style="width:{sanityPct}%"></div>
             <input
               class="track-control"
               type="range"
-              min="0"
-              max="100"
+              min={ref.limits.sanityMin}
+              max={ref.limits.sanityMax}
               value={pal.stats.san}
               oninput={(event) => setSanity(event.currentTarget.valueAsNumber)}
               aria-label="Sanity"
@@ -463,7 +477,7 @@
                 type="number"
                 min="0"
                 max="100"
-                disabled={pal.trust.rank >= 10}
+                disabled={pal.trust.rank >= trustRankMax}
                 value={Math.round(pal.trust.progress * 100)}
                 oninput={(event) => setTrustProgress(event.currentTarget.valueAsNumber)}
                 aria-label="Trust progress percent"
@@ -477,7 +491,7 @@
               type="range"
               min="0"
               max="100"
-              disabled={pal.trust.rank >= 10}
+              disabled={pal.trust.rank >= trustRankMax}
               value={Math.round(pal.trust.progress * 100)}
               oninput={(event) => setTrustProgress(event.currentTarget.valueAsNumber)}
               aria-label="Trust progress"
@@ -488,13 +502,13 @@
             <input
               class="stat-number"
               type="number"
-              min="0"
-              max="10"
+              min={trustRankMin}
+              max={trustRankMax}
               value={pal.trust.rank}
               oninput={(event) => setTrustRank(event.currentTarget.valueAsNumber)}
               aria-label="Trust rank"
             />
-            <span>/ 10</span>
+            <span>/ {trustRankMax}</span>
           </label>
         </div>
       </div>
@@ -511,6 +525,9 @@
             {pal.partnerSkill.name} <span class="lv">Lv {pal.partnerSkill.level}</span>
           </div>
           <p class="pdesc">{pal.partnerSkill.description}</p>
+          {#if pal.partnerSkill.rankEffect}
+            <p class="prank">{pal.partnerSkill.rankEffect}</p>
+          {/if}
         </div>
       </div>
       <div class="passblock">
@@ -570,8 +587,8 @@
           >
             <span
               class="slot-control"
-              title={`Default mounted control: ${ACTIVE_SKILL_DEFAULT_CONTROLS[index].label} (${ACTIVE_SKILL_DEFAULT_CONTROLS[index].action})`}
-            >{ACTIVE_SKILL_DEFAULT_CONTROLS[index].short}</span>
+              title={`Default mounted control: ${activeSkillDefaultControl(index).label} (${activeSkillDefaultControl(index).action})`}
+            >{activeSkillDefaultControl(index).short}</span>
             <span class="mgrip">⠿</span>
             <ElementIcon element={displayElement(m.element)} size={22} decorative={false} />
             <span class="mname">{m.name}</span>
@@ -589,8 +606,8 @@
           >
             <span
               class="slot-control"
-              title={`Default mounted control: ${ACTIVE_SKILL_DEFAULT_CONTROLS[pal.activeSkills.length + i].label} (${ACTIVE_SKILL_DEFAULT_CONTROLS[pal.activeSkills.length + i].action})`}
-            >{ACTIVE_SKILL_DEFAULT_CONTROLS[pal.activeSkills.length + i].short}</span>
+              title={`Default mounted control: ${activeSkillDefaultControl(pal.activeSkills.length + i).label} (${activeSkillDefaultControl(pal.activeSkills.length + i).action})`}
+            >{activeSkillDefaultControl(pal.activeSkills.length + i).short}</span>
             <span>empty slot — drag a move here</span>
           </div>
         {/each}
@@ -649,7 +666,11 @@
   </section>
 </div>
 
-<SpeciesSelector bind:open={speciesOpen} current={pal.species} onpick={(code) => reSpecies(pal, code)} />
+<SpeciesSelector
+  bind:open={speciesOpen}
+  current={pal.species}
+  onpick={(code) => void changeSelectedSpecies(code)}
+/>
 <PassiveSelector
   bind:open={passiveOpen}
   species={pal.species}
@@ -701,21 +722,10 @@
   }
   .gender:hover { filter: brightness(1.2); transform: scale(1.06); }
   .gender:focus-visible { outline: 2px solid rgba(143, 227, 242, 0.7); outline-offset: 2px; }
-  .gender-icon {
-    width: 23px;
-    height: 23px;
-    flex: none;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
   .gender-label {
     font: 700 var(--type-caption) var(--font-head);
     letter-spacing: .04em;
   }
-  .gender-unknown { font-size: 22px; line-height: 1; }
   .gender.male { background: rgba(63, 143, 224, 0.18); border: 1px solid rgba(63, 143, 224, 0.55); color: #8fbef2; }
   .gender.female { background: rgba(224, 95, 192, 0.18); border: 1px solid rgba(224, 95, 192, 0.55); color: #f2a0d8; }
   .gender.unknown { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.14); color: #9aa6b2; }
@@ -748,6 +758,7 @@
   .pname { display: flex; align-items: center; gap: 8px; font-family: var(--font-head); font-weight: 700; font-size: 18px; color: #f3e4da; }
   .pname .lv { color: var(--text-muted); font-weight: 400; font-size: 13px; font-family: var(--font-body); }
   .pdesc { margin: 8px 0 0; font-size: 13px; line-height: 1.55; color: #b4a79c; }
+  .prank { margin: 7px 0 0; color: color-mix(in srgb, var(--c) 78%, #fff); font: 600 var(--type-label) var(--font-head); }
   .passblock { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .passives { display: flex; flex-direction: column; gap: 10px; }
   .add { display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 10px; border: 1px dashed rgba(255, 255, 255, 0.16); background: transparent; color: #7c8894; cursor: pointer; font-size: 13.5px; }
@@ -1024,7 +1035,6 @@
     text-shadow: 0 3px 18px rgba(0, 0, 0, 0.5);
   }
   .gender { min-width: 90px; height: 40px; }
-  .gender-icon { width: 25px; height: 25px; }
   .elements { min-height: 27px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 
   .level-and-stats { min-width: 0; display: grid; grid-template-columns: 155px minmax(0, 1fr); gap: 14px; }

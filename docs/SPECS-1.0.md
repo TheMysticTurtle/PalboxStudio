@@ -3,8 +3,9 @@
 Researched against the **latest** sources, deliberately NOT trusting any pre-1.0 assumptions.
 Values are verified against real 1.0 `GlobalPalStorage.sav` bytes and cross-checked against the
 current public game databases (see Sources). The save-format layout these ranges live inside is
-documented in [SAVE-FORMAT.md](SAVE-FORMAT.md). **This file is the source of truth for value
-ranges in the core + UI.**
+documented in [SAVE-FORMAT.md](SAVE-FORMAT.md). This file records the verified meaning;
+the generated `palbox-reference.db` is the runtime source of truth for patch-sensitive
+ranges, progression rows, and formula operands consumed by the core and UI.
 
 ## Corrections vs. pre-1.0 assumptions (READ THESE)
 | Field | Pre-1.0 assumption | **Palworld 1.0 (correct)** |
@@ -25,22 +26,24 @@ ranges in the core + UI.**
   a **byte, raw 0–255**; PSP clamps 0–255. Game **displays 0–100**. → **UI range 0–100**
   (consider an "unrestricted 0–255" power-user note; the byte allows it).
 - **Level**: byte; written only when >1; **cap 80** (exp table `exp.json` = levels 1–100).
-- **Condensation** (`Rank`): **0–4 stars** (rank 4 = max). Needs **48** same-species (was 116).
-  +5% HP/Atk/Def per rank (**+20% at ★4**); each rank-up also **+1 to a work suitability**,
-  max rank raises **all**. PSP stores as byte (writes only when non-zero).
+- **Condensation** (`Rank`): the editor/game display **0–4 stars**, encoded in the save as the
+  one-based byte **1–5** (`stored Rank = displayed stars + 1`). Needs **48** same-species (was
+  116). +5% HP/Atk/Def per displayed rank (**+20% at ★4**); each rank-up also **+1 to a work
+  suitability**, and max rank raises **all**.
 - **Pal Souls** (Statue of Power): per-stat ranks **0–20** — `Rank_HP`, `Rank_Attack`,
   `Rank_Defence`, `Rank_CraftSpeed` (Work Speed). +3%/rank, **+60% max per stat**. Byte;
   write only non-zero. *(This is the field the right-drawer "statue levels" edit.)*
 - **Work Suitability**: **Lv 1–10**. Stored in `GotWorkSuitabilityAddRankList` as
   **bonus rank = desired_total − species_base**; **write only non-zero entries** (zero-bloat
-  breaks in-game work — see the corruption traps in [SAVE-FORMAT.md](SAVE-FORMAT.md)). 12 jobs (see Elements/Jobs below).
+  breaks in-game work — see the corruption traps in [SAVE-FORMAT.md](SAVE-FORMAT.md)). 13 jobs (see Elements/Jobs below).
 - **Moves = Active Skills**: up to **3 equipped** (`EquipWaza`); **learned** in `MasteredWaza`
   (**leave empty unless explicitly mastered** — do NOT auto-fill from learnset). 324 skills
   defined; power **0–1200**; each has an element.
 - **Passive Skills**: up to **4** per pal (`PassiveSkillList`). 420 defined; **rank −3..5**
   (no 0; **rank 5 is the 1.0 addition**). Legality = rollable ∪ innate (per species).
 - **Identity/other**: `NickName` (+ `FilteredNickName`), gender, `Exp`, **Trust** /
-  `FriendshipPoint` (int), Lucky/Boss/Alpha flags, `IsPlayer` written **`False`** on every pal
+  `FriendshipPoint` (int; DB-backed Trust ranks **−3..10**), Lucky/Boss/Alpha flags,
+  `IsPlayer` written **`False`** on every pal
   (detect players by value, not key presence).
 
 ## Elements (9) — internal codename → official UI name
@@ -64,6 +67,7 @@ and localized display names — is served from the bundled reference database
 - Never write zero-rank work-suitability entries; write only non-zero bonuses.
 - Never auto-fill `MasteredWaza` from the learnset on load.
 - Never re-add `Talent_Melee`.
+- Never write 0–4 displayed condensation stars directly to `Rank`; store 1–5.
 
 ## Sources
 

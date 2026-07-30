@@ -43,6 +43,8 @@ $doInstaller = -not $PortableOnly
 $doPortable  = -not $InstallerOnly
 
 # --- version + paths ---------------------------------------------------------
+# For a release bump, keep the version in sync in tauri.conf.json, both Cargo.toml
+# files, both package.json files, their lockfiles, and the README version badge.
 $conf    = Get-Content (Join-Path $repo 'src-tauri/tauri.conf.json') -Raw | ConvertFrom-Json
 $version = $conf.version
 $dist    = Join-Path $repo 'dist'

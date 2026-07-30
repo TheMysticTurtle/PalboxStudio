@@ -1,22 +1,21 @@
-import type { ElementName } from "./types";
+import { ref } from "./refdata.svelte";
 
-// Verified Palworld 1.0 editing limits — mirrors `palbox-core::limits`
-// (docs/SPECS-1.0.md). TODO: source these from the core via a Tauri command so
-// there's a single source of truth across the boundary.
+// Compatibility-shaped accessors over the engine's cached, DB-backed limits.
+// Components never own a second copy of these values.
 export const LIMITS = {
-  levelMin: 1,
-  levelMax: 80,
-  ivMin: 0,
-  ivMax: 100,
-  workSuitMin: 0,
-  workSuitMax: 10,
-  soulsMin: 0,
-  soulsMax: 20,
-  condensationMin: 0,
-  condensationMax: 4,
-  equippedMovesMax: 3,
-  passivesMax: 4,
-} as const;
+  get levelMin() { return ref.limits.levelMin; },
+  get levelMax() { return ref.limits.levelMax; },
+  get ivMin() { return ref.limits.ivMin; },
+  get ivMax() { return ref.limits.ivMax; },
+  get workSuitMin() { return ref.limits.workSuitabilityMin; },
+  get workSuitMax() { return ref.limits.workSuitabilityMax; },
+  get soulsMin() { return ref.limits.soulRankMin; },
+  get soulsMax() { return ref.limits.soulRankMax; },
+  get condensationMin() { return ref.limits.condensationMin; },
+  get condensationMax() { return ref.limits.condensationMax; },
+  get equippedMovesMax() { return ref.limits.equippedMovesMax; },
+  get passivesMax() { return ref.limits.passivesMax; },
+};
 
 /**
  * Default keyboard/mouse controls for the three active-skill slots while
@@ -28,47 +27,20 @@ export const ACTIVE_SKILL_DEFAULT_CONTROLS = [
   { short: "C", label: "C", action: "Mounted Skill 3" },
 ] as const;
 
-/** Statue of Power enhancement gained by each Pal Soul rank. */
-export const SOUL_BONUS_PERCENT_PER_RANK = 3;
-
-export function soulBonusPercent(rank: number): number {
-  return Math.max(LIMITS.soulsMin, Math.min(LIMITS.soulsMax, rank)) * SOUL_BONUS_PERCENT_PER_RANK;
+export function activeSkillDefaultControl(index: number) {
+  return ACTIVE_SKILL_DEFAULT_CONTROLS[index] ?? {
+    short: String(index + 1),
+    label: `Skill slot ${index + 1}`,
+    action: `Mounted Skill ${index + 1}`,
+  };
 }
 
-// Element codename note (SPECS-1.0.md): the save uses Normal/Leaf/Earth/Electricity;
-// we always display the official UI names below.
-export const ELEMENT_COLOR: Record<ElementName, string> = {
-  Neutral: "var(--el-neutral)",
-  Fire: "var(--el-fire)",
-  Water: "var(--el-water)",
-  Grass: "var(--el-grass)",
-  Electric: "var(--el-electric)",
-  Ice: "var(--el-ice)",
-  Ground: "var(--el-ground)",
-  Dark: "var(--el-dark)",
-  Dragon: "var(--el-dragon)",
-};
+export function soulBonusPercent(rank: number): number {
+  return Math.max(LIMITS.soulsMin, Math.min(LIMITS.soulsMax, rank))
+    * ref.calculationRules.soulBonusPercentPerRank;
+}
 
-// The 13 Work Suitabilities in canonical order (official UI name + icon basename in
-// /icons/work). NOTE: 13, not 12 — the data + icons include Crude Oil Extraction. See
-// docs/DATA-AND-ASSETS.md for the internal-codename mapping.
-export const WORK_SUITS = [
-  { name: "Kindling", icon: "kindling" },
-  { name: "Watering", icon: "watering" },
-  { name: "Planting", icon: "planting" },
-  { name: "Generating Electricity", icon: "generating" },
-  { name: "Handiwork", icon: "handiwork" },
-  { name: "Gathering", icon: "gathering" },
-  { name: "Lumbering", icon: "deforesting" },
-  { name: "Mining", icon: "mining" },
-  { name: "Crude Oil Extraction", icon: "extracting" },
-  { name: "Medicine Production", icon: "production" },
-  { name: "Cooling", icon: "cooling" },
-  { name: "Transporting", icon: "transporting" },
-  { name: "Farming", icon: "farming" },
-] as const;
-
-/** Rating (-3..5) -> chip color token. */
+/** Presentation color for a DB-authored passive rating. */
 export function ratingColor(rating: number): string {
   if (rating >= 1) return "var(--rate-good)";
   if (rating <= -1) return "var(--rate-bad)";

@@ -2,6 +2,180 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Session — 2026-07-30: DB facts, engine authority, and semantic Pal views
+
+Completed the authority migration on `fix/engine-save-authority` without changing
+the Global Palbox lifecycle or the backed-up atomic save contract:
+
+- Advanced the generated reference DB to schema v4. Typed `editor_limits` and
+  `calculation_rules` rows now own patch-sensitive ranges and formula operands;
+  Work icons/order, EXP, Friendship, and Partner Skill rank rows are loaded with
+  the existing species/move/passive catalog.
+- Added a validated, indexed in-memory `ReferenceCatalog`. The database is opened
+  once at startup; projections, validations, presets, and box tiles reuse the
+  cache instead of issuing render-time queries.
+- Added semantic engine input plus engine-owned projections for combat stats,
+  Work base/bonus/total levels, Trust, EXP, and Partner Skill level/rank effect.
+  The engine alone translates whole HP, food percentage, Trust progress, Work
+  bonuses, and condensation's one-based save encoding.
+- Added identity-checked, transactional slot mutation. A stale frontend cannot
+  write through a reused slot after its `InstanceId` changes.
+- Removed the UI combat-stat calculator and duplicated Work/element/category
+  catalogs. Main and box cards now consume the same engine projections; species
+  changes go through the engine and preserve raw Work bonuses.
+- Exposed the complete DB-backed Trust range, including ranks −3 through 10, so
+  editing another field cannot silently normalize negative Friendship to zero.
+- Advanced `palbox-user.db` to schema v4. Existing v1/v2/v3 databases migrate
+  forward without losing presets, groups, memberships, or preferences. The user
+  DB preserves ordered preset entries but no longer duplicates Palworld's current
+  passive-slot limit; the reference catalog and engine enforce it.
+- Added readable SQLite views for species, Work, Partner Skill progression,
+  moves/effects, passives/effects, and source provenance. Internal codes and
+  human-readable names appear together for direct DB Browser inspection.
+- Recorded the final authority boundary in ADR 0004.
+
+**Verification:** 32 Rust/core tests pass; 11 UI unit tests pass; Svelte checking
+reports 0 errors and 0 warnings; the production UI build succeeds; deterministic
+reference/user database generation and installed-database validation pass.
+
+**Next:** no additional architecture rewrite is expected for this slice. The next
+engineering priority remains deterministic persistence fault injection, followed
+by the window-close dirty guard and a safe dirty-conflict snapshot/export.
+
+## Session — 2026-07-30: consistent cards and verified condenser controls
+
+- Standardized compact Global Palbox cards at 190px, enough for the optional species subtitle,
+  condensation count, and group tag without producing staggered rows.
+- Standardized species-picker cards at 250px, enough for Work Suitability chips to wrap to a
+  second row without making that species taller than its neighbors.
+- Replaced font-dependent male/female characters with one reusable stroked SVG icon across compact,
+  expanded, and editable Pal cards. The badges retain their existing gender color and accessible
+  label while rendering consistently in the desktop WebView.
+- Audited the current source of Palworld Save Pal and the other Pal editors used as references.
+  Their terminology confirms that “ascension,” “rank,” “condensation,” and the Pal Essence
+  Condenser refer to the same progression field. PSP's normal control displays four stars and
+  writes `pal.rank = displayed stars + 1`; Pal Souls and Work Suitability are separate controls and
+  save properties.
+- Kept the existing progression control instead of introducing a conflicting duplicate. It is now
+  labeled **Pal Essence Condenser** and reports both the user-facing 0–4 stars and save-facing
+  `Rank` 1–5. It does not silently rewrite Work Suitability bonuses; the controlled-save coupling
+  question remains open below.
+
+**Verification:** 12 UI unit tests pass; Svelte checking reports 0 errors and 0 warnings; the
+production build succeeds.
+
+## Session — 2026-07-29: durable preferences and roomier launch
+
+- Increased the default desktop window from 1280×800 to 1440×900 so the compact Global Palbox
+  retains more usable matrix space after adding the Last Palbox control. The existing 1024×680
+  minimum is unchanged, so users can still resize the window down.
+- Advanced `palbox-user.db` to schema v3 with a dedicated `app_setting` table. The engine now owns
+  the remembered Global Palbox path and auto-open preference alongside presets and groups.
+- Existing values stored under the old webview local-storage key are imported into SQLite once,
+  then removed only after a successful database write. Fresh installs and upgrades use the same
+  authoritative preference commands.
+- The v3 migration is idempotent so concurrent preset/group/preference reads during startup cannot
+  race the schema upgrade.
+
+**Verification:** 28 core tests cover preference durability, normalization, concurrent startup,
+v1→v3 migration, and v2 user-metadata preservation;
+12 UI unit tests cover legacy-import selection. Svelte checking and a production build remain the
+release gates.
+
+## Session — 2026-07-29: seamless reopen and source-conflict monitor
+
+- Added a compact **Last Palbox** row at the top of the Global Palbox drawer. A remembered path can
+  be opened in one click, and the adjacent **Open on launch** toggle automatically reopens it on
+  future starts. An invalid/moved path disables auto-open and falls back to the normal picker
+  without trapping the user in a repeated startup error.
+- The last-box preference is app metadata, not Pal save data. It is updated only after a successful
+  open and is now persisted through the engine-owned user database described above.
+- Added an always-on source monitor while a box is open. The shell asks the core for a freshly
+  hashed source status every 1.5 seconds; source changes or disappearance preserve the in-memory
+  copy, block Save, show a clear conflict banner, and offer an explicit discard-and-reload action.
+  The core still rechecks the fingerprint immediately before replacement and remains authoritative.
+- A conflict detected during the 30 seconds after Studio saves is identified separately as a
+  likely Palworld/other-tool overwrite.
+- Slot selection now flushes a full DTO only when the selected Pal actually differs from its loaded
+  baseline. Merely viewing or switching clean Pals no longer marks the engine session dirty.
+- Opening another box or reloading a conflict warns before discarding unsaved in-memory edits.
+
+**Verification:** core session tests cover current/changed source status; UI unit tests cover
+legacy preference parsing/import and post-save conflict classification.
+
+**Next:** complete deterministic Tier 0 persistence fault injection, then add the remaining
+window-close dirty guard and dirty-conflict snapshot/export.
+
+## Session — 2026-07-29: engine-owned schemas and safe save session
+
+Started `fix/engine-save-authority` from the isolated condensation fix
+(`fix/condensation-rank-encoding`, commit `e10ee6f`) and addressed the reported multi-user Work
+Suitability save failure:
+
+```text
+write_sav: missing property schema for path:
+SaveParameterArray.SaveParameter.GotWorkSuitabilityAddRankList.WorkSuitability
+```
+
+- Added an insert-only core registry for every property schema Palbox Studio can currently create.
+  The registry is invoked inside `write_sav`; schemas read from the source file always win.
+- Reproduced the exact nested-property error by stripping the source schemas, then proved the core
+  write boundary repairs it. First-row, canonical-order, zero-removal, invalid-name, and range
+  regressions now cover the Work Suitability mutation.
+- Added `core/tests/fixtures/synthetic-global-palbox.sav`: a 960-slot sanitized fixture containing
+  one synthetic `CubeTurtle` and no user identity data. Save-dependent tests no longer self-skip in
+  normal local or CI runs.
+- Moved whole-DTO application, documented limit enforcement, species-dependent Work Suitability
+  validation, and new-Pal initialization into the Rust core. Tauri now marshals those operations.
+- Added the headless `SaveSession`, which owns the parsed save, dirty state, SHA-256/size/mtime
+  source fingerprint, schema preparation, encode/decode validation, verified unique backup,
+  synced/decoded temporary file, second stale-source check, atomic replacement, and post-save
+  fingerprint refresh.
+- A source changed after open is refused before backup/replacement; a source changed during staging
+  is refused before replacement. Encode failures leave the original untouched and create no backup.
+- Pruned five merged local feature branches and the two corresponding obsolete remote branches.
+
+**Verification:** `cargo test` runs 25 core tests plus the shell/doc tests with no skipped
+save-dependent cases. The reported schema failure and a no-schema first bonus both round-trip on the
+committed fixture and on a scratchpad copy of the current real Global Palbox.
+
+**Still to centralize:** replace the UI's full DTO submission with granular typed engine mutations;
+return computed combat stats, trust/EXP, Partner Skill rank/effect, Work Suitability totals, and
+editing limits from the engine; add watcher/post-save overwrite UX and fault injection for every
+staged-write/replacement failure.
+
+**Recommended next slice:** finish the Tier 0 persistence contract with deterministic fault
+injection for staged writes, staged decode, atomic replacement, cleanup, and manual restore. Then
+add watcher/conflict and post-save-overwrite UX on top of the fingerprint authority already in the
+core. After that safety boundary is closed, continue the authority migration with granular typed
+engine mutations and engine-computed display values.
+
+## Session — 2026-07-28: condensation rank encoding fix
+
+Fixed the condensation off-by-one at the core save boundary. Palworld's `Rank` byte is one-based
+(1–5), while the game and editor display 0–4 stars. The engine now subtracts one on read and adds
+one on write, including `Rank = 1` for an uncondensed Pal, with regression coverage for every rank.
+The consolidated save-format, specs, and quick-reference docs now state both domains explicitly.
+
+**Why we got confused:** during the documentation consolidation, the displayed star count and raw
+save value were accidentally collapsed into one 0–4 range. The resulting docs said `Rank` was 0–4
+and should be omitted at zero, and the first Rust setter implemented that description literally.
+The older PalEdit adapter and the separate `palworld-reference` notes already had the correct
+translation (`display = Rank - 1`, `Rank = display + 1`), but that distinction did not make it into
+Palbox Studio's new engine contract. Existing tests only proved that our reader and writer agreed
+with each other; they did not exercise every condensation value against the game's one-based
+meaning. The new boundary test covers all five values and asserts both representations explicitly.
+
+**Released-save safety audit:** version 1.1.0 did not clamp a loaded raw `Rank = 5` to 4. The old
+core reader passed 5 through, `dtoToPal` and `palToDto` both copied it unchanged, and the old setter
+wrote 5 back. Saving flushes the selected Pal's full DTO, but even an unrelated edit therefore
+preserved its original condensation byte; unselected Pals were never passed through the mutation
+path at all. A max-condensed Pal could drop from raw 5 to raw 4 only when the user clicked a
+condensation star (including the apparently already-selected fourth star), which explicitly
+replaced the value with the UI's 1–4 button value. The released bug affected display, Partner Skill
+level/stat previews, and deliberate condensation edits — it did not silently lower condensation
+across an opened or otherwise edited box.
+
 ## Session — 2026-07-27: documentation consolidation + audit backlog
 
 Consolidated the project's reverse-engineering and data knowledge into its own documentation, and
@@ -104,9 +278,10 @@ do not have to discover the folder manually.
 
 Branch: `feature/groups-passive-presets`.
 
-The writable user database is schema v2. Migration `user-v2-groups.sql` upgrades existing v1
-databases in place, adding named groups plus many-to-many membership keyed by a Pal's stable
-`InstanceId`. Groups remain Palbox Studio metadata and never enter `GlobalPalStorage.sav`.
+The writable user database was schema v2 at this checkpoint. Migration `user-v2-groups.sql`
+upgrades existing v1 databases in place, adding named groups plus many-to-many membership keyed by
+a Pal's stable `InstanceId`. Schema v3 later adds durable app settings. Groups remain Palbox Studio
+metadata and never enter `GlobalPalStorage.sav`.
 Rust owns name/foreign-key/membership validation; deleting a group cascades only its app-owned
 memberships. Core tests cover v1 migration, case-insensitive uniqueness, atomic assignment
 replacement, and cascade behavior.

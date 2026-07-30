@@ -107,7 +107,7 @@ to the right drawer. Every field below is **editable** and clearly labeled:
   in-game "boosted" up-arrow treatment.
 - **Partner Skill** (may be locked, e.g. "Requires X Saddle" — show a locked treatment).
 - **Passive Skills:** up to 4, as rating-colored chips (2×2); add/remove/filter affordance.
-- **Work Suitability:** all 12 jobs; greyed when N/A; active shows `Lv.N` + fill.
+- **Work Suitability:** all 13 jobs; greyed when N/A; active shows `Lv.N` + fill.
 - **Active Skills (= moves):** on the card's right; element-colored rows with power values;
   add/swap affordance.
 - **Presets:** "apply preset" + author/save (passives and/or full builds).

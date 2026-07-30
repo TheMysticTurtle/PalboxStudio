@@ -14,7 +14,11 @@ use serde::{Deserialize, Serialize};
 
 const USER_SCHEMA: &str = include_str!("../../database/user-schema.sql");
 const USER_MIGRATION_V2: &str = include_str!("../../database/migrations/user-v2-groups.sql");
-const USER_SCHEMA_VERSION: i64 = 2;
+const USER_MIGRATION_V3: &str = include_str!("../../database/migrations/user-v3-app-settings.sql");
+const USER_MIGRATION_V4: &str =
+    include_str!("../../database/migrations/user-v4-dynamic-preset-slots.sql");
+const USER_SCHEMA_VERSION: i64 = 4;
+const REFERENCE_SCHEMA_VERSION: &str = "4";
 
 #[derive(Debug)]
 pub enum DatabaseError {
@@ -82,6 +86,13 @@ pub struct PalGroupMembership {
     pub group_ids: Vec<i64>,
 }
 
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppPreferences {
+    pub last_box_path: String,
+    pub auto_reopen: bool,
+}
+
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PassiveEffectRef {
@@ -116,8 +127,79 @@ pub struct MoveRef {
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ElementRef {
+    pub name: String,
     pub color: String,
     pub icon: String,
+    pub sort_order: i64,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkTypeRef {
+    pub code: String,
+    pub name: String,
+    pub icon: String,
+    pub sort_order: i64,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EditorLimits {
+    pub level_min: i64,
+    pub level_max: i64,
+    pub iv_min: i64,
+    pub iv_max: i64,
+    pub work_suitability_min: i64,
+    pub work_suitability_max: i64,
+    pub soul_rank_min: i64,
+    pub soul_rank_max: i64,
+    pub condensation_min: i64,
+    pub condensation_max: i64,
+    pub equipped_moves_min: i64,
+    pub equipped_moves_max: i64,
+    pub passives_min: i64,
+    pub passives_max: i64,
+    pub sanity_min: i64,
+    pub sanity_max: i64,
+    pub friendship_min: i64,
+    pub friendship_max: i64,
+    pub partner_skill_level_min: i64,
+    pub partner_skill_level_max: i64,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CalculationRules {
+    pub soul_bonus_percent_per_rank: f64,
+    pub condensation_stat_bonus_percent_per_star: f64,
+    pub iv_stat_bonus_ratio_per_point: f64,
+    pub alpha_hp_multiplier: f64,
+    pub hp_flat_base: f64,
+    pub hp_per_level: f64,
+    pub hp_scaling_factor: f64,
+    pub attack_flat_base: f64,
+    pub attack_scaling_factor: f64,
+    pub defense_flat_base: f64,
+    pub defense_scaling_factor: f64,
+    pub save_hp_scale: f64,
+    pub displayed_stat_min: f64,
+    pub partner_skill_level_offset: i64,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExpLevelRef {
+    pub level: i64,
+    pub pal_next_exp: i64,
+    pub pal_total_exp: i64,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PartnerSkillRankRef {
+    pub rank: i64,
+    pub value_text: String,
+    pub value_number: Option<f64>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -137,6 +219,7 @@ pub struct PartnerSkillRef {
     pub element: Option<String>,
     pub gear_name: Option<String>,
     pub technology_level: Option<i64>,
+    pub ranks: Vec<PartnerSkillRankRef>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -187,7 +270,14 @@ pub struct SchemaColumnRef {
     pub value_type: String,
     pub filterable: bool,
     pub displayable: bool,
-    pub values: Option<Vec<String>>,
+    pub options: Vec<SchemaOptionRef>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SchemaOptionRef {
+    pub value: String,
+    pub label: String,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -198,8 +288,232 @@ pub struct ReferenceBundle {
     pub species: Vec<SpeciesRef>,
     pub species_aliases: BTreeMap<String, String>,
     pub elements: BTreeMap<String, ElementRef>,
+    pub work_types: Vec<WorkTypeRef>,
     pub friendship_ranks: BTreeMap<i64, i64>,
+    pub exp_levels: BTreeMap<i64, ExpLevelRef>,
+    pub limits: EditorLimits,
+    pub calculation_rules: CalculationRules,
     pub schema: Vec<SchemaColumnRef>,
+}
+
+/// Validated, indexed in-memory form of the generated reference database.
+/// The serializable bundle is still exposed to frontends, while domain logic
+/// resolves codes through these indexes instead of repeatedly scanning vectors.
+pub struct ReferenceCatalog {
+    bundle: ReferenceBundle,
+    species_by_code: HashMap<String, usize>,
+    work_by_code: HashMap<String, usize>,
+}
+
+impl ReferenceCatalog {
+    pub fn new(bundle: ReferenceBundle) -> Result<Self> {
+        let mut species_by_code = HashMap::with_capacity(bundle.species.len());
+        for (index, species) in bundle.species.iter().enumerate() {
+            if species_by_code
+                .insert(species.code.clone(), index)
+                .is_some()
+            {
+                return Err(DatabaseError::Invalid(format!(
+                    "duplicate species code in reference bundle: {}",
+                    species.code
+                )));
+            }
+        }
+
+        let mut work_by_code = HashMap::with_capacity(bundle.work_types.len());
+        for (index, work) in bundle.work_types.iter().enumerate() {
+            if work.code.trim().is_empty()
+                || work.name.trim().is_empty()
+                || work.icon.trim().is_empty()
+            {
+                return Err(DatabaseError::Invalid(
+                    "Work Suitability rows require code, name, and icon".to_string(),
+                ));
+            }
+            if work_by_code.insert(work.code.clone(), index).is_some() {
+                return Err(DatabaseError::Invalid(format!(
+                    "duplicate Work Suitability code in reference bundle: {}",
+                    work.code
+                )));
+            }
+        }
+        if work_by_code.is_empty() {
+            return Err(DatabaseError::Invalid(
+                "reference bundle contains no Work Suitabilities".to_string(),
+            ));
+        }
+        for species in &bundle.species {
+            if species.work.len() != work_by_code.len() {
+                return Err(DatabaseError::Invalid(format!(
+                    "species {} has {} Work rows; expected {}",
+                    species.code,
+                    species.work.len(),
+                    work_by_code.len()
+                )));
+            }
+            for code in species.work.keys() {
+                if !work_by_code.contains_key(code) {
+                    return Err(DatabaseError::Invalid(format!(
+                        "species {} references unknown Work Suitability {code}",
+                        species.code
+                    )));
+                }
+            }
+        }
+
+        let limits = bundle.limits;
+        for (name, min, max) in [
+            ("level", limits.level_min, limits.level_max),
+            ("iv", limits.iv_min, limits.iv_max),
+            ("soul rank", limits.soul_rank_min, limits.soul_rank_max),
+            (
+                "condensation",
+                limits.condensation_min,
+                limits.condensation_max,
+            ),
+            ("sanity", limits.sanity_min, limits.sanity_max),
+        ] {
+            if min < 0 || max > i64::from(u8::MAX) || max < min {
+                return Err(DatabaseError::Invalid(format!(
+                    "{name} limits {min}..={max} do not fit the save byte domain"
+                )));
+            }
+        }
+        for (name, min, max) in [
+            (
+                "Work Suitability",
+                limits.work_suitability_min,
+                limits.work_suitability_max,
+            ),
+            ("friendship", limits.friendship_min, limits.friendship_max),
+            (
+                "Partner Skill level",
+                limits.partner_skill_level_min,
+                limits.partner_skill_level_max,
+            ),
+        ] {
+            if max < min || min < i64::from(i32::MIN) || max > i64::from(i32::MAX) {
+                return Err(DatabaseError::Invalid(format!(
+                    "invalid {name} limits {min}..={max}"
+                )));
+            }
+        }
+        for species in &bundle.species {
+            for (code, base) in &species.work {
+                if !(limits.work_suitability_min..=limits.work_suitability_max).contains(base) {
+                    return Err(DatabaseError::Invalid(format!(
+                        "species {} has {code} base {base}, outside {}..={}",
+                        species.code, limits.work_suitability_min, limits.work_suitability_max
+                    )));
+                }
+            }
+        }
+        for (name, min, max) in [
+            (
+                "equipped moves",
+                limits.equipped_moves_min,
+                limits.equipped_moves_max,
+            ),
+            ("passives", limits.passives_min, limits.passives_max),
+        ] {
+            if min < 0 || max < min {
+                return Err(DatabaseError::Invalid(format!(
+                    "invalid {name} limits {min}..={max}"
+                )));
+            }
+        }
+        let rules = bundle.calculation_rules;
+        if ![
+            rules.soul_bonus_percent_per_rank,
+            rules.condensation_stat_bonus_percent_per_star,
+            rules.iv_stat_bonus_ratio_per_point,
+            rules.alpha_hp_multiplier,
+            rules.hp_flat_base,
+            rules.hp_per_level,
+            rules.hp_scaling_factor,
+            rules.attack_flat_base,
+            rules.attack_scaling_factor,
+            rules.defense_flat_base,
+            rules.defense_scaling_factor,
+            rules.save_hp_scale,
+            rules.displayed_stat_min,
+        ]
+        .into_iter()
+        .all(f64::is_finite)
+            || rules.save_hp_scale <= 0.0
+        {
+            return Err(DatabaseError::Invalid(
+                "reference calculation rules contain invalid numeric values".to_string(),
+            ));
+        }
+        if bundle.exp_levels.is_empty() || bundle.friendship_ranks.is_empty() {
+            return Err(DatabaseError::Invalid(
+                "reference progression tables must not be empty".to_string(),
+            ));
+        }
+        for level in limits.level_min..=limits.level_max {
+            if !bundle.exp_levels.contains_key(&level) {
+                return Err(DatabaseError::Invalid(format!(
+                    "reference EXP table has no row for editable level {level}"
+                )));
+            }
+        }
+        let mut previous_threshold = None;
+        for (&rank, &threshold) in &bundle.friendship_ranks {
+            if let Some(previous) = previous_threshold {
+                if threshold <= previous {
+                    return Err(DatabaseError::Invalid(format!(
+                        "Friendship threshold for rank {rank} is not strictly increasing"
+                    )));
+                }
+            }
+            previous_threshold = Some(threshold);
+        }
+        if bundle.friendship_ranks.values().next().copied() != Some(limits.friendship_min)
+            || bundle.friendship_ranks.values().next_back().copied() != Some(limits.friendship_max)
+        {
+            return Err(DatabaseError::Invalid(
+                "friendship limits must match the first and last rank thresholds".to_string(),
+            ));
+        }
+
+        Ok(Self {
+            bundle,
+            species_by_code,
+            work_by_code,
+        })
+    }
+
+    pub fn bundle(&self) -> &ReferenceBundle {
+        &self.bundle
+    }
+
+    pub fn species(&self, stored_code: &str) -> Option<&SpeciesRef> {
+        let base = stored_code
+            .strip_prefix("BOSS_")
+            .or_else(|| stored_code.strip_prefix("Boss_"))
+            .or_else(|| stored_code.strip_prefix("boss_"))
+            .unwrap_or(stored_code);
+        let canonical = self
+            .bundle
+            .species_aliases
+            .get(base)
+            .map(String::as_str)
+            .unwrap_or(base);
+        self.species_by_code
+            .get(canonical)
+            .map(|index| &self.bundle.species[*index])
+    }
+
+    pub fn work_types(&self) -> &[WorkTypeRef] {
+        &self.bundle.work_types
+    }
+
+    pub fn work_type(&self, code: &str) -> Option<&WorkTypeRef> {
+        self.work_by_code
+            .get(code)
+            .map(|index| &self.bundle.work_types[*index])
+    }
 }
 
 pub struct ReferenceDatabase {
@@ -224,15 +538,25 @@ impl ReferenceDatabase {
                 "expected a Palbox reference DB, found {kind:?}"
             )));
         }
+        let schema_version: String = connection.query_row(
+            "SELECT value FROM metadata WHERE key = 'schema_version'",
+            [],
+            |row| row.get(0),
+        )?;
+        if schema_version != REFERENCE_SCHEMA_VERSION {
+            return Err(DatabaseError::Invalid(format!(
+                "reference DB schema v{schema_version} is incompatible with supported v{REFERENCE_SCHEMA_VERSION}"
+            )));
+        }
         let game_version: String = connection.query_row(
             "SELECT value FROM metadata WHERE key = 'game_version'",
             [],
             |row| row.get(0),
         )?;
-        if game_version != "Palworld 1.0" {
-            return Err(DatabaseError::Invalid(format!(
-                "reference DB targets {game_version}, not Palworld 1.0"
-            )));
+        if game_version.trim().is_empty() {
+            return Err(DatabaseError::Invalid(
+                "reference DB has no game-version provenance".to_string(),
+            ));
         }
         Ok(Self { connection })
     }
@@ -285,7 +609,12 @@ impl ReferenceDatabase {
     }
 
     pub fn validate_passive_codes(&self, codes: &[String]) -> Result<()> {
-        validate_passive_codes(codes, &self.passive_code_set()?)
+        let maximum = self.connection.query_row(
+            "SELECT passives_max FROM editor_limits WHERE singleton = 1",
+            [],
+            |row| row.get::<_, i64>(0),
+        )?;
+        validate_passive_codes(codes, &self.passive_code_set()?, maximum as usize)
     }
 
     /// Every passive code, for building the in-memory cache (validate without
@@ -384,20 +713,37 @@ impl ReferenceDatabase {
 
         let mut elements = BTreeMap::new();
         let mut statement = self.connection.prepare(
-            "SELECT code, COALESCE(color, ''), COALESCE(icon, '')
+            "SELECT code, name, COALESCE(color, ''), COALESCE(icon, ''), sort_order
                  FROM element ORDER BY sort_order",
         )?;
         for row in statement.query_map([], |row| {
             Ok((
                 row.get::<_, String>(0)?,
                 ElementRef {
-                    color: row.get(1)?,
-                    icon: row.get(2)?,
+                    name: row.get(1)?,
+                    color: row.get(2)?,
+                    icon: row.get(3)?,
+                    sort_order: row.get(4)?,
                 },
             ))
         })? {
             let (code, value) = row?;
             elements.insert(code, value);
+        }
+
+        let mut work_types = Vec::new();
+        let mut statement = self
+            .connection
+            .prepare("SELECT code, name, icon, sort_order FROM work_type ORDER BY sort_order")?;
+        for row in statement.query_map([], |row| {
+            Ok(WorkTypeRef {
+                code: row.get(0)?,
+                name: row.get(1)?,
+                icon: row.get(2)?,
+                sort_order: row.get(3)?,
+            })
+        })? {
+            work_types.push(row?);
         }
 
         let mut friendship_ranks = BTreeMap::new();
@@ -410,6 +756,105 @@ impl ReferenceDatabase {
             let (rank, required_point) = row?;
             friendship_ranks.insert(rank, required_point);
         }
+
+        let mut exp_levels = BTreeMap::new();
+        let mut statement = self
+            .connection
+            .prepare("SELECT level, pal_next_exp, pal_total_exp FROM exp_level ORDER BY level")?;
+        for row in statement.query_map([], |row| {
+            Ok(ExpLevelRef {
+                level: row.get(0)?,
+                pal_next_exp: row.get(1)?,
+                pal_total_exp: row.get(2)?,
+            })
+        })? {
+            let value = row?;
+            exp_levels.insert(value.level, value);
+        }
+
+        let limits = self.connection.query_row(
+            r#"
+            SELECT
+                level_min, level_max,
+                iv_min, iv_max,
+                work_suitability_min, work_suitability_max,
+                soul_rank_min, soul_rank_max,
+                condensation_min, condensation_max,
+                equipped_moves_min, equipped_moves_max,
+                passives_min, passives_max,
+                sanity_min, sanity_max,
+                friendship_min, friendship_max,
+                partner_skill_level_min, partner_skill_level_max
+            FROM editor_limits
+            WHERE id = 1
+            "#,
+            [],
+            |row| {
+                Ok(EditorLimits {
+                    level_min: row.get(0)?,
+                    level_max: row.get(1)?,
+                    iv_min: row.get(2)?,
+                    iv_max: row.get(3)?,
+                    work_suitability_min: row.get(4)?,
+                    work_suitability_max: row.get(5)?,
+                    soul_rank_min: row.get(6)?,
+                    soul_rank_max: row.get(7)?,
+                    condensation_min: row.get(8)?,
+                    condensation_max: row.get(9)?,
+                    equipped_moves_min: row.get(10)?,
+                    equipped_moves_max: row.get(11)?,
+                    passives_min: row.get(12)?,
+                    passives_max: row.get(13)?,
+                    sanity_min: row.get(14)?,
+                    sanity_max: row.get(15)?,
+                    friendship_min: row.get(16)?,
+                    friendship_max: row.get(17)?,
+                    partner_skill_level_min: row.get(18)?,
+                    partner_skill_level_max: row.get(19)?,
+                })
+            },
+        )?;
+
+        let calculation_rules = self.connection.query_row(
+            r#"
+            SELECT
+                soul_bonus_percent_per_rank,
+                condensation_stat_bonus_percent_per_star,
+                iv_stat_bonus_ratio_per_point,
+                alpha_hp_multiplier,
+                hp_flat_base,
+                hp_per_level,
+                hp_scaling_factor,
+                attack_flat_base,
+                attack_scaling_factor,
+                defense_flat_base,
+                defense_scaling_factor,
+                save_hp_scale,
+                displayed_stat_min,
+                partner_skill_level_offset
+            FROM calculation_rules
+            WHERE id = 1
+            "#,
+            [],
+            |row| {
+                Ok(CalculationRules {
+                    soul_bonus_percent_per_rank: row.get(0)?,
+                    condensation_stat_bonus_percent_per_star: row.get(1)?,
+                    iv_stat_bonus_ratio_per_point: row.get(2)?,
+                    alpha_hp_multiplier: row.get(3)?,
+                    hp_flat_base: row.get(4)?,
+                    hp_per_level: row.get(5)?,
+                    hp_scaling_factor: row.get(6)?,
+                    attack_flat_base: row.get(7)?,
+                    attack_scaling_factor: row.get(8)?,
+                    defense_flat_base: row.get(9)?,
+                    defense_scaling_factor: row.get(10)?,
+                    save_hp_scale: row.get(11)?,
+                    displayed_stat_min: row.get(12)?,
+                    partner_skill_level_offset: row.get(13)?,
+                })
+            },
+        )?;
 
         let mut species_aliases = BTreeMap::new();
         let mut statement = self.connection.prepare(
@@ -447,7 +892,7 @@ impl ReferenceDatabase {
         let mut species_work: HashMap<String, BTreeMap<String, i64>> = HashMap::new();
         let mut statement = self.connection.prepare(
             r#"
-            SELECT sw.species_code, wt.name, sw.base_level
+            SELECT sw.species_code, wt.code, sw.base_level
             FROM species_work AS sw
             JOIN work_type AS wt ON wt.code = sw.work_code
             ORDER BY sw.species_code, wt.sort_order
@@ -460,11 +905,11 @@ impl ReferenceDatabase {
                 row.get::<_, i64>(2)?,
             ))
         })? {
-            let (species_code, name, level) = row?;
+            let (species_code, code, level) = row?;
             species_work
                 .entry(species_code)
                 .or_default()
-                .insert(name, level);
+                .insert(code, level);
         }
 
         let mut species_moves: HashMap<String, Vec<String>> = HashMap::new();
@@ -521,11 +966,34 @@ impl ReferenceDatabase {
                     element: row.get(4)?,
                     gear_name: row.get(5)?,
                     technology_level: row.get(6)?,
+                    ranks: Vec::new(),
                 },
             ))
         })? {
             let (species_code, value) = row?;
             partner_skills.insert(species_code, value);
+        }
+        let mut statement = self.connection.prepare(
+            r#"
+            SELECT species_code, rank, value_text, value_number
+            FROM partner_skill_rank
+            ORDER BY species_code, rank
+            "#,
+        )?;
+        for row in statement.query_map([], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                PartnerSkillRankRef {
+                    rank: row.get(1)?,
+                    value_text: row.get(2)?,
+                    value_number: row.get(3)?,
+                },
+            ))
+        })? {
+            let (species_code, rank) = row?;
+            if let Some(partner_skill) = partner_skills.get_mut(&species_code) {
+                partner_skill.ranks.push(rank);
+            }
         }
 
         let mut ranch_drops: HashMap<String, Vec<RanchDropRef>> = HashMap::new();
@@ -627,24 +1095,27 @@ impl ReferenceDatabase {
                 value_type: row.get(2)?,
                 filterable: row.get::<_, i64>(3)? != 0,
                 displayable: row.get::<_, i64>(4)? != 0,
-                values: None,
+                options: Vec::new(),
             })
         })? {
             let mut value = row?;
             let mut option_statement = self.connection.prepare_cached(
                 r#"
-                SELECT value
+                SELECT value, label
                 FROM filter_option
                 WHERE field_key = ?1
                 ORDER BY sort_order
                 "#,
             )?;
-            let values = option_statement
-                .query_map([&value.key], |option| option.get::<_, String>(0))?
+            let options = option_statement
+                .query_map([&value.key], |option| {
+                    Ok(SchemaOptionRef {
+                        value: option.get(0)?,
+                        label: option.get(1)?,
+                    })
+                })?
                 .collect::<rusqlite::Result<Vec<_>>>()?;
-            if !values.is_empty() {
-                value.values = Some(values);
-            }
+            value.options = options;
             schema.push(value);
         }
 
@@ -654,20 +1125,32 @@ impl ReferenceDatabase {
             species,
             species_aliases,
             elements,
+            work_types,
             friendship_ranks,
+            exp_levels,
+            limits,
+            calculation_rules,
             schema,
         })
     }
+
+    pub fn load_catalog(&self) -> Result<ReferenceCatalog> {
+        ReferenceCatalog::new(self.load_ui_bundle()?)
+    }
 }
 
-/// Validate preset passive codes against a known-valid set (<=4, unique,
-/// non-blank, all present). Used with the in-memory reference cache so preset
-/// writes/applies never re-query the reference DB.
-pub fn validate_passive_codes(codes: &[String], valid: &HashSet<String>) -> Result<()> {
-    if codes.len() > crate::limits::PASSIVES_MAX {
+/// Validate preset passive codes against a known-valid set and the DB-backed
+/// slot limit. Used with the in-memory reference cache so writes/applies never
+/// re-query the reference DB.
+pub fn validate_passive_codes(
+    codes: &[String],
+    valid: &HashSet<String>,
+    maximum: usize,
+) -> Result<()> {
+    if codes.len() > maximum {
         return Err(DatabaseError::Invalid(format!(
             "a passive preset can contain at most {} entries",
-            crate::limits::PASSIVES_MAX
+            maximum
         )));
     }
     let mut seen = HashSet::new();
@@ -730,6 +1213,12 @@ impl UserDatabase {
         if schema_version < 2 {
             connection.execute_batch(USER_MIGRATION_V2)?;
         }
+        if schema_version < 3 {
+            connection.execute_batch(USER_MIGRATION_V3)?;
+        }
+        if schema_version < 4 {
+            connection.execute_batch(USER_MIGRATION_V4)?;
+        }
         let kind: String = connection.query_row(
             "SELECT value FROM metadata WHERE key = 'database_kind'",
             [],
@@ -741,6 +1230,69 @@ impl UserDatabase {
             )));
         }
         Ok(Self { connection })
+    }
+
+    pub fn app_preferences(&self) -> Result<AppPreferences> {
+        let last_box_path = self.app_setting("last_box_path")?;
+        let auto_reopen = match self.app_setting("auto_reopen")?.as_str() {
+            "0" => false,
+            "1" => true,
+            value => {
+                return Err(DatabaseError::Invalid(format!(
+                    "invalid auto_reopen setting {value:?}"
+                )));
+            }
+        };
+        Ok(AppPreferences {
+            last_box_path,
+            auto_reopen,
+        })
+    }
+
+    pub fn save_app_preferences(&mut self, preferences: &AppPreferences) -> Result<AppPreferences> {
+        if preferences.last_box_path.chars().count() > 32_768 {
+            return Err(DatabaseError::Invalid(
+                "last Global Palbox path is too long".to_string(),
+            ));
+        }
+        let preferences = AppPreferences {
+            last_box_path: preferences.last_box_path.clone(),
+            auto_reopen: preferences.auto_reopen && !preferences.last_box_path.is_empty(),
+        };
+        let transaction = self.connection.transaction()?;
+        transaction.execute(
+            r#"
+            INSERT INTO app_setting(key, value)
+            VALUES ('last_box_path', ?1)
+            ON CONFLICT(key) DO UPDATE SET
+                value = excluded.value,
+                updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+            "#,
+            [&preferences.last_box_path],
+        )?;
+        transaction.execute(
+            r#"
+            INSERT INTO app_setting(key, value)
+            VALUES ('auto_reopen', ?1)
+            ON CONFLICT(key) DO UPDATE SET
+                value = excluded.value,
+                updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+            "#,
+            [if preferences.auto_reopen { "1" } else { "0" }],
+        )?;
+        transaction.commit()?;
+        Ok(preferences)
+    }
+
+    fn app_setting(&self, key: &str) -> Result<String> {
+        self.connection
+            .query_row(
+                "SELECT value FROM app_setting WHERE key = ?1",
+                [key],
+                |row| row.get(0),
+            )
+            .optional()?
+            .ok_or_else(|| DatabaseError::Invalid(format!("missing app setting {key:?}")))
     }
 
     pub fn list_presets(&self) -> Result<Vec<PassivePreset>> {
@@ -773,6 +1325,7 @@ impl UserDatabase {
     pub fn save_preset(
         &mut self,
         valid_codes: &HashSet<String>,
+        maximum_passives: usize,
         id: Option<i64>,
         name: &str,
         passive_codes: &[String],
@@ -784,7 +1337,7 @@ impl UserDatabase {
                 "preset name must contain 1 to 80 characters".to_string(),
             ));
         }
-        validate_passive_codes(passive_codes, valid_codes)?;
+        validate_passive_codes(passive_codes, valid_codes, maximum_passives)?;
 
         let transaction = self.connection.transaction()?;
         let preset_id = if let Some(id) = id {
@@ -986,6 +1539,7 @@ fn validate_group_name(name: &str) -> Result<&str> {
 mod tests {
     use super::*;
     use std::path::PathBuf;
+    use std::sync::{Arc, Barrier};
     use std::time::{SystemTime, UNIX_EPOCH};
 
     fn reference_path() -> PathBuf {
@@ -1006,6 +1560,24 @@ mod tests {
     #[test]
     fn reference_db_is_current_and_queryable() {
         let reference = ReferenceDatabase::open(reference_path()).unwrap();
+        for view in [
+            "v_species_summary",
+            "v_species_work_suitability",
+            "v_partner_skill_progression",
+            "v_move_catalog",
+            "v_move_effect_catalog",
+            "v_passive_catalog",
+            "v_passive_effect_catalog",
+            "v_reference_sources",
+        ] {
+            let count: i64 = reference
+                .connection
+                .query_row(&format!("SELECT COUNT(*) FROM {view}"), [], |row| {
+                    row.get(0)
+                })
+                .unwrap();
+            assert!(count > 0, "{view} should be useful in a SQLite viewer");
+        }
         let passives = reference.list_passives("", false, false).unwrap();
         assert!(!passives.is_empty());
         assert!(passives.iter().all(|passive| !passive.disabled));
@@ -1055,10 +1627,19 @@ mod tests {
         );
         assert_eq!(bundle.moves.len(), 351);
         assert_eq!(bundle.passives.len(), 420);
+        assert!(bundle.elements.values().all(|element| {
+            !element.name.is_empty()
+                && !element.color.is_empty()
+                && !element.icon.is_empty()
+                && element.sort_order >= 0
+        }));
         assert!(bundle
-            .elements
-            .values()
-            .all(|element| !element.color.is_empty() && !element.icon.is_empty()));
+            .work_types
+            .iter()
+            .all(|work| !work.code.is_empty() && !work.name.is_empty() && !work.icon.is_empty()));
+        assert!(!bundle.exp_levels.is_empty());
+        assert!(bundle.limits.level_max >= bundle.limits.level_min);
+        assert!(bundle.calculation_rules.save_hp_scale > 0.0);
         assert!(bundle
             .passives
             .values()
@@ -1115,22 +1696,23 @@ mod tests {
     #[test]
     fn passive_presets_are_ordered_and_limited_to_four() {
         let reference = ReferenceDatabase::open(reference_path()).unwrap();
+        let maximum = reference.load_ui_bundle().unwrap().limits.passives_max as usize;
         let codes = reference
             .list_passives("", false, false)
             .unwrap()
             .into_iter()
-            .take(5)
+            .take(maximum + 1)
             .map(|passive| passive.code)
             .collect::<Vec<_>>();
         let valid = reference.passive_code_set().unwrap();
         let path = unique_user_path();
         let mut user = UserDatabase::open_or_create(&path).unwrap();
         let preset = user
-            .save_preset(&valid, None, "Worker", &codes[..4])
+            .save_preset(&valid, maximum, None, "Worker", &codes[..maximum])
             .unwrap();
-        assert_eq!(preset.passive_codes, codes[..4]);
+        assert_eq!(preset.passive_codes, codes[..maximum]);
         assert!(user
-            .save_preset(&valid, Some(preset.id), "Too many", &codes)
+            .save_preset(&valid, maximum, Some(preset.id), "Too many", &codes)
             .is_err());
         assert_eq!(user.list_presets().unwrap().len(), 1);
         drop(user);
@@ -1172,7 +1754,181 @@ mod tests {
     }
 
     #[test]
-    fn schema_v1_user_database_migrates_to_groups() {
+    fn app_preferences_are_durable_and_normalized() {
+        let path = unique_user_path();
+        let mut user = UserDatabase::open_or_create(&path).unwrap();
+        assert_eq!(user.app_preferences().unwrap(), AppPreferences::default());
+
+        let saved = user
+            .save_app_preferences(&AppPreferences {
+                last_box_path: "C:\\Pal\\Saved\\GlobalPalStorage.sav".to_string(),
+                auto_reopen: true,
+            })
+            .unwrap();
+        assert!(saved.auto_reopen);
+        drop(user);
+
+        let mut reopened = UserDatabase::open_or_create(&path).unwrap();
+        assert_eq!(reopened.app_preferences().unwrap(), saved);
+        let normalized = reopened
+            .save_app_preferences(&AppPreferences {
+                last_box_path: String::new(),
+                auto_reopen: true,
+            })
+            .unwrap();
+        assert_eq!(normalized, AppPreferences::default());
+        drop(reopened);
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn concurrent_user_database_initialization_is_idempotent() {
+        let path = Arc::new(unique_user_path());
+        let barrier = Arc::new(Barrier::new(4));
+        let workers = (0..4)
+            .map(|_| {
+                let path = Arc::clone(&path);
+                let barrier = Arc::clone(&barrier);
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    let user = UserDatabase::open_or_create(path.as_ref()).unwrap();
+                    assert_eq!(user.app_preferences().unwrap(), AppPreferences::default());
+                })
+            })
+            .collect::<Vec<_>>();
+        for worker in workers {
+            worker.join().unwrap();
+        }
+        fs::remove_file(path.as_ref()).unwrap();
+    }
+
+    #[test]
+    fn schema_v2_migration_preserves_existing_user_metadata() {
+        let path = unique_user_path();
+        let mut user = UserDatabase::open_or_create(&path).unwrap();
+        let valid_codes = HashSet::from(["Legend".to_string()]);
+        let preset = user
+            .save_preset(&valid_codes, 1, None, "Favorite", &["Legend".to_string()])
+            .unwrap();
+        let group = user.create_group("Workers").unwrap();
+        user.set_pal_groups("instance-1", &[group.id]).unwrap();
+        drop(user);
+
+        let connection = Connection::open(&path).unwrap();
+        connection
+            .execute_batch(
+                r#"
+                DROP TABLE app_setting;
+                DELETE FROM schema_migrations WHERE version >= 3;
+                UPDATE metadata SET value = '2' WHERE key = 'schema_version';
+                "#,
+            )
+            .unwrap();
+        drop(connection);
+
+        let migrated = UserDatabase::open_or_create(&path).unwrap();
+        assert_eq!(migrated.list_presets().unwrap(), vec![preset]);
+        assert_eq!(migrated.list_groups().unwrap(), vec![group.clone()]);
+        assert_eq!(
+            migrated.list_group_memberships().unwrap(),
+            vec![PalGroupMembership {
+                instance_id: "instance-1".to_string(),
+                group_ids: vec![group.id],
+            }]
+        );
+        assert_eq!(
+            migrated.app_preferences().unwrap(),
+            AppPreferences::default()
+        );
+        drop(migrated);
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn schema_v3_migration_preserves_presets_and_removes_the_stale_slot_cap() {
+        let path = unique_user_path();
+        let connection = Connection::open(&path).unwrap();
+        connection
+            .execute_batch(
+                r#"
+                PRAGMA foreign_keys = ON;
+                CREATE TABLE schema_migrations (
+                    version INTEGER PRIMARY KEY,
+                    applied_at TEXT NOT NULL
+                ) STRICT;
+                CREATE TABLE metadata (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL
+                ) STRICT;
+                CREATE TABLE passive_preset (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT NOT NULL COLLATE NOCASE UNIQUE,
+                    created_at TEXT NOT NULL DEFAULT '',
+                    updated_at TEXT NOT NULL DEFAULT ''
+                ) STRICT;
+                CREATE TABLE passive_preset_entry (
+                    preset_id INTEGER NOT NULL REFERENCES passive_preset(id) ON DELETE CASCADE,
+                    slot INTEGER NOT NULL CHECK (slot BETWEEN 0 AND 3),
+                    passive_code TEXT NOT NULL,
+                    PRIMARY KEY (preset_id, slot),
+                    UNIQUE (preset_id, passive_code)
+                ) STRICT;
+                CREATE INDEX passive_preset_entry_code_idx
+                ON passive_preset_entry(passive_code);
+                INSERT INTO schema_migrations(version, applied_at) VALUES
+                    (1, '2026-07-25'),
+                    (2, '2026-07-25'),
+                    (3, '2026-07-29');
+                INSERT INTO metadata(key, value) VALUES
+                    ('database_kind', 'palbox-user'),
+                    ('schema_version', '3'),
+                    ('preset_passive_limit', '4');
+                INSERT INTO passive_preset(id, name) VALUES (1, 'Workers');
+                INSERT INTO passive_preset_entry(preset_id, slot, passive_code) VALUES
+                    (1, 0, 'Artisan'),
+                    (1, 1, 'Serious');
+                "#,
+            )
+            .unwrap();
+        drop(connection);
+
+        let migrated = UserDatabase::open_or_create(&path).unwrap();
+        assert_eq!(
+            migrated.get_preset(1).unwrap().passive_codes,
+            ["Artisan", "Serious"]
+        );
+        migrated
+            .connection
+            .execute(
+                "INSERT INTO passive_preset_entry(preset_id, slot, passive_code)
+                 VALUES (1, 4, 'Workaholic')",
+                [],
+            )
+            .expect("the user DB no longer duplicates the current game slot cap");
+        let version: String = migrated
+            .connection
+            .query_row(
+                "SELECT value FROM metadata WHERE key = 'schema_version'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(version, "4");
+        let stale_limit: i64 = migrated
+            .connection
+            .query_row(
+                "SELECT COUNT(*) FROM metadata WHERE key = 'preset_passive_limit'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(stale_limit, 0);
+        drop(migrated);
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn schema_v1_user_database_migrates_to_current() {
         let path = unique_user_path();
         let connection = Connection::open(&path).unwrap();
         connection
@@ -1185,6 +1941,19 @@ mod tests {
                 CREATE TABLE metadata (
                     key TEXT PRIMARY KEY,
                     value TEXT NOT NULL
+                ) STRICT;
+                CREATE TABLE passive_preset (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT NOT NULL COLLATE NOCASE UNIQUE,
+                    created_at TEXT NOT NULL DEFAULT '',
+                    updated_at TEXT NOT NULL DEFAULT ''
+                ) STRICT;
+                CREATE TABLE passive_preset_entry (
+                    preset_id INTEGER NOT NULL REFERENCES passive_preset(id) ON DELETE CASCADE,
+                    slot INTEGER NOT NULL CHECK (slot BETWEEN 0 AND 3),
+                    passive_code TEXT NOT NULL,
+                    PRIMARY KEY (preset_id, slot),
+                    UNIQUE (preset_id, passive_code)
                 ) STRICT;
                 INSERT INTO schema_migrations(version, applied_at)
                 VALUES (1, '2026-07-25');
@@ -1206,7 +1975,8 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, "2");
+        assert_eq!(version, "4");
+        assert_eq!(user.app_preferences().unwrap(), AppPreferences::default());
         drop(user);
         fs::remove_file(path).unwrap();
     }

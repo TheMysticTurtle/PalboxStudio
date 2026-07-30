@@ -30,7 +30,7 @@ export function moveSkill(
   source: MoveDrag,
   targetList: MoveList,
   rawTargetIndex: number,
-  activeLimit = 3,
+  activeLimit: number,
 ): MoveSlotResult {
   const active = [...state.active];
   const bench = [...state.bench];

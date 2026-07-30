@@ -23,7 +23,11 @@ pub fn read_sav(bytes: &[u8]) -> Result<PalSave, String> {
 }
 
 /// Re-encode a save back to its `.sav` byte payload (PlM/Oodle).
-pub fn write_sav(save: &PalSave) -> Result<Vec<u8>, String> {
+pub fn write_sav(save: &mut PalSave) -> Result<Vec<u8>, String> {
+    // Optional fields may be absent from every Pal in the source file, so the
+    // reader never had a property tag to record for them. Install the canonical
+    // engine-owned tags before every encode; source-provided tags always win.
+    crate::schema::ensure_writable_schemas(save);
     let mut buf = Vec::new();
     save.write_plm(&mut buf)
         .map_err(|e| format!("write_sav: {e}"))?;
@@ -31,21 +35,30 @@ pub fn write_sav(save: &PalSave) -> Result<Vec<u8>, String> {
 }
 
 #[cfg(test)]
+pub(crate) fn test_fixture_path() -> std::path::PathBuf {
+    std::env::var_os("PALBOX_TEST_SAV")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| {
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("tests")
+                .join("fixtures")
+                .join("synthetic-global-palbox.sav")
+        })
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
-    /// Lossless round-trip on a REAL GlobalPalStorage.sav copy (never the live save):
-    /// decode -> encode -> decode again must re-parse. Point PALBOX_TEST_SAV at a
-    /// scratchpad copy to run; skips cleanly otherwise.
+    /// Lossless round-trip on the committed sanitized fixture. Maintainers can
+    /// override it with PALBOX_TEST_SAV pointing at a scratchpad copy—never a
+    /// live save.
     #[test]
     fn roundtrip_global_palbox() {
-        let Ok(path) = std::env::var("PALBOX_TEST_SAV") else {
-            eprintln!("skip: set PALBOX_TEST_SAV to a scratchpad .sav copy to run");
-            return;
-        };
+        let path = test_fixture_path();
         let bytes = std::fs::read(&path).expect("read fixture");
-        let save = read_sav(&bytes).expect("decode real save");
-        let out = write_sav(&save).expect("encode");
+        let mut save = read_sav(&bytes).expect("decode real save");
+        let out = write_sav(&mut save).expect("encode");
         assert!(!out.is_empty(), "encoded output is empty");
         // The re-encoded bytes must decode again (proves a lossless pipeline).
         read_sav(&out).expect("re-decode our own output");

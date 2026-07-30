@@ -6,12 +6,12 @@
 // never hand-written onto the pal. That keeps one source of truth and makes the
 // display always match the game data.
 
-export type ElementName =
-  | "Neutral" | "Fire" | "Water" | "Grass" | "Electric"
-  | "Ice" | "Ground" | "Dark" | "Dragon";
+/** DB-backed canonical element code. */
+export type ElementName = string;
 
 export type Gender = "Male" | "Female" | "Unknown";
-export type Category = "Natural" | "TowerBoss" | "Unobtainable";
+/** DB-backed species category code. */
+export type Category = string;
 
 // ---- Reference tables (static; from the SQLite reference DB via get_reference_data) ----
 
@@ -24,7 +24,7 @@ export interface PassiveEffectRef {
 
 export interface PassiveRef {
   name: string;
-  /** -3..5 (no 0); 5 is the 1.0 top tier. */
+  /** Game-authored rating loaded from the reference database. */
   rating: number;
   description: string;
   disabled: boolean;
@@ -45,9 +45,11 @@ export interface MoveRef {
 
 /** elements.json: element name -> this. */
 export interface ElementInfo {
+  name: string;
   color: string;
   /** Canonical basename for the bundled element badge. */
   icon: string;
+  sortOrder: number;
 }
 
 /** schema.json: one per species column; drives filter/display generation. */
@@ -57,7 +59,12 @@ export interface SchemaColumn {
   type: "text" | "enum" | "multi" | "number" | "bool" | "map" | "relation";
   filterable: boolean;
   displayable: boolean;
-  values?: string[];
+  options: SchemaOption[];
+}
+
+export interface SchemaOption {
+  value: string;
+  label: string;
 }
 
 export interface PartnerSkillRef {
@@ -67,6 +74,13 @@ export interface PartnerSkillRef {
   element: ElementName | null;
   gearName: string | null;
   technologyLevel: number | null;
+  ranks: PartnerSkillRankRef[];
+}
+
+export interface PartnerSkillRankRef {
+  rank: number;
+  valueText: string;
+  valueNumber: number | null;
 }
 
 export interface RanchDropRef {
@@ -113,18 +127,76 @@ export interface ReferenceBundle {
   /** Encounter/appearance code -> canonical owned-species code. */
   speciesAliases: Record<string, string>;
   elements: Record<string, ElementInfo>;
+  workTypes: WorkTypeRef[];
   /** Trust rank -> total FriendshipPoint required. */
   friendshipRanks: Record<string, number>;
+  expLevels: Record<string, ExpLevelRef>;
+  limits: EditorLimits;
+  calculationRules: CalculationRules;
   schema: SchemaColumn[];
+}
+
+export interface WorkTypeRef {
+  code: string;
+  name: string;
+  icon: string;
+  sortOrder: number;
+}
+
+export interface ExpLevelRef {
+  level: number;
+  palNextExp: number;
+  palTotalExp: number;
+}
+
+export interface EditorLimits {
+  levelMin: number;
+  levelMax: number;
+  ivMin: number;
+  ivMax: number;
+  workSuitabilityMin: number;
+  workSuitabilityMax: number;
+  soulRankMin: number;
+  soulRankMax: number;
+  condensationMin: number;
+  condensationMax: number;
+  equippedMovesMin: number;
+  equippedMovesMax: number;
+  passivesMin: number;
+  passivesMax: number;
+  sanityMin: number;
+  sanityMax: number;
+  friendshipMin: number;
+  friendshipMax: number;
+  partnerSkillLevelMin: number;
+  partnerSkillLevelMax: number;
+}
+
+export interface CalculationRules {
+  soulBonusPercentPerRank: number;
+  condensationStatBonusPercentPerStar: number;
+  ivStatBonusRatioPerPoint: number;
+  alphaHpMultiplier: number;
+  hpFlatBase: number;
+  hpPerLevel: number;
+  hpScalingFactor: number;
+  attackFlatBase: number;
+  attackScalingFactor: number;
+  defenseFlatBase: number;
+  defenseScalingFactor: number;
+  saveHpScale: number;
+  displayedStatMin: number;
+  partnerSkillLevelOffset: number;
 }
 
 // ---- Editable per-instance data (from the save) ----
 
 export interface WorkSuit {
+  code: string;
   name: string;
   /** Icon basename in /icons/work — active = `<icon>.png`, level 0 = `no_<icon>.png`. */
   icon: string;
-  /** 0..10 in 1.0. */
+  /** Engine-projected total within the reference database's current limits. */
   level: number;
 }
 
@@ -145,14 +217,21 @@ export interface Pal {
   ivs: { hp: number; shot: number; defense: number };
   soulRanks: { hp: number; attack: number; defense: number; craftSpeed: number };
   stats: {
-    hp: number; hpMax: number; san: number; foodPct: number;
+    hp: number; hpMax: number; attack: number; defense: number;
+    san: number; foodPct: number;
   };
-  /** Trust rank 0..10 plus progress toward the next rank (0..1). */
-  trust: { rank: number; progress: number };
-  partnerSkill: { name: string; level: number; description: string; element?: ElementName };
-  /** Passive **codes** (up to 4) — resolved against passives.json. */
+  /** DB-backed Trust rank plus progress toward the next rank (0..1). */
+  trust: { rank: number; minRank: number; maxRank: number; progress: number };
+  partnerSkill: {
+    name: string;
+    level: number;
+    description: string;
+    element?: ElementName;
+    rankEffect?: string;
+  };
+  /** Passive **codes**, bounded by the current DB-backed editor limits. */
   passives: string[];
-  /** Equipped Active Skill (move) **codes** (up to 3) — resolved against moves.json. */
+  /** Equipped Active Skill **codes**, bounded by the current DB-backed editor limits. */
   activeSkills: string[];
   /** Explicit MasteredWaza entries. Natural learnset moves stay out of this list. */
   learnedMoves: string[];
@@ -180,6 +259,7 @@ export interface BoxPal {
   alpha?: boolean;
   lucky?: boolean;
   groups?: string[];
+  stats: { hp: number; attack: number; defense: number };
   workSuit: WorkSuit[];
   passives: string[];
   activeSkills: string[];

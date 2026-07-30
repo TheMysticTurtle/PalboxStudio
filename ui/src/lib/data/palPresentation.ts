@@ -1,8 +1,12 @@
 import type { BoxPal, ElementName, Gender, WorkSuit } from "./types";
-import { ELEMENT_COLOR } from "./constants";
 import { palIcon } from "./icons";
-import { calculateCombatStats, type CombatStats } from "./palStats";
 import { ref, resolveMove, resolvePassive } from "./refdata.svelte";
+
+export interface CombatStats {
+  hp: number;
+  attack: number;
+  defense: number;
+}
 
 export interface PresentedPassive {
   code: string;
@@ -27,7 +31,6 @@ export interface PalCardPresentation {
   speciesName: string;
   showSpeciesSubtitle: boolean;
   gender: Gender;
-  genderSymbol: string;
   level: number;
   condensation: number;
   stats: CombatStats;
@@ -43,35 +46,30 @@ export interface PalCardPresentation {
   moves: PresentedMove[];
 }
 
-export function genderSymbol(gender: Gender): string {
-  return gender === "Male" ? "♂" : gender === "Female" ? "♀" : "–";
-}
-
 export function nextGender(gender: Gender): Gender {
   return gender === "Male" ? "Female" : "Male";
 }
 
 export function elementColor(element: ElementName | undefined): string {
-  if (!element) return ELEMENT_COLOR.Neutral;
-  return ref.elements[element]?.color || ELEMENT_COLOR[element];
+  return (element && ref.elements[element]?.color) || "var(--el-neutral)";
 }
 
 export function normalizeElement(element: string | undefined): ElementName {
-  return element && element in ELEMENT_COLOR ? element as ElementName : "Neutral";
+  return element && element in ref.elements
+    ? element
+    : (Object.keys(ref.elements)[0] ?? "");
 }
 
 export function presentBoxPal(pal: BoxPal): PalCardPresentation {
-  const stats = calculateCombatStats(pal) ?? { hp: 0, attack: 0, defense: 0 };
   return {
     slot: pal.slot,
     title: pal.name,
     speciesName: pal.speciesName,
     showSpeciesSubtitle: !!pal.nickname && pal.nickname !== pal.speciesName,
     gender: pal.gender,
-    genderSymbol: genderSymbol(pal.gender),
     level: pal.level,
     condensation: pal.condensation,
-    stats,
+    stats: pal.stats,
     elements: pal.elements,
     primaryColor: elementColor(pal.elements[0]),
     secondaryColor: elementColor(pal.elements[1] ?? pal.elements[0]),

@@ -4,13 +4,17 @@ import {
   speciesMatches,
   toggleOnly,
 } from "../src/lib/data/speciesFilter.ts";
-import { soulBonusPercent } from "../src/lib/data/constants.ts";
 import { matchesAllGroups } from "../src/lib/data/groupFilter.ts";
 import { moveSkill } from "../src/lib/data/moveSlots.ts";
 import {
   DEFAULT_PASSIVE_SCOPE,
   passiveMatches,
 } from "../src/lib/data/passiveFilter.ts";
+import {
+  parseBoxPreferences,
+  shouldMigrateLegacyBoxPreferences,
+} from "../src/lib/data/boxPreferences.ts";
+import { classifySourceConflict } from "../src/lib/data/sourceMonitor.ts";
 
 function filter(overrides = {}) {
   return {
@@ -90,19 +94,13 @@ test("category selection is mutually exclusive and toggleable", () => {
   assert.deepEqual([...toggleOnly(natural, "Natural")], []);
 });
 
-test("Pal Soul percentages share the rank-20, 60-percent cap", () => {
-  assert.equal(soulBonusPercent(0), 0);
-  assert.equal(soulBonusPercent(10), 30);
-  assert.equal(soulBonusPercent(20), 60);
-  assert.equal(soulBonusPercent(255), 60);
-});
-
 test("bench moves can be dragged into any open active slot", () => {
   const result = moveSkill(
     { active: ["FireBall"], bench: ["WindCutter", "DarkLaser"] },
     { code: "DarkLaser", list: "bench", index: 1 },
     "active",
     1,
+    3,
   );
   assert.deepEqual(result.active, ["FireBall", "DarkLaser"]);
   assert.deepEqual(result.bench, ["WindCutter"]);
@@ -115,6 +113,7 @@ test("dragging one active skill onto another swaps their slots", () => {
     { code: "DarkLaser", list: "active", index: 2 },
     "active",
     0,
+    3,
   );
   assert.deepEqual(result.active, ["DarkLaser", "WindCutter", "FireBall"]);
   assert.deepEqual(result.bench, ["StoneBlast"]);
@@ -126,6 +125,7 @@ test("dropping a bench move onto an occupied active slot swaps the two", () => {
     { code: "StoneBlast", list: "bench", index: 0 },
     "active",
     1,
+    3,
   );
   assert.deepEqual(result.active, ["FireBall", "StoneBlast", "DarkLaser"]);
   assert.deepEqual(result.bench, ["WindCutter"]);
@@ -158,4 +158,47 @@ test("every passive picker defaults to the full enabled catalog", () => {
     passiveMatches("Nushi", lunker, "", "species", "all", "all", false, new Set()),
     false,
   );
+});
+
+test("last-box preferences are version-safe and reject malformed storage", () => {
+  assert.deepEqual(parseBoxPreferences(null), {
+    lastBoxPath: "",
+    autoReopen: false,
+  });
+  assert.deepEqual(parseBoxPreferences("{not-json"), {
+    lastBoxPath: "",
+    autoReopen: false,
+  });
+  assert.deepEqual(parseBoxPreferences(JSON.stringify({
+    lastBoxPath: "C:\\Pal\\GlobalPalStorage.sav",
+    autoReopen: true,
+    ignoredFutureField: 42,
+  })), {
+    lastBoxPath: "C:\\Pal\\GlobalPalStorage.sav",
+    autoReopen: true,
+  });
+});
+
+test("only an empty database preference imports the legacy remembered box", () => {
+  assert.equal(
+    shouldMigrateLegacyBoxPreferences(
+      { lastBoxPath: "", autoReopen: false },
+      { lastBoxPath: "/tmp/GlobalPalStorage.sav", autoReopen: true },
+    ),
+    true,
+  );
+  assert.equal(
+    shouldMigrateLegacyBoxPreferences(
+      { lastBoxPath: "D:\\Pal\\GlobalPalStorage.sav", autoReopen: false },
+      { lastBoxPath: "/tmp/stale.sav", autoReopen: true },
+    ),
+    false,
+  );
+});
+
+test("source monitoring distinguishes ordinary and immediate post-save conflicts", () => {
+  assert.equal(classifySourceConflict("unchanged", 1_000, 2_000), "");
+  assert.equal(classifySourceConflict("changed", 0, 2_000), "external");
+  assert.equal(classifySourceConflict("unavailable", 1_000, 31_000), "post-save");
+  assert.equal(classifySourceConflict("changed", 1_000, 31_001), "external");
 });

@@ -3,7 +3,7 @@ import type { ElementName, Category, SpeciesRow } from "./types";
 export interface SpeciesFilterState {
   search: string;
   elements: Set<ElementName>;
-  /** Official work-suitability names (all selected jobs must have a positive base level). */
+  /** Internal Work codes (all selected jobs must have a positive DB-backed base level). */
   work: Set<string>;
   /** Can be ridden as a mount (has saddle Partner-Skill gear). */
   rideable: boolean;
@@ -80,9 +80,3 @@ export function clearFilter(f: SpeciesFilterState): void {
   f.ranchDrops = new Set();
   f.categories = new Set();
 }
-
-export const CATEGORY_LABELS: { value: Category; label: string }[] = [
-  { value: "Natural", label: "Natural" },
-  { value: "TowerBoss", label: "Tower Bosses" },
-  { value: "Unobtainable", label: "Unobtainable" },
-];

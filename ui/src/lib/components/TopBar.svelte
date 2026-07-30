@@ -41,7 +41,15 @@
   <div class="spacer" data-tauri-drag-region></div>
 
   {#if box.open}
-    <button class="savebtn" onclick={saveToFile} title="Backup the original, then write the edited box">💾 Save Box</button>
+    <button
+      class="savebtn"
+      class:blocked={Boolean(box.conflict)}
+      onclick={saveToFile}
+      disabled={Boolean(box.conflict) || box.loading}
+      title={box.conflict
+        ? "Reload the externally changed Global Palbox before saving"
+        : "Backup the original, then write the edited box"}
+    >💾 Save Box</button>
     {#if box.saveMsg}<span class="savemsg">{box.saveMsg}</span>{/if}
     {#if box.lastBackupPath}
       <button
@@ -53,12 +61,12 @@
   {/if}
 
   {#if box.open}
-    <div class="safe">
+    <div class="safe" class:conflict={Boolean(box.conflict)}>
       <svg width="14" height="15" viewBox="0 0 24 26" fill="none" aria-hidden="true">
         <path d="M12 1 22 5v9c0 6.5-4.3 10-10 11C6.3 24 2 20.5 2 14V5l10-4Z" fill="rgba(95,209,106,.18)" stroke="#5FD16A" stroke-width="1.6" />
         <path d="m7.5 13 3 3 6-6.5" stroke="#5FD16A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
-      <span>Working copy</span>
+      <span>{box.conflict ? "Source changed" : box.dirty ? "Unsaved edits" : "Working copy"}</span>
     </div>
   {/if}
 
@@ -157,6 +165,12 @@
     color: #9ad6a0;
     letter-spacing: 0.02em;
   }
+  .safe.conflict {
+    color: #e9a1a1;
+    background: rgba(224, 90, 90, 0.1);
+    border-color: rgba(224, 90, 90, 0.38);
+  }
+  .safe.conflict svg { filter: hue-rotate(115deg) saturate(1.5); }
   .savebtn {
     padding: 6px 12px;
     border-radius: 6px;
@@ -168,6 +182,15 @@
     font-weight: 600;
   }
   .savebtn:hover { background: rgba(63, 199, 224, 0.24); }
+  .savebtn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .savebtn.blocked {
+    color: #e9a1a1;
+    border-color: rgba(224, 90, 90, 0.4);
+    background: rgba(224, 90, 90, 0.1);
+  }
   .savemsg { font-size: 11.5px; color: #9ad6a0; }
   .wincontrols {
     display: flex;
