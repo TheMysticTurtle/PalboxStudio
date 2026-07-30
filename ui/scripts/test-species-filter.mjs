@@ -11,6 +11,11 @@ import {
   DEFAULT_PASSIVE_SCOPE,
   passiveMatches,
 } from "../src/lib/data/passiveFilter.ts";
+import {
+  parseBoxPreferences,
+  serializeBoxPreferences,
+} from "../src/lib/data/boxPreferences.ts";
+import { classifySourceConflict } from "../src/lib/data/sourceMonitor.ts";
 
 function filter(overrides = {}) {
   return {
@@ -158,4 +163,43 @@ test("every passive picker defaults to the full enabled catalog", () => {
     passiveMatches("Nushi", lunker, "", "species", "all", "all", false, new Set()),
     false,
   );
+});
+
+test("last-box preferences are version-safe and reject malformed storage", () => {
+  assert.deepEqual(parseBoxPreferences(null), {
+    lastBoxPath: "",
+    autoReopen: false,
+  });
+  assert.deepEqual(parseBoxPreferences("{not-json"), {
+    lastBoxPath: "",
+    autoReopen: false,
+  });
+  assert.deepEqual(parseBoxPreferences(JSON.stringify({
+    lastBoxPath: "C:\\Pal\\GlobalPalStorage.sav",
+    autoReopen: true,
+    ignoredFutureField: 42,
+  })), {
+    lastBoxPath: "C:\\Pal\\GlobalPalStorage.sav",
+    autoReopen: true,
+  });
+});
+
+test("last-box preferences serialize only the durable path and toggle", () => {
+  assert.equal(
+    serializeBoxPreferences({
+      lastBoxPath: "/tmp/GlobalPalStorage.sav",
+      autoReopen: true,
+    }),
+    JSON.stringify({
+      lastBoxPath: "/tmp/GlobalPalStorage.sav",
+      autoReopen: true,
+    }),
+  );
+});
+
+test("source monitoring distinguishes ordinary and immediate post-save conflicts", () => {
+  assert.equal(classifySourceConflict("unchanged", 1_000, 2_000), "");
+  assert.equal(classifySourceConflict("changed", 0, 2_000), "external");
+  assert.equal(classifySourceConflict("unavailable", 1_000, 31_000), "post-save");
+  assert.equal(classifySourceConflict("changed", 1_000, 31_001), "external");
 });

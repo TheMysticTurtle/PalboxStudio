@@ -8,7 +8,13 @@
   import "@fontsource/barlow/600.css";
   import "@fontsource/barlow-semi-condensed/600.css";
   import "$lib/styles/tokens.css";
+  import { onMount } from "svelte";
   import { loadRefData } from "$lib/data/refdata.svelte";
+  import { openBoxFile, startBoxSourceMonitor } from "$lib/stores/box.svelte";
+  import {
+    boxPreferences,
+    loadBoxPreferences,
+  } from "$lib/stores/boxPreferences.svelte";
   import { loadUserLibrary } from "$lib/stores/library.svelte";
 
   let { children } = $props();
@@ -17,6 +23,14 @@
   $effect(() => {
     loadRefData();
     loadUserLibrary();
+  });
+
+  onMount(() => {
+    loadBoxPreferences();
+    if (boxPreferences.autoReopen && boxPreferences.lastBoxPath) {
+      void openBoxFile(boxPreferences.lastBoxPath, { automatic: true });
+    }
+    return startBoxSourceMonitor();
   });
 </script>
 

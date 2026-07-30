@@ -2,6 +2,30 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Session — 2026-07-29: seamless reopen and source-conflict monitor
+
+- Added a compact **Last Palbox** row at the top of the Global Palbox drawer. A remembered path can
+  be opened in one click, and the adjacent **Open on launch** toggle automatically reopens it on
+  future starts. An invalid/moved path disables auto-open and falls back to the normal picker
+  without trapping the user in a repeated startup error.
+- The last-box preference is app metadata stored by the webview, not Pal save data. It is updated
+  only after a successful open.
+- Added an always-on source monitor while a box is open. The shell asks the core for a freshly
+  hashed source status every 1.5 seconds; source changes or disappearance preserve the in-memory
+  copy, block Save, show a clear conflict banner, and offer an explicit discard-and-reload action.
+  The core still rechecks the fingerprint immediately before replacement and remains authoritative.
+- A conflict detected during the 30 seconds after Studio saves is identified separately as a
+  likely Palworld/other-tool overwrite.
+- Slot selection now flushes a full DTO only when the selected Pal actually differs from its loaded
+  baseline. Merely viewing or switching clean Pals no longer marks the engine session dirty.
+- Opening another box or reloading a conflict warns before discarding unsaved in-memory edits.
+
+**Verification:** core session tests cover current/changed source status; UI unit tests cover
+preference parsing/serialization and post-save conflict classification.
+
+**Next:** complete deterministic Tier 0 persistence fault injection, then add the remaining
+window-close dirty guard and dirty-conflict snapshot/export.
+
 ## Session — 2026-07-29: engine-owned schemas and safe save session
 
 Started `fix/engine-save-authority` from the isolated condensation fix

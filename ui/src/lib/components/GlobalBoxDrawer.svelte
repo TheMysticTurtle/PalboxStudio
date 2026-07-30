@@ -2,7 +2,20 @@
   import type { BoxPal } from "$lib/data/types";
   import { resolveSpecies, speciesDisplayName } from "$lib/data/refdata.svelte";
   import { ui } from "$lib/stores/ui.svelte";
-  import { box, openBoxFile, selectSlot, addPal, clonePal, deletePal } from "$lib/stores/box.svelte";
+  import {
+    box,
+    openBoxFile,
+    selectSlot,
+    addPal,
+    clonePal,
+    deletePal,
+    hasUnsavedChanges,
+    reloadBoxFromDisk,
+  } from "$lib/stores/box.svelte";
+  import {
+    boxPreferences,
+    setAutoReopen,
+  } from "$lib/stores/boxPreferences.svelte";
   import { palToBoxPal, tileDtoToBoxPal } from "$lib/data/mapper";
   import BoxTile from "./BoxTile.svelte";
   import SpeciesFilter from "./SpeciesFilter.svelte";
@@ -80,10 +93,40 @@
         multiple: false,
         filters: [{ name: "Palworld Save", extensions: ["sav"] }],
       });
-      if (typeof file === "string") await openBoxFile(file);
+      if (
+        typeof file === "string"
+        && (await confirmDiscardForOpen("Open another Global Palbox?"))
+      ) {
+        await openBoxFile(file);
+      }
     } catch (e) {
       console.warn("File dialog is only available inside the app", e);
     }
+  }
+
+  async function confirmDiscardForOpen(title: string): Promise<boolean> {
+    if (!hasUnsavedChanges()) return true;
+    const message =
+      "The current Global Palbox has unsaved changes. Opening another copy will discard those in-memory edits.";
+    try {
+      const { ask } = await import("@tauri-apps/plugin-dialog");
+      return await ask(message, { title, kind: "warning" });
+    } catch {
+      return window.confirm(`${title}\n\n${message}`);
+    }
+  }
+
+  async function openLastBox() {
+    if (
+      !boxPreferences.lastBoxPath
+      || !(await confirmDiscardForOpen("Open the last Global Palbox?"))
+    ) return;
+    await openBoxFile(boxPreferences.lastBoxPath);
+  }
+
+  async function reloadConflict() {
+    if (!(await confirmDiscardForOpen("Reload the changed Global Palbox?"))) return;
+    await reloadBoxFromDisk();
   }
 
   function select(slot: number) {
@@ -122,11 +165,64 @@
 </script>
 
 <div class="box">
+  <div class="last-box" class:available={Boolean(boxPreferences.lastBoxPath)}>
+    <button
+      type="button"
+      class="last-open"
+      onclick={openLastBox}
+      disabled={!boxPreferences.lastBoxPath || box.loading}
+      title={boxPreferences.lastBoxPath || "Open a Global Palbox once to remember it"}
+    >
+      <span class="last-label">LAST PALBOX</span>
+      <b>
+        {boxPreferences.lastBoxPath
+          ? boxPreferences.lastBoxPath.split(/[\\/]/).pop()
+          : "None remembered yet"}
+      </b>
+      <span class="last-action">Open</span>
+    </button>
+    <label
+      class="auto-open"
+      title={boxPreferences.lastBoxPath
+        ? "Automatically reopen this Global Palbox when Palbox Studio starts"
+        : "Choose a Global Palbox before enabling auto-open"}
+    >
+      <span>Open on launch</span>
+      <input
+        type="checkbox"
+        checked={boxPreferences.autoReopen}
+        disabled={!boxPreferences.lastBoxPath}
+        onchange={(event) => setAutoReopen(event.currentTarget.checked)}
+      />
+      <span class="switch" aria-hidden="true"></span>
+    </label>
+  </div>
+
   <button class="open" onclick={openBoxClicked} disabled={box.loading}>
     {box.loading ? "Opening…" : "⭳ Open Global Palbox"}
   </button>
   {#if box.open}
     <div class="picked">{box.tiles.length} pals · {box.slotCount} slots · <b>{box.path.split(/[\\/]/).pop()}</b></div>
+  {/if}
+  {#if box.conflict}
+    <div class="conflict" class:post-save={box.conflict === "post-save"}>
+      <div>
+        <strong>
+          {box.conflict === "post-save"
+            ? "The file changed again after Studio saved"
+            : "The Global Palbox changed on disk"}
+        </strong>
+        <p>
+          {box.conflict === "post-save"
+            ? "Palworld or another tool may have overwritten Studio's result. "
+            : ""}
+          Saving is blocked. Your in-memory edits are still available here; reload only when you
+          are ready to discard them.
+        </p>
+        {#if box.sourceDetail}<small>{box.sourceDetail}</small>{/if}
+      </div>
+      <button type="button" onclick={reloadConflict}>Reload disk copy</button>
+    </div>
   {/if}
   {#if box.error}<div class="err">{box.error}</div>{/if}
 
@@ -193,6 +289,98 @@
 
 <style>
   .box { height: 100%; display: flex; flex-direction: column; gap: 11px; }
+  .last-box {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: stretch;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(176, 96, 224, 0.07);
+    border: 1px solid rgba(176, 96, 224, 0.22);
+  }
+  .last-box.available { border-color: rgba(176, 96, 224, 0.4); }
+  .last-open {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 0;
+    color: #b9a5ca;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+  }
+  .last-open:hover:not(:disabled) { background: rgba(176, 96, 224, 0.1); }
+  .last-open:disabled { cursor: default; opacity: 0.6; }
+  .last-label {
+    color: #a98bc1;
+    font: 600 var(--type-label) var(--font-head);
+    letter-spacing: 0.1em;
+  }
+  .last-open b {
+    min-width: 0;
+    overflow: hidden;
+    color: #dac8e7;
+    font: 500 var(--type-caption) var(--font-body);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .last-action {
+    color: #d7b9ee;
+    font: 600 var(--type-label) var(--font-head);
+  }
+  .auto-open {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 10px;
+    color: #9c8ba8;
+    font: 500 var(--type-label) var(--font-cond);
+    border-left: 1px solid rgba(176, 96, 224, 0.18);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .auto-open:has(input:disabled) { cursor: default; opacity: 0.55; }
+  .auto-open input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+  .switch {
+    position: relative;
+    width: 29px;
+    height: 16px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.13);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    transition: background 0.15s;
+  }
+  .switch::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #a89aaf;
+    transition: transform 0.15s, background 0.15s;
+  }
+  .auto-open input:checked + .switch {
+    background: rgba(176, 96, 224, 0.42);
+  }
+  .auto-open input:checked + .switch::after {
+    transform: translateX(13px);
+    background: #ead8f6;
+  }
+  .auto-open input:focus-visible + .switch {
+    outline: 2px solid rgba(63, 199, 224, 0.7);
+    outline-offset: 2px;
+  }
   .open {
     padding: 11px; border-radius: 10px; cursor: pointer;
     font-family: var(--font-head); font-weight: 600; font-size: 14px; letter-spacing: 0.06em;
@@ -203,6 +391,44 @@
   .picked { font-size: var(--type-caption); color: #a18caf; }
   .picked b { color: #c9b4e0; }
   .err { font-size: var(--type-caption); color: #e89090; }
+  .conflict {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 11px;
+    border-radius: 9px;
+    color: #f0c6c6;
+    background: rgba(224, 90, 90, 0.11);
+    border: 1px solid rgba(224, 90, 90, 0.42);
+  }
+  .conflict.post-save {
+    color: #f2d5a4;
+    background: rgba(245, 166, 35, 0.11);
+    border-color: rgba(245, 166, 35, 0.45);
+  }
+  .conflict > div { min-width: 0; flex: 1; }
+  .conflict strong {
+    display: block;
+    font: 600 var(--type-body) var(--font-head);
+  }
+  .conflict p, .conflict small {
+    display: block;
+    margin: 3px 0 0;
+    font-size: var(--type-caption);
+    line-height: 1.35;
+  }
+  .conflict small { opacity: 0.75; overflow-wrap: anywhere; }
+  .conflict button {
+    flex: none;
+    min-height: var(--control-min);
+    padding: 7px 9px;
+    border-radius: 7px;
+    color: inherit;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid currentColor;
+    cursor: pointer;
+    font: 600 var(--type-label) var(--font-head);
+  }
 
   .controls { display: flex; align-items: center; gap: 8px; }
   .searchbox { flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 9px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.09); }

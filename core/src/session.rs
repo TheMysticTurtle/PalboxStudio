@@ -46,6 +46,10 @@ impl SourceFingerprint {
             sha256,
         })
     }
+
+    fn has_same_content(&self, other: &Self) -> bool {
+        self.size == other.size && self.sha256 == other.sha256
+    }
 }
 
 /// One open Global Palbox and the source identity it is safe to replace.
@@ -90,9 +94,18 @@ impl SaveSession {
         self.dirty
     }
 
+    /// Re-read and hash the source to determine whether it still contains the
+    /// exact content this session opened or most recently persisted.
+    ///
+    /// Size and modified time remain available for diagnostics, but content
+    /// identity is authoritative. Merely touching an unchanged file does not
+    /// create a false conflict.
+    pub fn source_is_current(&self) -> Result<bool, String> {
+        SourceFingerprint::read(&self.path).map(|current| current.has_same_content(&self.source))
+    }
+
     fn verify_source_unchanged(&self, phase: &str) -> Result<(), String> {
-        let current = SourceFingerprint::read(&self.path)?;
-        if current != self.source {
+        if !self.source_is_current()? {
             return Err(format!(
                 "refusing to overwrite a Global Palbox that changed externally {phase}; reopen it and reapply the edit"
             ));
@@ -299,6 +312,7 @@ mod tests {
         let (root, path) = copied_fixture("persist");
         let original = std::fs::read(&path).unwrap();
         let mut session = SaveSession::open(&path).unwrap();
+        assert!(session.source_is_current().unwrap());
         let slot = list_pals(session.save())[0].slot;
         crate::pal::set_level(
             pal_param_mut(session.save_mut(), slot).expect("fixture Pal"),
@@ -314,6 +328,7 @@ mod tests {
             crate::limits::LEVEL_MAX
         );
         assert!(!session.is_dirty());
+        assert!(session.source_is_current().unwrap());
 
         remove_test_tree(&root);
     }
@@ -341,6 +356,7 @@ mod tests {
     fn external_change_is_refused_without_backup_or_replacement() {
         let (root, path) = copied_fixture("stale");
         let mut session = SaveSession::open(&path).unwrap();
+        assert!(session.source_is_current().unwrap());
         let slot = list_pals(session.save())[0].slot;
         crate::pal::set_level(
             pal_param_mut(session.save_mut(), slot).expect("fixture Pal"),
@@ -351,6 +367,7 @@ mod tests {
         let index = external.len() / 2;
         external[index] ^= 0x01;
         std::fs::write(&path, &external).unwrap();
+        assert!(!session.source_is_current().unwrap());
 
         let error = session.persist().unwrap_err();
         assert!(error.contains("changed externally"));

@@ -30,10 +30,11 @@ Status key: `[ ]` open · `[x]` done · `[~]` in progress · `[?]` needs investi
 - [x] **Detect external save changes.** Record a fingerprint of the source file when a box is
   opened; before saving, compare it and decline to overwrite if the file changed since (for example
   if Palworld or another tool wrote it), with a clear reopen/reload prompt.
-- [ ] **Add an external-change watcher and conflict UI.** Use watcher events for early notice, but
-  keep the core's fresh fingerprint comparison authoritative at replacement time.
-- [ ] **Detect post-save overwrite.** Warn if Palworld replaces Studio's newly written file during
-  the same session.
+- [x] **Add an external-change monitor and conflict UI.** The UI polls the core's fresh content
+  fingerprint while a box is open, preserves the in-memory copy, blocks Save, and offers an
+  explicit discard-and-reload flow when the source changes or disappears.
+- [x] **Detect post-save overwrite.** A change observed during the 30 seconds after Studio saves is
+  called out separately as a likely Palworld/other-tool overwrite; monitoring continues afterward.
 - [ ] **Preserve dirty work during conflicts.** Add a safe app-level snapshot/export so a user can
   keep unsaved edits without overwriting an externally changed source.
 - [~] **Test the write-recovery paths.** Success, exact-backup uniqueness, encode failure, and stale
@@ -70,8 +71,8 @@ Status key: `[ ]` open · `[x]` done · `[~]` in progress · `[?]` needs investi
 - [ ] **Run the UI unit tests in CI and the release gate.** The `test:unit` script exists but is not
   run automatically.
 - [~] **Add dirty-state and close/open guards.** The core session now tracks dirty state and clears
-  it only after successful persistence. Expose it through the shell and warn before closing or
-  opening another box with unsaved changes; do not prompt when nothing changed.
+  it only after successful persistence. The UI avoids no-op DTO flushes and warns before opening or
+  reloading over unsaved changes. Add the equivalent guard to application/window close.
 - [ ] **Make an explicit CSP decision.** Either define a restrictive Content Security Policy for the
   UI or document why the local threat model makes the current setting acceptable.
 
@@ -101,7 +102,7 @@ Status key: `[ ]` open · `[x]` done · `[~]` in progress · `[?]` needs investi
 
 ## Quality of life
 
-- [ ] **Remember and auto-reopen the last box.** Store the last-opened `GlobalPalStorage.sav` path,
+- [x] **Remember and auto-reopen the last box.** Store the last-opened `GlobalPalStorage.sav` path,
   with a user toggle to reopen it automatically on launch instead of prompting for the file each
   time — so it feels like a proper Palbox companion. Store the path and toggle in app settings;
   validate the path still exists on launch and fall back to the file picker if it doesn't.

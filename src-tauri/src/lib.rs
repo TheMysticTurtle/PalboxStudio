@@ -45,6 +45,14 @@ struct OpenResult {
     pals: Vec<PalSummary>,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BoxSessionStatus {
+    dirty: bool,
+    source_state: &'static str,
+    detail: Option<String>,
+}
+
 /// Smoke test that the UI <-> core bridge is live.
 #[tauri::command]
 fn core_version() -> String {
@@ -71,6 +79,27 @@ fn get_pal(slot: usize, state: State<AppState>) -> Result<PalDto, String> {
     let guard = state.0.lock().unwrap();
     let session = guard.as_ref().ok_or("no box open")?;
     read_pal_at(session.save(), slot).ok_or_else(|| "no pal at slot".to_string())
+}
+
+/// Lightweight source monitor for the UI. The fresh content hash is
+/// authoritative; a watcher/poll result can only warn or block early.
+#[tauri::command]
+fn box_session_status(state: State<AppState>) -> Result<BoxSessionStatus, String> {
+    let guard = state.0.lock().unwrap();
+    let session = guard.as_ref().ok_or("no box open")?;
+    let (source_state, detail) = match session.source_is_current() {
+        Ok(true) => ("unchanged", None),
+        Ok(false) => (
+            "changed",
+            Some("The Global Palbox on disk no longer matches the opened copy.".to_string()),
+        ),
+        Err(error) => ("unavailable", Some(error)),
+    };
+    Ok(BoxSessionStatus {
+        dirty: session.is_dirty(),
+        source_state,
+        detail,
+    })
 }
 
 /// Apply an edited DTO to the in-memory box; returns the freshly re-read DTO.
@@ -329,6 +358,7 @@ pub fn run() {
             core_version,
             open_box,
             get_pal,
+            box_session_status,
             update_pal,
             add_box_pal,
             clone_box_pal,

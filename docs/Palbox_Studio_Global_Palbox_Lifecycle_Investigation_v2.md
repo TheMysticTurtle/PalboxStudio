@@ -117,11 +117,11 @@ Before saving:
 
 The external-change check should occur as late as practical to reduce the time-of-check/time-of-use window.
 
-### 2.3 File watcher for user experience, not authority
+### 2.3 Source monitor for user experience, not authority
 
-A cross-platform file watcher may provide early notification that Palworld or another program changed the file.
+A cross-platform file watcher or bounded polling monitor may provide early notification that Palworld or another program changed the file.
 
-Watcher events should:
+Monitor notifications should:
 
 - Mark the source as externally changed.
 - Show a clear reload/conflict notice.
@@ -408,8 +408,8 @@ Live or near-live editing is supportable only when all of the following are demo
 ### Tier 0 — save integrity
 
 - [x] **Implement source-file fingerprints and stale-write refusal.** Store SHA-256, size, and modified time at open; recheck immediately before replacement and block if the source changed.
-- [ ] **Add external-change watcher and conflict UI.** Use watcher events for early notice, with hash verification as authority.
-- [ ] **Detect post-save overwrite.** Warn when Palworld replaces Studio's newly written file during the same session.
+- [x] **Add external-change monitor and conflict UI.** The UI polls the core's fresh content fingerprint, preserves in-memory edits, blocks Save, and offers explicit reload; persist-time hash verification remains authoritative.
+- [x] **Detect post-save overwrite.** A source change observed during the 30 seconds after Studio saves receives a distinct overwrite warning; monitoring continues for later conflicts.
 - [ ] **Add a safe app-level snapshot/export for dirty conflicts.** Let users preserve unsaved work without overwriting an externally changed source.
 
 ### Investigation

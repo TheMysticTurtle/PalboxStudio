@@ -56,6 +56,12 @@ export interface OpenResult {
   pals: BoxTileDto[];
 }
 
+export interface BoxSessionStatus {
+  dirty: boolean;
+  sourceState: "unchanged" | "changed" | "unavailable";
+  detail: string | null;
+}
+
 export interface PassiveOption {
   code: string;
   name: string;
@@ -89,6 +95,8 @@ export interface BoxMutation {
 
 export const openBox = (path: string) => invoke<OpenResult>("open_box", { path });
 export const getPal = (slot: number) => invoke<PalDto>("get_pal", { slot });
+export const getBoxSessionStatus = () =>
+  invoke<BoxSessionStatus>("box_session_status");
 export const updatePal = (dto: PalDto) => invoke<PalDto>("update_pal", { dto });
 
 /** Add a new pal (default: the turtle CubeTurtle) to a free slot. */
