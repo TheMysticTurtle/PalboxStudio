@@ -23,6 +23,8 @@ verified backup before it touches the original file.
 Palbox Studio is scoped to the **Global Palbox** only. It does not edit world saves, bases, or party
 Pals.
 
+Click releases on the right hand side to view latest compiled releases, or you can access them here. https://github.com/TheMysticTurtle/PalboxStudio/releases
+
 ---
 
 ## ✨ Features
