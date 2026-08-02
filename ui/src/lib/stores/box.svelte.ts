@@ -131,6 +131,17 @@ async function flush() {
   }
 }
 
+/** Re-run the selected Pal through the Rust engine so calculated display values
+ * stay current while its unsaved inputs are being edited. */
+export async function refreshSelectedPalProjection() {
+  try {
+    box.error = "";
+    await flush();
+  } catch (error) {
+    box.error = String(error);
+  }
+}
+
 /** Commit pending edits, then let the engine change species and re-project every
  * dependent value while preserving the save-backed Work bonuses. */
 export async function changeSelectedSpecies(characterId: string) {

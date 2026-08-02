@@ -8,7 +8,13 @@
   import { STATUE_OF_POWER_ART } from "$lib/data/icons";
   import SectionHeader from "./SectionHeader.svelte";
 
-  let { pal }: { pal: Pal } = $props();
+  let {
+    pal,
+    onprojectionchange = () => {},
+  }: {
+    pal: Pal;
+    onprojectionchange?: () => void;
+  } = $props();
 
   const clampIV = (v: number) => Math.max(LIMITS.ivMin, Math.min(LIMITS.ivMax, Math.round(v) || 0));
 
@@ -25,25 +31,39 @@
     { key: "craftSpeed", label: "WS", color: "var(--accent-purple)" },
   ] as const;
 
-  const decSoul = (k: (typeof soulStats)[number]["key"]) =>
-    (pal.soulRanks[k] = Math.max(LIMITS.soulsMin, pal.soulRanks[k] - 1));
-  const incSoul = (k: (typeof soulStats)[number]["key"]) =>
-    (pal.soulRanks[k] = Math.min(LIMITS.soulsMax, pal.soulRanks[k] + 1));
-  const setSoul = (k: (typeof soulStats)[number]["key"], i: number) =>
-    (pal.soulRanks[k] = pal.soulRanks[k] === i + 1 ? i : i + 1);
+  const decSoul = (k: (typeof soulStats)[number]["key"]) => {
+    pal.soulRanks[k] = Math.max(LIMITS.soulsMin, pal.soulRanks[k] - 1);
+    onprojectionchange();
+  };
+  const incSoul = (k: (typeof soulStats)[number]["key"]) => {
+    pal.soulRanks[k] = Math.min(LIMITS.soulsMax, pal.soulRanks[k] + 1);
+    onprojectionchange();
+  };
+  const setSoul = (k: (typeof soulStats)[number]["key"], i: number) => {
+    pal.soulRanks[k] = pal.soulRanks[k] === i + 1 ? i : i + 1;
+    onprojectionchange();
+  };
+
+  const setIV = (key: (typeof ivRows)[number]["key"], value: number) => {
+    pal.ivs[key] = clampIV(value);
+    onprojectionchange();
+  };
 
   const setCondensation = (i: number) => {
     if (pal.awakened) {
       pal.awakened = false;
       pal.condensation = i + 1;
+      onprojectionchange();
       return;
     }
     pal.condensation = pal.condensation === i + 1 ? i : i + 1;
+    onprojectionchange();
   };
 
   const toggleAwakened = () => {
     pal.awakened = !pal.awakened;
     if (pal.awakened) pal.condensation = LIMITS.condensationMax;
+    onprojectionchange();
   };
 </script>
 
@@ -60,7 +80,7 @@
               class="ivnum"
               inputmode="numeric"
               value={pal.ivs[r.key]}
-              onchange={(e) => (pal.ivs[r.key] = clampIV(+e.currentTarget.value))}
+              onchange={(e) => setIV(r.key, +e.currentTarget.value)}
               style="--c:{r.color}"
               aria-label="{r.label} IV"
             />
@@ -71,6 +91,7 @@
             min={LIMITS.ivMin}
             max={LIMITS.ivMax}
             bind:value={pal.ivs[r.key]}
+            onchange={() => onprojectionchange()}
             style="--pct:{pal.ivs[r.key]}%; --c:{r.color}"
             aria-label="{r.label} IV slider"
           />

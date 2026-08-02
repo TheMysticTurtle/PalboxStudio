@@ -21,6 +21,7 @@
   import { maxHpForPal, palToBoxPal } from "$lib/data/mapper";
   import {
     changeSelectedSpecies,
+    refreshSelectedPalProjection,
     setSelectedVitalMax,
   } from "$lib/stores/box.svelte";
   import {
@@ -70,6 +71,7 @@
   function setLevel(v: number) {
     const n = Math.round(v);
     pal.level = Math.max(LIMITS.levelMin, Math.min(LIMITS.levelMax, Number.isFinite(n) ? n : LIMITS.levelMin));
+    void refreshSelectedPalProjection();
   }
   function finiteOr(value: number, fallback: number) {
     return Number.isFinite(value) ? value : fallback;
@@ -112,10 +114,12 @@
   function toggleAlpha() {
     pal.alpha = !pal.alpha;
     if (pal.alpha) pal.lucky = false;
+    void refreshSelectedPalProjection();
   }
   function toggleLucky() {
     pal.lucky = !pal.lucky;
     if (pal.lucky) pal.alpha = false;
+    void refreshSelectedPalProjection();
   }
   function toggleGender() {
     pal.gender = nextGender(pal.gender);
@@ -131,13 +135,18 @@
     } else if (!pal.passives.some((value, index) => value === code && index !== passiveEditing)) {
       pal.passives[passiveEditing] = code;
     }
+    void refreshSelectedPalProjection();
   }
   function removePassive() {
-    if (passiveEditing != null) pal.passives.splice(passiveEditing, 1);
+    if (passiveEditing != null) {
+      pal.passives.splice(passiveEditing, 1);
+      void refreshSelectedPalProjection();
+    }
   }
   function applyPassiveCodes(codes: string[]) {
     if (empty) return;
     pal.passives.splice(0, pal.passives.length, ...codes.slice(0, LIMITS.passivesMax));
+    void refreshSelectedPalProjection();
   }
 
   // Moves: click or drag between/reorder the equipped and inactive zones.
