@@ -15,6 +15,7 @@ use std::collections::BTreeMap;
 const WAZA: &str = "EPalWazaID::";
 const GENDER: &str = "EPalGenderType::";
 const WORK_PFX: &str = "EPalWorkSuitability::";
+const DEFAULT_NEW_PAL_IV: u8 = 50;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -48,6 +49,7 @@ pub struct PalDto {
     pub level: u8,
     pub exp: i64,
     pub condensation: u8,
+    pub is_awakened: bool,
     pub souls: Souls,
     pub ivs: Ivs,
     /// Internal Work Suitability code -> save AddRank bonus (raw). This remains
@@ -118,6 +120,9 @@ pub fn read_pal(sp: &Properties, slot: usize) -> PalDto {
         // Palworld stores condensation as rank 1..=5, but presents it as
         // 0..=4 stars. Keep that one-based encoding inside the save boundary.
         condensation: byte("Rank").unwrap_or(1).saturating_sub(1),
+        is_awakened: ue::prop(sp, "bIsAwakening")
+            .and_then(ue::as_bool)
+            .unwrap_or(false),
         souls: Souls {
             hp: byte("Rank_HP").unwrap_or(0),
             attack: byte("Rank_Attack").unwrap_or(0),
@@ -217,6 +222,13 @@ pub fn set_condensation(sp: &mut Properties, rank: u8, limits: &crate::reference
     // is always one-based (1..=5), including Rank=1 for an uncondensed Pal.
     let stars = rank.clamp(limits.condensation_min as u8, limits.condensation_max as u8);
     ue::set_prop(sp, "Rank", ue::byte_prop(stars + 1));
+}
+pub fn set_awakened(sp: &mut Properties, awakened: bool) {
+    // Preserve an absent false field on older saves, while retaining the
+    // explicit false representation used by Palworld 1.0 once it is present.
+    if awakened || ue::prop(sp, "bIsAwakening").is_some() {
+        ue::set_prop(sp, "bIsAwakening", ue::bool_prop(awakened));
+    }
 }
 pub fn set_hp(sp: &mut Properties, value: i64) {
     ue::set_prop(sp, "Hp", ue::fixed_point64_prop(value.max(0)));
@@ -605,7 +617,16 @@ pub fn apply_input(
     set_soul(&mut edited, "attack", input.souls.attack, &limits);
     set_soul(&mut edited, "defense", input.souls.defense, &limits);
     set_soul(&mut edited, "craftSpeed", input.souls.craft_speed, &limits);
-    set_condensation(&mut edited, input.condensation, &limits);
+    // Awakening is a separate save Boolean, but the editor exposes it as the
+    // capstone of condensation progression. Keep the verified Rank encoding
+    // here at the engine boundary so every frontend gets the same invariant.
+    let condensation = if input.is_awakened {
+        limits.condensation_max as u8
+    } else {
+        input.condensation
+    };
+    set_condensation(&mut edited, condensation, &limits);
+    set_awakened(&mut edited, input.is_awakened);
     set_work(&mut edited, &work_bonus, catalog)?;
     set_passives(&mut edited, input.passives.clone(), passives_max);
     set_equipped_moves(
@@ -641,6 +662,13 @@ pub fn initialize_new_pal(
     ] {
         ue::remove_prop(sp, marker);
     }
+    set_iv(sp, "hp", DEFAULT_NEW_PAL_IV, limits);
+    set_iv(sp, "shot", DEFAULT_NEW_PAL_IV, limits);
+    set_iv(sp, "defense", DEFAULT_NEW_PAL_IV, limits);
+    set_condensation(sp, limits.condensation_min as u8, limits);
+    // New 1.0 Pals carry the field explicitly. This intentionally differs from
+    // editing an older Pal, where an absent false field remains absent.
+    ue::set_prop(sp, "bIsAwakening", ue::bool_prop(false));
     set_hp(sp, hp);
     set_sanity(sp, limits.sanity_max as f32, limits);
     set_food(sp, food);
@@ -681,6 +709,26 @@ mod tests {
             Some(limits.condensation_max as u8 + 1)
         );
         assert_eq!(read_pal(&sp, 0).condensation, limits.condensation_max as u8);
+    }
+
+    #[test]
+    fn awakening_round_trips_as_its_own_boolean_field() {
+        let mut sp = Properties::default();
+
+        assert!(!read_pal(&sp, 0).is_awakened);
+        set_awakened(&mut sp, true);
+        assert_eq!(
+            ue::prop(&sp, "bIsAwakening").and_then(ue::as_bool),
+            Some(true)
+        );
+        assert!(read_pal(&sp, 0).is_awakened);
+
+        set_awakened(&mut sp, false);
+        assert_eq!(
+            ue::prop(&sp, "bIsAwakening").and_then(ue::as_bool),
+            Some(false)
+        );
+        assert!(!read_pal(&sp, 0).is_awakened);
     }
 
     #[test]
@@ -731,6 +779,18 @@ mod tests {
         assert_eq!(
             ue::prop(&sp, "FullStomach").and_then(ue::as_f32),
             Some(580.0)
+        );
+        for field in ["Talent_HP", "Talent_Shot", "Talent_Defense"] {
+            assert_eq!(
+                ue::prop(&sp, field).and_then(ue::as_byte),
+                Some(DEFAULT_NEW_PAL_IV),
+                "new Pal IV default must be explicit for {field}"
+            );
+        }
+        assert_eq!(ue::prop(&sp, "Rank").and_then(ue::as_byte), Some(1));
+        assert_eq!(
+            ue::prop(&sp, "bIsAwakening").and_then(ue::as_bool),
+            Some(false)
         );
 
         set_gender(&mut sp, "Female");

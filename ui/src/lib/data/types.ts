@@ -214,6 +214,7 @@ export interface Pal {
   alpha: boolean;
   lucky: boolean;
   condensation: number;
+  awakened: boolean;
   ivs: { hp: number; shot: number; defense: number };
   soulRanks: { hp: number; attack: number; defense: number; craftSpeed: number };
   stats: {

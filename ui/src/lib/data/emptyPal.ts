@@ -16,6 +16,7 @@ export const EMPTY_PAL: Pal = {
   alpha: false,
   lucky: false,
   condensation: 0,
+  awakened: false,
   ivs: { hp: 0, shot: 0, defense: 0 },
   soulRanks: { hp: 0, attack: 0, defense: 0, craftSpeed: 0 },
   stats: { hp: 0, hpMax: 0, attack: 0, defense: 0, san: 0, foodPct: 0 },

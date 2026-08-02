@@ -30,11 +30,16 @@ this repo — start here, then follow into the deeper docs.
   clone may need "drag to an empty slot in-game."
 - Level cap **80**; passives have ranks **−3..5** (rank 5 is the 1.0 addition); 1.0 pals have
   a single attack IV (`Talent_Shot`; `Talent_Melee` is gone — don't re-add it).
-- **Work Suitability 1–10** (all adjustable to 10 in our editor); **Pal Souls 0–20 per stat**
+- **Work Suitability 1–10** (the editor shows only species-supported jobs, while preserving any
+  nonzero saved exception); **Pal Souls 0–20 per stat**
   (**+3% per rank, +60% max**);
   **Condensation 0–4 stars** (stored as `Rank` 1–5); **IV/talents 0–100** (raw byte 0–255). **See
   [SPECS-1.0.md](SPECS-1.0.md) for meaning; the reference DB is the runtime authority**
   (don't trust our pre-1.0 numbers).
+- **Awakening is separate from condensation:** `bIsAwakening` is a Boolean. The editor's Awakened
+  capstone sets it true and also canonicalizes condensation to ★4 / stored `Rank = 5`.
+- **New Pals:** explicit IVs 50/50/50, stored `Rank = 1` (zero stars), and
+  `bIsAwakening = false`; writable schemas are engine-registered before encoding.
 - `IsPlayer` is written `False` on every pal — detect players by *value*, not key-presence.
 - The game-data dump's `is_pal` flag means “Pal-shaped engine actor,” not “ownable Pal.”
   Keep all 406 rows for decoding, but offer only the 287 `palbox_selectable` canonical species.
@@ -47,6 +52,7 @@ this repo — start here, then follow into the deeper docs.
 - **Don't auto-fill `MasteredWaza`** from the learnset on load — real saves keep it empty;
   keep the UI's move view separate from `MasteredWaza`.
 - **Translate condensation at the save boundary:** displayed stars 0–4 ↔ stored `Rank` 1–5.
+- **Write Awakening through its own Boolean:** `bIsAwakening`; never invent `Rank = 6`.
 - **Register writable property schemas in the core before encoding.** Optional fields absent from
   every source Pal otherwise have no `uesave` tag and cannot be introduced safely.
 - **Refuse stale writes.** The core fingerprints the opened source and rechecks it before backup and

@@ -29,6 +29,7 @@ pub struct PalInput {
     pub level: u8,
     pub exp: i64,
     pub condensation: u8,
+    pub is_awakened: bool,
     pub souls: Souls,
     pub ivs: Ivs,
     /// Internal Work Suitability code -> desired effective level.
@@ -351,6 +352,7 @@ pub fn project_pal(pal: PalDto, catalog: &ReferenceCatalog) -> Result<PalView, S
         level: pal.level,
         exp: pal.exp,
         condensation: pal.condensation,
+        is_awakened: pal.is_awakened,
         souls: pal.souls.clone(),
         ivs: pal.ivs.clone(),
         work: work
@@ -455,6 +457,21 @@ mod tests {
         let rules = catalog.bundle().calculation_rules;
 
         assert_eq!(view.projection.work.len(), catalog.work_types().len());
+        let species = catalog.species(&raw.character_id).expect("fixture species");
+        for work in &view.projection.work {
+            let base = species.work.get(&work.code).copied().unwrap_or(0);
+            let bonus = raw.work.get(&work.code).copied().unwrap_or(0);
+            assert_eq!(
+                work.available,
+                base > 0 || bonus != 0,
+                "availability for {} must come from species base or saved bonus",
+                work.code
+            );
+        }
+        assert!(
+            view.projection.work.iter().any(|work| !work.available),
+            "fixture species must exercise unavailable Work Suitabilities"
+        );
         assert!(view
             .projection
             .stats

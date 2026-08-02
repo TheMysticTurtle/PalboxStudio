@@ -543,7 +543,11 @@
       </div>
       <div class="preset-block">
         <SectionHeader title="PASSIVE PRESETS" />
-        <PassivePresets disabled={empty} onapply={applyPassiveCodes} />
+        <PassivePresets
+          disabled={empty}
+          currentPassiveCodes={pal.passives}
+          onapply={applyPassiveCodes}
+        />
       </div>
       <div class="group-block">
         <SectionHeader title="GROUP TAGS" />

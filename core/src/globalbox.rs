@@ -658,6 +658,10 @@ mod tests {
         "SaveParameterArray.SaveParameter.GotWorkSuitabilityAddRankList.WorkSuitability";
     const WORK_RANK_SCHEMA: &str =
         "SaveParameterArray.SaveParameter.GotWorkSuitabilityAddRankList.Rank";
+    const AWAKENING_SCHEMA: &str = "SaveParameterArray.SaveParameter.bIsAwakening";
+    const IV_HP_SCHEMA: &str = "SaveParameterArray.SaveParameter.Talent_HP";
+    const IV_ATTACK_SCHEMA: &str = "SaveParameterArray.SaveParameter.Talent_Shot";
+    const IV_DEFENSE_SCHEMA: &str = "SaveParameterArray.SaveParameter.Talent_Defense";
 
     fn remove_schemas(save: &mut Save, removed: &[&str]) {
         let mut retained = uesave::PropertySchemas::new();
@@ -667,6 +671,73 @@ mod tests {
             }
         }
         save.schemas = retained;
+    }
+
+    #[test]
+    fn new_pal_defaults_round_trip_without_source_schemas() {
+        let catalog = crate::test_reference_catalog();
+        let bytes = std::fs::read(crate::save::test_fixture_path()).expect("read fixture");
+        let mut save = read_sav(&bytes).expect("decode");
+        remove_schemas(
+            &mut save,
+            &[
+                AWAKENING_SCHEMA,
+                IV_HP_SCHEMA,
+                IV_ATTACK_SCHEMA,
+                IV_DEFENSE_SCHEMA,
+            ],
+        );
+
+        let slot = add_initialized_pal(&mut save, "CubeTurtle", &catalog).expect("add Pal");
+        let pal = read_pal_at(&save, slot).expect("read new Pal");
+        assert!(!pal.is_awakened);
+        assert_eq!((pal.ivs.hp, pal.ivs.shot, pal.ivs.defense), (50, 50, 50));
+
+        let properties = pal_param_mut(&mut save, slot).expect("new Pal properties");
+        assert_eq!(
+            ue::prop(properties, "bIsAwakening").and_then(ue::as_bool),
+            Some(false)
+        );
+        assert_eq!(ue::prop(properties, "Rank").and_then(ue::as_byte), Some(1));
+
+        let out = write_sav(&mut save).expect("engine registers new-Pal field schemas");
+        let reloaded = read_sav(&out).expect("re-decode");
+        let pal = read_pal_at(&reloaded, slot).expect("re-read new Pal");
+        assert!(!pal.is_awakened);
+        assert_eq!((pal.ivs.hp, pal.ivs.shot, pal.ivs.defense), (50, 50, 50));
+        assert_eq!(pal.condensation, 0);
+    }
+
+    #[test]
+    fn awakening_sets_max_rank_and_round_trips_without_a_source_schema() {
+        let catalog = crate::test_reference_catalog();
+        let limits = catalog.bundle().limits;
+        let bytes = std::fs::read(crate::save::test_fixture_path()).expect("read fixture");
+        let mut save = read_sav(&bytes).expect("decode");
+        let slot = list_pals(&save)[0].slot;
+        let mut input = read_pal_view_at(&save, slot, &catalog).unwrap().editable;
+        input.condensation = limits.condensation_min as u8;
+        input.is_awakened = true;
+        remove_schemas(&mut save, &[AWAKENING_SCHEMA]);
+
+        let updated = apply_pal_input_at(&mut save, &input, &catalog).unwrap();
+        assert!(updated.editable.is_awakened);
+        assert_eq!(updated.editable.condensation, limits.condensation_max as u8);
+        let properties = pal_param_mut(&mut save, slot).unwrap();
+        assert_eq!(
+            ue::prop(properties, "bIsAwakening").and_then(ue::as_bool),
+            Some(true)
+        );
+        assert_eq!(
+            ue::prop(properties, "Rank").and_then(ue::as_byte),
+            Some(limits.condensation_max as u8 + 1)
+        );
+
+        let out = write_sav(&mut save).expect("engine registers the Awakening schema");
+        let reloaded = read_sav(&out).expect("re-decode");
+        let pal = read_pal_at(&reloaded, slot).expect("re-read awakened Pal");
+        assert!(pal.is_awakened);
+        assert_eq!(pal.condensation, limits.condensation_max as u8);
     }
 
     fn first_fixture_pal_with_work(rank: i64) -> Save {

@@ -18,6 +18,7 @@ export interface PalDto {
   level: number;
   exp: number;
   condensation: number;
+  isAwakened: boolean;
   souls: PalDtoSouls;
   ivs: PalDtoIvs;
   /** Internal Work Suitability code -> desired effective total. */
