@@ -10,11 +10,11 @@
 
   /* Readability scale. Keep routine information at 12px or larger; reserve
      micro text for genuinely secondary chrome rather than gameplay data. */
-  --type-micro: 11px;
-  --type-label: 12px;
-  --type-caption: 13px;
-  --type-body: 14px;
-  --type-control: 15px;
+  --type-micro: 12px;
+  --type-label: 13px;
+  --type-caption: 14px;
+  --type-body: 15px;
+  --type-control: 16px;
   --type-title: 18px;
   --control-min: 34px;
 

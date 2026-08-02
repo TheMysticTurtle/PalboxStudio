@@ -247,7 +247,7 @@
     background: rgba(255, 255, 255, 0.025); color: #7f8a94; cursor: pointer;
   }
   .awakening img { width: 45px; height: 45px; object-fit: contain; filter: grayscale(1) brightness(0.55); opacity: 0.58; }
-  .awakening span { font: 700 10px/1 var(--font-head); letter-spacing: 0.08em; }
+  .awakening span { font: 700 var(--type-micro)/1 var(--font-head); letter-spacing: 0.08em; }
   .awakening.on {
     border-color: rgba(245, 201, 122, 0.72);
     background: radial-gradient(circle at 50% 35%, rgba(245, 201, 122, 0.2), rgba(245, 166, 35, 0.07) 68%);

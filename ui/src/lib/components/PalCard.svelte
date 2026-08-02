@@ -873,7 +873,7 @@
   .mgrip { color: #7c8894; font-size: 15px; letter-spacing: -2px; }
   .mname { flex: 1; font-family: var(--font-cond); font-weight: 600; font-size: 15px; color: #ede7df; }
   .bench-move .mname { font-size: 14px; color: #c6cfd7; }
-  .mpwrcap { font-size: 11px; color: #8fa0ac; }
+  .mpwrcap { font-size: var(--type-micro); color: #8fa0ac; }
   .mpwr { font-family: var(--font-head); font-weight: 700; font-size: 17px; color: #b7c0c8; min-width: 30px; text-align: right; }
   .bench-move .mpwr { font-size: 15px; }
 
@@ -1253,7 +1253,7 @@
 
   .work-panel { padding-left: 18px; padding-right: 18px; }
   .worksuit { gap: 6px; }
-  .none { padding: 14px; color: #6e7a86; text-align: center; font-size: 12px; }
+  .none { padding: 14px; color: #6e7a86; text-align: center; font-size: var(--type-caption); }
 
   .card.empty .art-shell {
     width: 120px;
@@ -1265,7 +1265,7 @@
   }
   .card.empty .species { min-height: 48px; }
   .card.empty .visual-card .art { inset: 8px; }
-  .card.empty .art-shell { transform: translateY(-3px); }
+  .card.empty .art-shell { transform: translateY(-5px); }
 
   @media (max-height: 820px) {
     .hero {

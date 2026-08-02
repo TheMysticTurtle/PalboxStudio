@@ -131,7 +131,7 @@
   .idtext {
     font-family: var(--font-head);
     font-weight: 600;
-    font-size: 12px;
+    font-size: var(--type-label);
     letter-spacing: 0.16em;
     color: #d9b8f0;
   }
