@@ -40,6 +40,12 @@ this repo — start here, then follow into the deeper docs.
   capstone sets it true and also canonicalizes condensation to ★4 / stored `Rank = 5`.
 - **New Pals:** explicit IVs 50/50/50, stored `Rank = 1` (zero stars), and
   `bIsAwakening = false`; writable schemas are engine-registered before encoding.
+- **Live editor projection:** level, IV, Soul, condensation/Awakening, Alpha/Lucky, and passive
+  changes go through the in-memory Rust engine so HP/Attack/Defense stay current.
+- **Vital MAX preferences:** `palbox-user.db` schema v5 stores HP/SAN/Food/Trust toggles. Enabled
+  maxima apply when a Pal is selected; Trust MAX means rank 10 with full progress.
+- **Work controls:** only engine-projected available jobs are shown, and levels accept typed 1–10
+  input as well as the existing arrow buttons.
 - `IsPlayer` is written `False` on every pal — detect players by *value*, not key-presence.
 - The game-data dump's `is_pal` flag means “Pal-shaped engine actor,” not “ownable Pal.”
   Keep all 406 rows for decoding, but offer only the 287 `palbox_selectable` canonical species.

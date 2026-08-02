@@ -22,6 +22,17 @@ Living log of where the build is and what's next. Read this first when resuming.
   while Save Box remains anchored beside the working-copy badge.
 - Added a preset-builder convenience action that copies the selected Pal's current passive skills
   into the unsaved preset draft; the existing Save Preset action remains the only persistence step.
+- Advanced `palbox-user.db` to schema v5 with four durable MAX preferences. HP, SAN, and Food
+  default on; Trust defaults off. Selecting a Pal applies enabled maxima, and engine projection
+  reapplies MAX HP against newly calculated values without writing the save early.
+- Level, IV, Soul, condensation/Awakening, Alpha/Lucky, and passive edits now immediately refresh
+  engine-projected HP, Attack, and Defense while remaining unsaved until Save Box.
+- Work Suitability levels are typeable and clamped to the engine-owned 1–10 range; the existing
+  arrow controls remain available.
+- Compacted the hero by moving larger element pills beside Alpha/Lucky and placing Trust Rank and
+  MAX on one row. Real Pal artwork and the empty-state logo use separate framing.
+- Raised the shared micro/label/caption/body/control type scale by one pixel and routed the last
+  hard-coded tiny labels through those tokens for a consistent readability floor.
 
 **Verification:** all 35 Rust/core tests and 11 UI unit tests pass; `cargo fmt --check` is clean;
 Svelte reports 0 errors and 0 warnings; the production UI build succeeds.

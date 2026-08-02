@@ -27,8 +27,17 @@ Pals.
 
 ## ✨ Features
 
-- 🐾 **Full Pal editing** — species, nickname, gender, level, IVs, Pal Souls, condensation, passive
-  skills, active and learned moves, work suitabilities, and the Lucky and Alpha flags.
+- 🐾 **Full Pal editing** — species, nickname, gender, level, IVs, Pal Souls, condensation,
+  Awakening, passive skills, active and learned moves, work suitabilities, Trust, vitals, and the
+  Lucky and Alpha flags.
+- ⚙️ **Live engine-projected stats** — level, IV, Soul, condensation, Awakening, and variant changes
+  immediately refresh HP, Attack, and Defense through the Rust engine.
+- 🔋 **Persistent MAX shortcuts** — optional HP, SAN, Food, and Trust preferences apply whenever a
+  Pal is selected; turn one off whenever you want to enter a custom value.
+- 🛠️ **Focused Work Suitabilities** — see only the jobs that Pal actually has (plus any saved
+  exception), then type a 1–10 value directly or keep using the arrow controls.
+- ⚡ **Passive presets** — save reusable passive combinations or start a new preset from the
+  selected Pal's current passives.
 - 📦 **Box explorer** — a side panel listing every Pal in the box, or an expanded full-gallery view.
 - 🔍 **Filtering and search** — by element, work suitability, ride/mount capability, ranch drops, and
   obtainability, with a name and species search.
@@ -73,8 +82,9 @@ moves, and work suitabilities.
 </p>
 
 ### 📊 Editable stats
-IVs, Pal Souls, condensation, level, and work suitabilities, with clear readouts and support for the
-extended values reachable in Palworld 1.0.
+IVs, Pal Souls, condensation, Awakening, level, Trust, vitals, and focused Work Suitabilities, with
+live engine-calculated combat readouts and support for the extended values reachable in Palworld
+1.0. Newly created Pals begin with explicit 50/50/50 IVs.
 
 <p align="center">
   <img src="docs/screenshots/05-stats.png" alt="Editable stats" width="900">
@@ -175,7 +185,7 @@ powershell -ExecutionPolicy Bypass -File scripts/build-release.ps1
 - **`ui/`** — the Svelte 5 + Vite frontend.
 - **`database/` + `data/`** — a bundled, read-only SQLite reference database (species, moves,
   passives, Partner Skills, ranch products, localization) loaded into memory at startup, and a
-  writable user database for groups, tags, and presets.
+  writable user database for groups, tags, presets, and application preferences.
 
 Architecture decisions are documented in [`docs/decisions/`](docs/decisions).
 
