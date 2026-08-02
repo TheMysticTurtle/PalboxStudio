@@ -999,7 +999,7 @@
     z-index: 1;
     width: min(70%, 250px);
     aspect-ratio: 1;
-    transform: translateY(5px);
+    transform: translateY(9px);
     overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--primary) 38%, rgba(255, 255, 255, 0.12));
     border-radius: 19px;
@@ -1068,14 +1068,14 @@
   .species-change { margin-left: auto; }
   .hero-elements {
     min-width: 0;
-    flex: 1;
+    flex: 0 1 auto;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     flex-wrap: wrap;
     gap: 8px;
   }
-  .variant-controls { display: flex; gap: 8px; }
+  .variant-controls { display: flex; gap: 8px; margin-left: auto; }
   .variant { width: 54px; height: 50px; border-radius: 12px; }
   .variant img { width: 27px; height: 27px; }
 
@@ -1264,6 +1264,8 @@
     opacity: 0.62;
   }
   .card.empty .species { min-height: 48px; }
+  .card.empty .visual-card .art { inset: 8px; }
+  .card.empty .art-shell { transform: translateY(-3px); }
 
   @media (max-height: 820px) {
     .hero {

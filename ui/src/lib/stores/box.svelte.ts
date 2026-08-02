@@ -108,6 +108,7 @@ async function flush() {
   const updated = await updatePal(submitted);
   box.pal = dtoToPal(updated);
   selectedBaseline = selectedSnapshot();
+  applySelectedVitalMaxPreferences();
   box.dirty = true;
 
   // Keep both box explorers in sync with unsaved main-card edits. The engine
