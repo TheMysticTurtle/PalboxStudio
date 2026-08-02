@@ -241,12 +241,12 @@
   .star { background: none; border: 0; cursor: pointer; font-size: 40px; line-height: 1; color: rgba(255, 255, 255, 0.2); padding: 0; }
   .star.on { color: var(--accent-amber); text-shadow: 0 0 10px color-mix(in srgb, var(--accent-amber) 60%, transparent); }
   .awakening {
-    width: 66px; min-height: 64px; margin-left: 5px; padding: 2px 4px 4px;
+    width: 72px; min-height: 70px; margin-left: 5px; padding: 2px 4px 4px;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
     border: 1px solid rgba(245, 201, 122, 0.24); border-radius: 10px;
     background: rgba(255, 255, 255, 0.025); color: #7f8a94; cursor: pointer;
   }
-  .awakening img { width: 45px; height: 45px; object-fit: contain; filter: grayscale(1) brightness(0.55); opacity: 0.58; }
+  .awakening img { width: 48px; height: 48px; object-fit: contain; filter: grayscale(1) brightness(0.55); opacity: 0.58; }
   .awakening span { font: 700 var(--type-micro)/1 var(--font-head); letter-spacing: 0.08em; }
   .awakening.on {
     border-color: rgba(245, 201, 122, 0.72);

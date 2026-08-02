@@ -1036,6 +1036,7 @@
     letter-spacing: 0.17em;
   }
   .visual-foot .stars { font-size: 21px; }
+  .visual-foot .stars span { display: inline-block; transform: scaleX(1.18); }
   .soul-summary { text-align: right; }
   .soul-values {
     display: grid;
