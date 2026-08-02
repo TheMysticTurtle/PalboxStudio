@@ -1035,7 +1035,7 @@
     font: 600 var(--type-micro) var(--font-head);
     letter-spacing: 0.17em;
   }
-  .visual-foot .stars { font-size: 17px; }
+  .visual-foot .stars { font-size: 21px; }
   .soul-summary { text-align: right; }
   .soul-values {
     display: grid;
