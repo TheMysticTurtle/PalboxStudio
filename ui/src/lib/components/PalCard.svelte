@@ -19,7 +19,14 @@
     presentBoxPal,
   } from "$lib/data/palPresentation";
   import { maxHpForPal, palToBoxPal } from "$lib/data/mapper";
-  import { changeSelectedSpecies } from "$lib/stores/box.svelte";
+  import {
+    changeSelectedSpecies,
+    setSelectedVitalMax,
+  } from "$lib/stores/box.svelte";
+  import {
+    boxPreferences,
+    type VitalMaxPreference,
+  } from "$lib/stores/boxPreferences.svelte";
   import SectionHeader from "./SectionHeader.svelte";
   import ElementPill from "./ElementPill.svelte";
   import GenderIcon from "./GenderIcon.svelte";
@@ -97,6 +104,9 @@
       return;
     }
     pal.trust.progress = Math.max(0, Math.min(100, finiteOr(value, pal.trust.progress * 100))) / 100;
+  }
+  function toggleVitalMax(preference: VitalMaxPreference) {
+    void setSelectedVitalMax(preference, !boxPreferences[preference]);
   }
 
   function toggleAlpha() {
@@ -324,6 +334,9 @@
             <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
+        <div class="hero-elements" aria-label="Elements">
+          {#each pal.elements as el}<ElementPill element={el} large />{/each}
+        </div>
         <div class="variant-controls">
           <button class="variant alpha" class:on={pal.alpha} onclick={toggleAlpha} aria-pressed={pal.alpha} title="Toggle Alpha">
             <img src={variantIcon("alpha")} alt="" />
@@ -350,9 +363,6 @@
             <GenderIcon gender={pal.gender} size={25} />
             <span class="gender-label">{pal.gender}</span>
           </button>
-        </div>
-        <div class="elements">
-          {#each pal.elements as el}<ElementPill element={el} />{/each}
         </div>
       </div>
 
@@ -410,6 +420,13 @@
               aria-label="Current HP"
             />
           </div>
+          <button
+            type="button"
+            class="max-toggle"
+            class:on={boxPreferences.maxHp}
+            aria-pressed={boxPreferences.maxHp}
+            onclick={() => toggleVitalMax("maxHp")}
+          >MAX</button>
         </div>
 
         <div class="vital">
@@ -437,6 +454,13 @@
               aria-label="Sanity"
             />
           </div>
+          <button
+            type="button"
+            class="max-toggle"
+            class:on={boxPreferences.maxSanity}
+            aria-pressed={boxPreferences.maxSanity}
+            onclick={() => toggleVitalMax("maxSanity")}
+          >MAX</button>
         </div>
 
         <div class="vital">
@@ -466,6 +490,13 @@
               aria-label="Food percent"
             />
           </div>
+          <button
+            type="button"
+            class="max-toggle"
+            class:on={boxPreferences.maxFood}
+            aria-pressed={boxPreferences.maxFood}
+            onclick={() => toggleVitalMax("maxFood")}
+          >MAX</button>
         </div>
 
         <div class="vital trust-vital">
@@ -497,19 +528,28 @@
               aria-label="Trust progress"
             />
           </div>
-          <label class="trust-rank">
-            <span>RANK</span>
-            <input
-              class="stat-number"
-              type="number"
-              min={trustRankMin}
-              max={trustRankMax}
-              value={pal.trust.rank}
-              oninput={(event) => setTrustRank(event.currentTarget.valueAsNumber)}
-              aria-label="Trust rank"
-            />
-            <span>/ {trustRankMax}</span>
-          </label>
+          <div class="trust-actions">
+            <label class="trust-rank">
+              <span>RANK</span>
+              <input
+                class="stat-number"
+                type="number"
+                min={trustRankMin}
+                max={trustRankMax}
+                value={pal.trust.rank}
+                oninput={(event) => setTrustRank(event.currentTarget.valueAsNumber)}
+                aria-label="Trust rank"
+              />
+              <span>/ {trustRankMax}</span>
+            </label>
+            <button
+              type="button"
+              class="max-toggle"
+              class:on={boxPreferences.maxTrust}
+              aria-pressed={boxPreferences.maxTrust}
+              onclick={() => toggleVitalMax("maxTrust")}
+            >MAX</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1017,6 +1057,15 @@
   }
   .species-copy strong { color: #efe9f4; font-size: 16px; }
   .species-change { margin-left: auto; }
+  .hero-elements {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
   .variant-controls { display: flex; gap: 8px; }
   .variant { width: 54px; height: 50px; border-radius: 12px; }
   .variant img { width: 27px; height: 27px; }
@@ -1039,7 +1088,6 @@
     text-shadow: 0 3px 18px rgba(0, 0, 0, 0.5);
   }
   .gender { min-width: 90px; height: 40px; }
-  .elements { min-height: 27px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 
   .level-and-stats { min-width: 0; display: grid; grid-template-columns: 155px minmax(0, 1fr); gap: 14px; }
   .level {
@@ -1117,6 +1165,34 @@
   .vital .track { height: 6px; }
   .vital .stat-number { width: 47px; padding: 2px 4px; font-size: var(--type-body); }
   .vital .stat-number.hp { width: 69px; }
+  .max-toggle {
+    display: block;
+    margin: 6px 0 0 auto;
+    padding: 2px 7px;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.025);
+    color: #756f7d;
+    font: 700 var(--type-micro) var(--font-head);
+    letter-spacing: 0.09em;
+    cursor: pointer;
+  }
+  .max-toggle:hover { color: #b9c6ce; border-color: rgba(143, 227, 242, 0.35); }
+  .max-toggle.on {
+    color: #a8edf5;
+    border-color: rgba(63, 199, 224, 0.55);
+    background: rgba(63, 199, 224, 0.12);
+    box-shadow: 0 0 9px rgba(63, 199, 224, 0.12);
+  }
+  .trust-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 5px;
+  }
+  .trust-actions .trust-rank,
+  .trust-actions .max-toggle { margin-top: 0; }
   .trust-rank {
     justify-content: flex-end;
     gap: 4px;
@@ -1188,7 +1264,6 @@
     }
     .visual-card::before { inset: 10px; }
     .name { font-size: 34px; }
-    .elements { margin-top: 5px; }
     .level-and-stats { grid-template-columns: 145px minmax(0, 1fr); }
     .vital { padding: 6px 8px; }
     .editor-panel { padding-top: 13px; }

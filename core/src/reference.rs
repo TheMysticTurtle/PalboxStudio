@@ -17,7 +17,9 @@ const USER_MIGRATION_V2: &str = include_str!("../../database/migrations/user-v2-
 const USER_MIGRATION_V3: &str = include_str!("../../database/migrations/user-v3-app-settings.sql");
 const USER_MIGRATION_V4: &str =
     include_str!("../../database/migrations/user-v4-dynamic-preset-slots.sql");
-const USER_SCHEMA_VERSION: i64 = 4;
+const USER_MIGRATION_V5: &str =
+    include_str!("../../database/migrations/user-v5-vital-max-preferences.sql");
+const USER_SCHEMA_VERSION: i64 = 5;
 const REFERENCE_SCHEMA_VERSION: &str = "4";
 
 #[derive(Debug)]
@@ -86,11 +88,28 @@ pub struct PalGroupMembership {
     pub group_ids: Vec<i64>,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppPreferences {
     pub last_box_path: String,
     pub auto_reopen: bool,
+    pub max_hp: bool,
+    pub max_sanity: bool,
+    pub max_food: bool,
+    pub max_trust: bool,
+}
+
+impl Default for AppPreferences {
+    fn default() -> Self {
+        Self {
+            last_box_path: String::new(),
+            auto_reopen: false,
+            max_hp: true,
+            max_sanity: true,
+            max_food: true,
+            max_trust: false,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -1219,6 +1238,9 @@ impl UserDatabase {
         if schema_version < 4 {
             connection.execute_batch(USER_MIGRATION_V4)?;
         }
+        if schema_version < 5 {
+            connection.execute_batch(USER_MIGRATION_V5)?;
+        }
         let kind: String = connection.query_row(
             "SELECT value FROM metadata WHERE key = 'database_kind'",
             [],
@@ -1234,18 +1256,22 @@ impl UserDatabase {
 
     pub fn app_preferences(&self) -> Result<AppPreferences> {
         let last_box_path = self.app_setting("last_box_path")?;
-        let auto_reopen = match self.app_setting("auto_reopen")?.as_str() {
-            "0" => false,
-            "1" => true,
-            value => {
-                return Err(DatabaseError::Invalid(format!(
-                    "invalid auto_reopen setting {value:?}"
-                )));
+        let bool_setting = |key: &str| -> Result<bool> {
+            match self.app_setting(key)?.as_str() {
+                "0" => Ok(false),
+                "1" => Ok(true),
+                value => Err(DatabaseError::Invalid(format!(
+                    "invalid Boolean app setting {key:?}: {value:?}"
+                ))),
             }
         };
         Ok(AppPreferences {
             last_box_path,
-            auto_reopen,
+            auto_reopen: bool_setting("auto_reopen")?,
+            max_hp: bool_setting("max_hp")?,
+            max_sanity: bool_setting("max_sanity")?,
+            max_food: bool_setting("max_food")?,
+            max_trust: bool_setting("max_trust")?,
         })
     }
 
@@ -1258,6 +1284,10 @@ impl UserDatabase {
         let preferences = AppPreferences {
             last_box_path: preferences.last_box_path.clone(),
             auto_reopen: preferences.auto_reopen && !preferences.last_box_path.is_empty(),
+            max_hp: preferences.max_hp,
+            max_sanity: preferences.max_sanity,
+            max_food: preferences.max_food,
+            max_trust: preferences.max_trust,
         };
         let transaction = self.connection.transaction()?;
         transaction.execute(
@@ -1270,16 +1300,24 @@ impl UserDatabase {
             "#,
             [&preferences.last_box_path],
         )?;
-        transaction.execute(
-            r#"
+        for (key, enabled) in [
+            ("auto_reopen", preferences.auto_reopen),
+            ("max_hp", preferences.max_hp),
+            ("max_sanity", preferences.max_sanity),
+            ("max_food", preferences.max_food),
+            ("max_trust", preferences.max_trust),
+        ] {
+            transaction.execute(
+                r#"
             INSERT INTO app_setting(key, value)
-            VALUES ('auto_reopen', ?1)
+            VALUES (?1, ?2)
             ON CONFLICT(key) DO UPDATE SET
                 value = excluded.value,
                 updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
             "#,
-            [if preferences.auto_reopen { "1" } else { "0" }],
-        )?;
+                params![key, if enabled { "1" } else { "0" }],
+            )?;
+        }
         transaction.commit()?;
         Ok(preferences)
     }
@@ -1763,6 +1801,10 @@ mod tests {
             .save_app_preferences(&AppPreferences {
                 last_box_path: "C:\\Pal\\Saved\\GlobalPalStorage.sav".to_string(),
                 auto_reopen: true,
+                max_hp: false,
+                max_sanity: true,
+                max_food: false,
+                max_trust: true,
             })
             .unwrap();
         assert!(saved.auto_reopen);
@@ -1774,9 +1816,15 @@ mod tests {
             .save_app_preferences(&AppPreferences {
                 last_box_path: String::new(),
                 auto_reopen: true,
+                ..saved.clone()
             })
             .unwrap();
-        assert_eq!(normalized, AppPreferences::default());
+        assert_eq!(normalized.last_box_path, "");
+        assert!(!normalized.auto_reopen);
+        assert!(!normalized.max_hp);
+        assert!(normalized.max_sanity);
+        assert!(!normalized.max_food);
+        assert!(normalized.max_trust);
         drop(reopened);
         fs::remove_file(path).unwrap();
     }
@@ -1873,6 +1921,12 @@ mod tests {
                     PRIMARY KEY (preset_id, slot),
                     UNIQUE (preset_id, passive_code)
                 ) STRICT;
+                CREATE TABLE app_setting (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    updated_at TEXT NOT NULL DEFAULT
+                        (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+                ) STRICT;
                 CREATE INDEX passive_preset_entry_code_idx
                 ON passive_preset_entry(passive_code);
                 INSERT INTO schema_migrations(version, applied_at) VALUES
@@ -1887,6 +1941,9 @@ mod tests {
                 INSERT INTO passive_preset_entry(preset_id, slot, passive_code) VALUES
                     (1, 0, 'Artisan'),
                     (1, 1, 'Serious');
+                INSERT INTO app_setting(key, value) VALUES
+                    ('last_box_path', ''),
+                    ('auto_reopen', '0');
                 "#,
             )
             .unwrap();
@@ -1913,7 +1970,11 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, "4");
+        assert_eq!(version, "5");
+        assert_eq!(
+            migrated.app_preferences().unwrap(),
+            AppPreferences::default()
+        );
         let stale_limit: i64 = migrated
             .connection
             .query_row(
@@ -1975,7 +2036,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, "4");
+        assert_eq!(version, "5");
         assert_eq!(user.app_preferences().unwrap(), AppPreferences::default());
         drop(user);
         fs::remove_file(path).unwrap();

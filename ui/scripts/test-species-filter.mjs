@@ -164,10 +164,18 @@ test("last-box preferences are version-safe and reject malformed storage", () =>
   assert.deepEqual(parseBoxPreferences(null), {
     lastBoxPath: "",
     autoReopen: false,
+    maxHp: true,
+    maxSanity: true,
+    maxFood: true,
+    maxTrust: false,
   });
   assert.deepEqual(parseBoxPreferences("{not-json"), {
     lastBoxPath: "",
     autoReopen: false,
+    maxHp: true,
+    maxSanity: true,
+    maxFood: true,
+    maxTrust: false,
   });
   assert.deepEqual(parseBoxPreferences(JSON.stringify({
     lastBoxPath: "C:\\Pal\\GlobalPalStorage.sav",
@@ -176,21 +184,25 @@ test("last-box preferences are version-safe and reject malformed storage", () =>
   })), {
     lastBoxPath: "C:\\Pal\\GlobalPalStorage.sav",
     autoReopen: true,
+    maxHp: true,
+    maxSanity: true,
+    maxFood: true,
+    maxTrust: false,
   });
 });
 
 test("only an empty database preference imports the legacy remembered box", () => {
   assert.equal(
     shouldMigrateLegacyBoxPreferences(
-      { lastBoxPath: "", autoReopen: false },
-      { lastBoxPath: "/tmp/GlobalPalStorage.sav", autoReopen: true },
+      { lastBoxPath: "", autoReopen: false, maxHp: true, maxSanity: true, maxFood: true, maxTrust: false },
+      { lastBoxPath: "/tmp/GlobalPalStorage.sav", autoReopen: true, maxHp: true, maxSanity: true, maxFood: true, maxTrust: false },
     ),
     true,
   );
   assert.equal(
     shouldMigrateLegacyBoxPreferences(
-      { lastBoxPath: "D:\\Pal\\GlobalPalStorage.sav", autoReopen: false },
-      { lastBoxPath: "/tmp/stale.sav", autoReopen: true },
+      { lastBoxPath: "D:\\Pal\\GlobalPalStorage.sav", autoReopen: false, maxHp: true, maxSanity: true, maxFood: true, maxTrust: false },
+      { lastBoxPath: "/tmp/stale.sav", autoReopen: true, maxHp: true, maxSanity: true, maxFood: true, maxTrust: false },
     ),
     false,
   );

@@ -169,6 +169,10 @@ export const getReferenceData = () =>
 export interface AppPreferences {
   lastBoxPath: string;
   autoReopen: boolean;
+  maxHp: boolean;
+  maxSanity: boolean;
+  maxFood: boolean;
+  maxTrust: boolean;
 }
 
 export const getAppPreferences = () =>

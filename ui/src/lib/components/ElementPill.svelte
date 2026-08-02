@@ -2,11 +2,11 @@
   import type { ElementName } from "$lib/data/types";
   import { elementColor } from "$lib/data/palPresentation";
   import ElementIcon from "./ElementIcon.svelte";
-  let { element }: { element: ElementName } = $props();
+  let { element, large = false }: { element: ElementName; large?: boolean } = $props();
 </script>
 
-<span class="pill" style="--c:{elementColor(element)}">
-  <ElementIcon {element} size={18} />
+<span class="pill" class:large style="--c:{elementColor(element)}">
+  <ElementIcon {element} size={large ? 23 : 18} />
   <span class="label">{element}</span>
 </span>
 
@@ -27,4 +27,6 @@
     letter-spacing: 0.04em;
     color: color-mix(in srgb, var(--c) 45%, #ffffff);
   }
+  .pill.large { gap: 9px; padding: 7px 16px 7px 12px; }
+  .pill.large .label { font-size: 16px; }
 </style>

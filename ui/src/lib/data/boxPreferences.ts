@@ -1,6 +1,10 @@
 export interface BoxPreferencesValue {
   lastBoxPath: string;
   autoReopen: boolean;
+  maxHp: boolean;
+  maxSanity: boolean;
+  maxFood: boolean;
+  maxTrust: boolean;
 }
 
 export const LEGACY_STORAGE_KEY = "palboxStudio.boxPreferences.v1";
@@ -8,6 +12,10 @@ export const LEGACY_STORAGE_KEY = "palboxStudio.boxPreferences.v1";
 export const DEFAULT_BOX_PREFERENCES: BoxPreferencesValue = {
   lastBoxPath: "",
   autoReopen: false,
+  maxHp: true,
+  maxSanity: true,
+  maxFood: true,
+  maxTrust: false,
 };
 
 export function parseBoxPreferences(raw: string | null): BoxPreferencesValue {
@@ -19,6 +27,10 @@ export function parseBoxPreferences(raw: string | null): BoxPreferencesValue {
     return {
       lastBoxPath,
       autoReopen: value.autoReopen === true && Boolean(lastBoxPath),
+      maxHp: typeof value.maxHp === "boolean" ? value.maxHp : true,
+      maxSanity: typeof value.maxSanity === "boolean" ? value.maxSanity : true,
+      maxFood: typeof value.maxFood === "boolean" ? value.maxFood : true,
+      maxTrust: typeof value.maxTrust === "boolean" ? value.maxTrust : false,
     };
   } catch {
     return { ...DEFAULT_BOX_PREFERENCES };

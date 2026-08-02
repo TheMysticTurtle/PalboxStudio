@@ -108,14 +108,19 @@ INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES
     (1, '2026-07-25'),
     (2, '2026-07-25'),
     (3, '2026-07-29'),
-    (4, '2026-07-30');
+    (4, '2026-07-30'),
+    (5, '2026-08-02');
 
 INSERT OR IGNORE INTO metadata(key, value) VALUES
     ('database_kind', 'palbox-user'),
-    ('schema_version', '4');
+    ('schema_version', '5');
 
 INSERT OR IGNORE INTO app_setting(key, value) VALUES
     ('last_box_path', ''),
-    ('auto_reopen', '0');
+    ('auto_reopen', '0'),
+    ('max_hp', '1'),
+    ('max_sanity', '1'),
+    ('max_food', '1'),
+    ('max_trust', '0');
 
 COMMIT;
