@@ -4,7 +4,7 @@
 
 <p align="center">
   <img alt="Windows" src="https://img.shields.io/badge/Windows-10%20%2F%2011-0a7bbd">
-  <img alt="Version" src="https://img.shields.io/badge/release-1.1.1-b060e0">
+  <img alt="Version" src="https://img.shields.io/badge/release-1.1.2-b060e0">
   <img alt="Built with" src="https://img.shields.io/badge/built%20with-Rust%20%C2%B7%20Tauri%20%C2%B7%20Svelte-3fc7e0">
   <img alt="License" src="https://img.shields.io/badge/license-PolyForm%20Strict%201.0.0-6e7a86">
 </p>
@@ -113,24 +113,6 @@ Choose active skills from a filterable list, with each move's element and power 
 <p align="center">
   <img src="docs/screenshots/07-pal-move-filter.png" alt="Move picker" width="900">
 </p>
-
----
-
-## 🆕 Latest changes
-
-The latest development update adds Palworld 1.0 Awakening support and a focused set of editor
-improvements:
-
-- Awaken fully condensed Pals using Palworld's separate Awakening value; selecting Awakened also
-  sets condensation to four displayed stars.
-- See HP, Attack, and Defense refresh immediately while changing progression, IVs, passives, or
-  Alpha/Lucky status.
-- Keep HP, SAN, Food, or Trust at MAX using preferences remembered between sessions.
-- Type Work Suitability levels directly while seeing only the jobs relevant to that species.
-- Start a passive preset from the selected Pal's current passives.
-- Create new Pals with explicit 50/50/50 IVs and the complete writable save schema.
-
-See the [full 1.2.0 release notes](docs/RELEASE-NOTES-1.2.0.md) for the detailed change list.
 
 ---
 
