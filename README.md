@@ -116,6 +116,24 @@ Choose active skills from a filterable list, with each move's element and power 
 
 ---
 
+## 🆕 Latest changes
+
+The latest development update adds Palworld 1.0 Awakening support and a focused set of editor
+improvements:
+
+- Awaken fully condensed Pals using Palworld's separate Awakening value; selecting Awakened also
+  sets condensation to four displayed stars.
+- See HP, Attack, and Defense refresh immediately while changing progression, IVs, passives, or
+  Alpha/Lucky status.
+- Keep HP, SAN, Food, or Trust at MAX using preferences remembered between sessions.
+- Type Work Suitability levels directly while seeing only the jobs relevant to that species.
+- Start a passive preset from the selected Pal's current passives.
+- Create new Pals with explicit 50/50/50 IVs and the complete writable save schema.
+
+See the [full 1.2.0 release notes](docs/RELEASE-NOTES-1.2.0.md) for the detailed change list.
+
+---
+
 ## ⬇️ Installation
 
 Download the latest build from the [Releases](../../releases) page or from Nexus Mods.

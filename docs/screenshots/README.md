@@ -9,7 +9,7 @@ Drop your captures here using these **exact filenames** — the main
 | `02-palbox-explorer.png` | The GLOBAL PAL BOX side panel — the box explorer |
 | `03-expanded-explorer.png` | The expanded full-gallery view (⤢ Expand) |
 | `04-species-selector.png` | The species selector picker (icon grid + filter) |
-| `05-stats.png` | The PROGRESSION drawer — IVs, Pal Souls, condensation, work suitabilities |
+| `05-stats.png` | The PROGRESSION drawer — IVs, Pal Souls, condensation, and Awakening |
 | `06-passive-filter.png` | The passive-skill picker / filter |
 | `07-pal-move-filter.png` | The move picker / filter |
 
