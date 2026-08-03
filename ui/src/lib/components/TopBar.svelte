@@ -41,6 +41,14 @@
   <div class="spacer" data-tauri-drag-region></div>
 
   {#if box.open}
+    {#if box.saveMsg}<span class="savemsg">{box.saveMsg}</span>{/if}
+    {#if box.lastBackupPath}
+      <button
+        class="backupbtn"
+        onclick={revealBackup}
+        title={box.lastBackupPath}
+      >Open backup</button>
+    {/if}
     <button
       class="savebtn"
       class:blocked={Boolean(box.conflict)}
@@ -50,14 +58,6 @@
         ? "Reload the externally changed Global Palbox before saving"
         : "Backup the original, then write the edited box"}
     >💾 Save Box</button>
-    {#if box.saveMsg}<span class="savemsg">{box.saveMsg}</span>{/if}
-    {#if box.lastBackupPath}
-      <button
-        class="backupbtn"
-        onclick={revealBackup}
-        title={box.lastBackupPath}
-      >Open backup</button>
-    {/if}
   {/if}
 
   {#if box.open}
@@ -131,7 +131,7 @@
   .idtext {
     font-family: var(--font-head);
     font-weight: 600;
-    font-size: 12px;
+    font-size: var(--type-label);
     letter-spacing: 0.16em;
     color: #d9b8f0;
   }

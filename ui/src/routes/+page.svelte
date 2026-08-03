@@ -7,7 +7,7 @@
   import GlobalBoxDrawer from "$lib/components/GlobalBoxDrawer.svelte";
   import BoxMatrix from "$lib/components/BoxMatrix.svelte";
   import { ui } from "$lib/stores/ui.svelte";
-  import { box } from "$lib/stores/box.svelte";
+  import { box, refreshSelectedPalProjection } from "$lib/stores/box.svelte";
   import { EMPTY_PAL } from "$lib/data/emptyPal";
 
   // Render a non-persistable zero display value until a real Pal is loaded from
@@ -29,7 +29,10 @@
 
 <Drawer side="right" tone="advanced" label="PROGRESSION" tabLabel="IV / STATUE / CONDENSATION" width={420} bind:open={ui.rightOpen}>
   <div class="advanced-state" inert={!box.pal}>
-    <AdvancedDrawer pal={box.pal ?? EMPTY_PAL} />
+    <AdvancedDrawer
+      pal={box.pal ?? EMPTY_PAL}
+      onprojectionchange={() => void refreshSelectedPalProjection()}
+    />
   </div>
 </Drawer>
 

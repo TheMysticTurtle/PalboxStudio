@@ -12,9 +12,11 @@
 
   let {
     disabled = false,
+    currentPassiveCodes = [],
     onapply,
   }: {
     disabled?: boolean;
+    currentPassiveCodes?: string[];
     onapply: (passiveCodes: string[]) => void;
   } = $props();
 
@@ -43,6 +45,14 @@
   function openPicker(index: number | null) {
     pickerEditing = index;
     pickerOpen = true;
+  }
+
+  function copyCurrentPassives() {
+    draftCodes = [...new Set(currentPassiveCodes)]
+      .filter(Boolean)
+      .slice(0, LIMITS.passivesMax);
+    pickerEditing = null;
+    error = "";
   }
 
   function choosePassive(code: string) {
@@ -141,6 +151,17 @@
       <span>PRESET NAME</span>
       <input bind:value={draftName} maxlength="80" placeholder="e.g. Perfect Base Worker" />
     </label>
+
+    <div class="copy-row">
+      <button
+        class="copy-current"
+        disabled={disabled || !currentPassiveCodes.length}
+        onclick={copyCurrentPassives}
+        title={disabled || !currentPassiveCodes.length
+          ? "Select a Pal with passive skills first"
+          : "Replace this draft with the selected Pal's current passive skills"}
+      >⧉ Copy current Pal's passives</button>
+    </div>
 
     <div class="slots">
       {#each draftCodes as code, index (index)}
@@ -263,6 +284,20 @@
     font-size: var(--type-control);
   }
   .name-field input:focus { border-color: rgba(63,199,224,.58); }
+
+  .copy-row { display: flex; justify-content: flex-end; padding: 10px 19px 0; }
+  .copy-current {
+    min-height: 36px;
+    padding: 7px 11px;
+    border-radius: 9px;
+    cursor: pointer;
+    color: #bde8db;
+    background: rgba(53,201,165,.08);
+    border: 1px solid rgba(53,201,165,.3);
+    font: 600 var(--type-caption) var(--font-head);
+  }
+  .copy-current:hover:not(:disabled) { color: #effff8; background: rgba(53,201,165,.16); border-color: rgba(53,201,165,.52); }
+  .copy-current:disabled { opacity: .4; cursor: default; }
 
   .slots { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 9px; padding: 16px 19px; }
   .slot { display: grid; grid-template-columns: 28px minmax(0, 1fr) 36px; align-items: center; gap: 8px; }

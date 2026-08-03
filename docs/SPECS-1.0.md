@@ -30,6 +30,11 @@ ranges, progression rows, and formula operands consumed by the core and UI.
   one-based byte **1–5** (`stored Rank = displayed stars + 1`). Needs **48** same-species (was
   116). +5% HP/Atk/Def per displayed rank (**+20% at ★4**); each rank-up also **+1 to a work
   suitability**, and max rank raises **all**.
+- **Awakening** (`bIsAwakening`): separate **Boolean** save property, not a sixth `Rank` value.
+  The editor exposes it as the capstone after ★4; enabling it also sets displayed condensation to
+  4 and stores `Rank = 5` through the engine-owned semantic mutation.
+- **New Pal defaults:** explicit IVs of **50/50/50** in `Talent_HP`, `Talent_Shot`, and
+  `Talent_Defense`, plus `Rank = 1` and `bIsAwakening = false`.
 - **Pal Souls** (Statue of Power): per-stat ranks **0–20** — `Rank_HP`, `Rank_Attack`,
   `Rank_Defence`, `Rank_CraftSpeed` (Work Speed). +3%/rank, **+60% max per stat**. Byte;
   write only non-zero. *(This is the field the right-drawer "statue levels" edit.)*
@@ -68,6 +73,8 @@ and localized display names — is served from the bundled reference database
 - Never auto-fill `MasteredWaza` from the learnset on load.
 - Never re-add `Talent_Melee`.
 - Never write 0–4 displayed condensation stars directly to `Rank`; store 1–5.
+- Never represent Awakening as `Rank = 6`; write `bIsAwakening` as a schema-backed Boolean and
+  keep awakened editor mutations at `Rank = 5`.
 
 ## Sources
 

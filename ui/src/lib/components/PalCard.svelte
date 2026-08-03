@@ -19,7 +19,15 @@
     presentBoxPal,
   } from "$lib/data/palPresentation";
   import { maxHpForPal, palToBoxPal } from "$lib/data/mapper";
-  import { changeSelectedSpecies } from "$lib/stores/box.svelte";
+  import {
+    changeSelectedSpecies,
+    refreshSelectedPalProjection,
+    setSelectedVitalMax,
+  } from "$lib/stores/box.svelte";
+  import {
+    boxPreferences,
+    type VitalMaxPreference,
+  } from "$lib/stores/boxPreferences.svelte";
   import SectionHeader from "./SectionHeader.svelte";
   import ElementPill from "./ElementPill.svelte";
   import GenderIcon from "./GenderIcon.svelte";
@@ -63,6 +71,7 @@
   function setLevel(v: number) {
     const n = Math.round(v);
     pal.level = Math.max(LIMITS.levelMin, Math.min(LIMITS.levelMax, Number.isFinite(n) ? n : LIMITS.levelMin));
+    void refreshSelectedPalProjection();
   }
   function finiteOr(value: number, fallback: number) {
     return Number.isFinite(value) ? value : fallback;
@@ -98,14 +107,19 @@
     }
     pal.trust.progress = Math.max(0, Math.min(100, finiteOr(value, pal.trust.progress * 100))) / 100;
   }
+  function toggleVitalMax(preference: VitalMaxPreference) {
+    void setSelectedVitalMax(preference, !boxPreferences[preference]);
+  }
 
   function toggleAlpha() {
     pal.alpha = !pal.alpha;
     if (pal.alpha) pal.lucky = false;
+    void refreshSelectedPalProjection();
   }
   function toggleLucky() {
     pal.lucky = !pal.lucky;
     if (pal.lucky) pal.alpha = false;
+    void refreshSelectedPalProjection();
   }
   function toggleGender() {
     pal.gender = nextGender(pal.gender);
@@ -121,13 +135,18 @@
     } else if (!pal.passives.some((value, index) => value === code && index !== passiveEditing)) {
       pal.passives[passiveEditing] = code;
     }
+    void refreshSelectedPalProjection();
   }
   function removePassive() {
-    if (passiveEditing != null) pal.passives.splice(passiveEditing, 1);
+    if (passiveEditing != null) {
+      pal.passives.splice(passiveEditing, 1);
+      void refreshSelectedPalProjection();
+    }
   }
   function applyPassiveCodes(codes: string[]) {
     if (empty) return;
     pal.passives.splice(0, pal.passives.length, ...codes.slice(0, LIMITS.passivesMax));
+    void refreshSelectedPalProjection();
   }
 
   // Moves: click or drag between/reorder the equipped and inactive zones.
@@ -324,6 +343,9 @@
             <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
+        <div class="hero-elements" aria-label="Elements">
+          {#each pal.elements as el}<ElementPill element={el} large />{/each}
+        </div>
         <div class="variant-controls">
           <button class="variant alpha" class:on={pal.alpha} onclick={toggleAlpha} aria-pressed={pal.alpha} title="Toggle Alpha">
             <img src={variantIcon("alpha")} alt="" />
@@ -350,9 +372,6 @@
             <GenderIcon gender={pal.gender} size={25} />
             <span class="gender-label">{pal.gender}</span>
           </button>
-        </div>
-        <div class="elements">
-          {#each pal.elements as el}<ElementPill element={el} />{/each}
         </div>
       </div>
 
@@ -410,6 +429,13 @@
               aria-label="Current HP"
             />
           </div>
+          <button
+            type="button"
+            class="max-toggle"
+            class:on={boxPreferences.maxHp}
+            aria-pressed={boxPreferences.maxHp}
+            onclick={() => toggleVitalMax("maxHp")}
+          >MAX</button>
         </div>
 
         <div class="vital">
@@ -437,6 +463,13 @@
               aria-label="Sanity"
             />
           </div>
+          <button
+            type="button"
+            class="max-toggle"
+            class:on={boxPreferences.maxSanity}
+            aria-pressed={boxPreferences.maxSanity}
+            onclick={() => toggleVitalMax("maxSanity")}
+          >MAX</button>
         </div>
 
         <div class="vital">
@@ -466,6 +499,13 @@
               aria-label="Food percent"
             />
           </div>
+          <button
+            type="button"
+            class="max-toggle"
+            class:on={boxPreferences.maxFood}
+            aria-pressed={boxPreferences.maxFood}
+            onclick={() => toggleVitalMax("maxFood")}
+          >MAX</button>
         </div>
 
         <div class="vital trust-vital">
@@ -497,19 +537,28 @@
               aria-label="Trust progress"
             />
           </div>
-          <label class="trust-rank">
-            <span>RANK</span>
-            <input
-              class="stat-number"
-              type="number"
-              min={trustRankMin}
-              max={trustRankMax}
-              value={pal.trust.rank}
-              oninput={(event) => setTrustRank(event.currentTarget.valueAsNumber)}
-              aria-label="Trust rank"
-            />
-            <span>/ {trustRankMax}</span>
-          </label>
+          <div class="trust-actions">
+            <label class="trust-rank">
+              <span>RANK</span>
+              <input
+                class="stat-number"
+                type="number"
+                min={trustRankMin}
+                max={trustRankMax}
+                value={pal.trust.rank}
+                oninput={(event) => setTrustRank(event.currentTarget.valueAsNumber)}
+                aria-label="Trust rank"
+              />
+              <span>/ {trustRankMax}</span>
+            </label>
+            <button
+              type="button"
+              class="max-toggle"
+              class:on={boxPreferences.maxTrust}
+              aria-pressed={boxPreferences.maxTrust}
+              onclick={() => toggleVitalMax("maxTrust")}
+            >MAX</button>
+          </div>
         </div>
       </div>
     </div>
@@ -543,7 +592,11 @@
       </div>
       <div class="preset-block">
         <SectionHeader title="PASSIVE PRESETS" />
-        <PassivePresets disabled={empty} onapply={applyPassiveCodes} />
+        <PassivePresets
+          disabled={empty}
+          currentPassiveCodes={pal.passives}
+          onapply={applyPassiveCodes}
+        />
       </div>
       <div class="group-block">
         <SectionHeader title="GROUP TAGS" />
@@ -820,7 +873,7 @@
   .mgrip { color: #7c8894; font-size: 15px; letter-spacing: -2px; }
   .mname { flex: 1; font-family: var(--font-cond); font-weight: 600; font-size: 15px; color: #ede7df; }
   .bench-move .mname { font-size: 14px; color: #c6cfd7; }
-  .mpwrcap { font-size: 11px; color: #8fa0ac; }
+  .mpwrcap { font-size: var(--type-micro); color: #8fa0ac; }
   .mpwr { font-family: var(--font-head); font-weight: 700; font-size: 17px; color: #b7c0c8; min-width: 30px; text-align: right; }
   .bench-move .mpwr { font-size: 15px; }
 
@@ -946,7 +999,7 @@
     z-index: 1;
     width: min(70%, 250px);
     aspect-ratio: 1;
-    transform: translateY(5px);
+    transform: translateY(9px);
     overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--primary) 38%, rgba(255, 255, 255, 0.12));
     border-radius: 19px;
@@ -982,7 +1035,8 @@
     font: 600 var(--type-micro) var(--font-head);
     letter-spacing: 0.17em;
   }
-  .visual-foot .stars { font-size: 17px; }
+  .visual-foot .stars { font-size: 21px; }
+  .visual-foot .stars span { display: inline-block; transform: scaleX(1.18); }
   .soul-summary { text-align: right; }
   .soul-values {
     display: grid;
@@ -1013,7 +1067,16 @@
   }
   .species-copy strong { color: #efe9f4; font-size: 16px; }
   .species-change { margin-left: auto; }
-  .variant-controls { display: flex; gap: 8px; }
+  .hero-elements {
+    min-width: 0;
+    flex: 0 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .variant-controls { display: flex; gap: 8px; margin-left: auto; }
   .variant { width: 54px; height: 50px; border-radius: 12px; }
   .variant img { width: 27px; height: 27px; }
 
@@ -1035,7 +1098,6 @@
     text-shadow: 0 3px 18px rgba(0, 0, 0, 0.5);
   }
   .gender { min-width: 90px; height: 40px; }
-  .elements { min-height: 27px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 
   .level-and-stats { min-width: 0; display: grid; grid-template-columns: 155px minmax(0, 1fr); gap: 14px; }
   .level {
@@ -1113,6 +1175,34 @@
   .vital .track { height: 6px; }
   .vital .stat-number { width: 47px; padding: 2px 4px; font-size: var(--type-body); }
   .vital .stat-number.hp { width: 69px; }
+  .max-toggle {
+    display: block;
+    margin: 6px 0 0 auto;
+    padding: 2px 7px;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.025);
+    color: #756f7d;
+    font: 700 var(--type-micro) var(--font-head);
+    letter-spacing: 0.09em;
+    cursor: pointer;
+  }
+  .max-toggle:hover { color: #b9c6ce; border-color: rgba(143, 227, 242, 0.35); }
+  .max-toggle.on {
+    color: #a8edf5;
+    border-color: rgba(63, 199, 224, 0.55);
+    background: rgba(63, 199, 224, 0.12);
+    box-shadow: 0 0 9px rgba(63, 199, 224, 0.12);
+  }
+  .trust-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 5px;
+  }
+  .trust-actions .trust-rank,
+  .trust-actions .max-toggle { margin-top: 0; }
   .trust-rank {
     justify-content: flex-end;
     gap: 4px;
@@ -1164,7 +1254,7 @@
 
   .work-panel { padding-left: 18px; padding-right: 18px; }
   .worksuit { gap: 6px; }
-  .none { padding: 14px; color: #6e7a86; text-align: center; font-size: 12px; }
+  .none { padding: 14px; color: #6e7a86; text-align: center; font-size: var(--type-caption); }
 
   .card.empty .art-shell {
     width: 120px;
@@ -1175,6 +1265,8 @@
     opacity: 0.62;
   }
   .card.empty .species { min-height: 48px; }
+  .card.empty .visual-card .art { inset: 8px; }
+  .card.empty .art-shell { transform: translateY(-5px); }
 
   @media (max-height: 820px) {
     .hero {
@@ -1184,7 +1276,6 @@
     }
     .visual-card::before { inset: 10px; }
     .name { font-size: 34px; }
-    .elements { margin-top: 5px; }
     .level-and-stats { grid-template-columns: 145px minmax(0, 1fr); }
     .vital { padding: 6px 8px; }
     .editor-panel { padding-top: 13px; }

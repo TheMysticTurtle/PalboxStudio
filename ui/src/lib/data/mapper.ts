@@ -34,6 +34,7 @@ export function dtoToPal(view: PalView): Pal {
     alpha: dto.isAlpha,
     lucky: dto.isLucky,
     condensation: dto.condensation,
+    awakened: dto.isAwakened,
     ivs: { hp: dto.ivs.hp, shot: dto.ivs.shot, defense: dto.ivs.defense },
     soulRanks: {
       hp: dto.souls.hp,
@@ -73,12 +74,14 @@ export function dtoToPal(view: PalView): Pal {
     benchMoves: [...new Set([...learned, ...(species?.moves ?? [])])].filter(
       (move) => !equipped.includes(move),
     ),
-    workSuit: projection.work.map((work) => ({
-      code: work.code,
-      name: work.name,
-      icon: work.icon,
-      level: work.totalLevel,
-    })),
+    workSuit: projection.work
+      .filter((work) => work.available)
+      .map((work) => ({
+        code: work.code,
+        name: work.name,
+        icon: work.icon,
+        level: work.totalLevel,
+      })),
   };
 }
 
@@ -96,6 +99,7 @@ export function palToDto(pal: Pal, slot: number): PalDto {
     level: pal.level,
     exp: pal.exp,
     condensation: pal.condensation,
+    isAwakened: pal.awakened,
     souls: {
       hp: pal.soulRanks.hp,
       attack: pal.soulRanks.attack,

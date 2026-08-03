@@ -40,6 +40,13 @@ authoritative source for the exact editable limits.
   Beyond the flat stat bonus, each in-game rank-up also raises one Work Suitability, and reaching
   max rank raises all of them — worth keeping in mind, because editing `Rank` directly does not
   replay that progression (see *Open questions* below).
+- **Awakening:** `bIsAwakening` is a separate Boolean property; it is not a sixth `Rank` value.
+  Palbox Studio presents it as the capstone beside the four condensation stars. Selecting it writes
+  `bIsAwakening = true` and canonicalizes condensation to four displayed stars (`Rank = 5`) in the
+  engine. Clearing it writes `false` without changing the current condensation rank.
+- **New Pal defaults:** the engine explicitly writes `Rank = 1`, `bIsAwakening = false`, and
+  `Talent_HP` / `Talent_Shot` / `Talent_Defense` at **50**. These fields use the same writable-schema
+  registry as edits, so creation does not depend on the chosen vacancy already carrying a schema.
 - **Pal Souls (Statue of Power):** per-stat ranks **0–20** — `Rank_HP`, `Rank_Attack`,
   `Rank_Defence`, and `Rank_CraftSpeed` (Work Speed). Each rank is +3%, to +60% per stat at rank 20.
   Stored as a byte and written only when non-zero.
@@ -68,6 +75,7 @@ A quick decoder from raw save property to what the editor shows:
 | `Talent_HP` / `Talent_Shot` / `Talent_Defense` | IVs (display 0–100, raw byte 0–255) |
 | `Level` / `Exp`                   | Level and experience                            |
 | `Rank`                            | Condensation (stored 1–5 → displayed 0–4 stars) |
+| `bIsAwakening`                    | Awakened state (Boolean; separate from `Rank`)  |
 | `Rank_HP` / `Rank_Attack` / `Rank_Defence` / `Rank_CraftSpeed` | Pal Soul ranks (0–20) |
 | `GotWorkSuitabilityAddRankList`   | Work Suitability bonuses (total − species base) |
 | `EquipWaza`                       | Equipped active skills (up to 3)                |
@@ -131,6 +139,9 @@ These are specific ways an edit can quietly damage a 1.0 box; the editor avoids 
 - **Never write the displayed condensation stars directly to `Rank`.** Translate editor stars
   `0–4` to the save's one-based byte `1–5`; otherwise every edited Pal appears one rank lower
   in-game.
+- **Never encode Awakening as another condensation rank.** Write the Boolean `bIsAwakening` using
+  its registered `BoolProperty` schema. When enabling it through the semantic engine contract,
+  also write maximum condensation as `Rank = 5`.
 - **Never overwrite a source that changed after open.** The core records SHA-256, size, and modified
   time, verifies them before backup and again before atomic replacement, and requires the user to
   reopen on conflict.

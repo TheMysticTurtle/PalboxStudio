@@ -19,6 +19,19 @@ export const boxPreferences = $state({
 
 let loadPromise: Promise<void> | null = null;
 
+export type VitalMaxPreference = "maxHp" | "maxSanity" | "maxFood" | "maxTrust";
+
+function currentPreferences(): BoxPreferencesValue {
+  return {
+    lastBoxPath: boxPreferences.lastBoxPath,
+    autoReopen: boxPreferences.autoReopen,
+    maxHp: boxPreferences.maxHp,
+    maxSanity: boxPreferences.maxSanity,
+    maxFood: boxPreferences.maxFood,
+    maxTrust: boxPreferences.maxTrust,
+  };
+}
+
 async function persist(next: BoxPreferencesValue): Promise<boolean> {
   try {
     const stored = await saveAppPreferences(next);
@@ -66,10 +79,7 @@ export async function loadBoxPreferences(): Promise<void> {
 }
 
 export async function rememberBoxPath(path: string): Promise<boolean> {
-  const previous = {
-    lastBoxPath: boxPreferences.lastBoxPath,
-    autoReopen: boxPreferences.autoReopen,
-  };
+  const previous = currentPreferences();
   const next = { ...previous, lastBoxPath: path };
   Object.assign(boxPreferences, next);
   if (await persist(next)) return true;
@@ -78,14 +88,23 @@ export async function rememberBoxPath(path: string): Promise<boolean> {
 }
 
 export async function setAutoReopen(enabled: boolean): Promise<boolean> {
-  const previous = {
-    lastBoxPath: boxPreferences.lastBoxPath,
-    autoReopen: boxPreferences.autoReopen,
-  };
+  const previous = currentPreferences();
   const next = {
     ...previous,
     autoReopen: enabled && Boolean(previous.lastBoxPath),
   };
+  Object.assign(boxPreferences, next);
+  if (await persist(next)) return true;
+  Object.assign(boxPreferences, previous);
+  return false;
+}
+
+export async function setVitalMaxPreference(
+  preference: VitalMaxPreference,
+  enabled: boolean,
+): Promise<boolean> {
+  const previous = currentPreferences();
+  const next: BoxPreferencesValue = { ...previous, [preference]: enabled };
   Object.assign(boxPreferences, next);
   if (await persist(next)) return true;
   Object.assign(boxPreferences, previous);

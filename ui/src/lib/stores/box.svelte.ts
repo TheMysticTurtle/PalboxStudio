@@ -18,7 +18,14 @@ import {
   type BoxConflictKind,
 } from "$lib/data/sourceMonitor";
 import type { Pal } from "$lib/data/types";
-import { rememberBoxPath, setAutoReopen } from "$lib/stores/boxPreferences.svelte";
+import { ref } from "$lib/data/refdata.svelte";
+import {
+  boxPreferences,
+  rememberBoxPath,
+  setAutoReopen,
+  setVitalMaxPreference,
+  type VitalMaxPreference,
+} from "$lib/stores/boxPreferences.svelte";
 
 type SourceState = "idle" | "unchanged" | "changed" | "unavailable";
 
@@ -46,6 +53,37 @@ let selectedBaseline = "";
 let monitorInFlight = false;
 let unavailableStreak = 0;
 
+function applyVitalMaximum(pal: Pal, preference: VitalMaxPreference) {
+  if (preference === "maxHp") pal.stats.hp = pal.stats.hpMax;
+  if (preference === "maxSanity") pal.stats.san = ref.limits.sanityMax;
+  if (preference === "maxFood") pal.stats.foodPct = 1;
+  if (preference === "maxTrust") {
+    pal.trust.rank = pal.trust.maxRank;
+    pal.trust.progress = 1;
+  }
+}
+
+export function applySelectedVitalMaxPreferences() {
+  if (!box.pal) return;
+  for (const preference of [
+    "maxHp",
+    "maxSanity",
+    "maxFood",
+    "maxTrust",
+  ] as const) {
+    if (boxPreferences[preference]) applyVitalMaximum(box.pal, preference);
+  }
+}
+
+export async function setSelectedVitalMax(
+  preference: VitalMaxPreference,
+  enabled: boolean,
+): Promise<boolean> {
+  if (!(await setVitalMaxPreference(preference, enabled))) return false;
+  if (enabled && box.pal) applyVitalMaximum(box.pal, preference);
+  return true;
+}
+
 function selectedSnapshot(): string {
   if (!box.pal || box.selectedSlot < 0) return "";
   return JSON.stringify(palToDto(box.pal, box.selectedSlot));
@@ -70,6 +108,7 @@ async function flush() {
   const updated = await updatePal(submitted);
   box.pal = dtoToPal(updated);
   selectedBaseline = selectedSnapshot();
+  applySelectedVitalMaxPreferences();
   box.dirty = true;
 
   // Keep both box explorers in sync with unsaved main-card edits. The engine
@@ -93,6 +132,17 @@ async function flush() {
   }
 }
 
+/** Re-run the selected Pal through the Rust engine so calculated display values
+ * stay current while its unsaved inputs are being edited. */
+export async function refreshSelectedPalProjection() {
+  try {
+    box.error = "";
+    await flush();
+  } catch (error) {
+    box.error = String(error);
+  }
+}
+
 /** Commit pending edits, then let the engine change species and re-project every
  * dependent value while preserving the save-backed Work bonuses. */
 export async function changeSelectedSpecies(characterId: string) {
@@ -105,6 +155,7 @@ export async function changeSelectedSpecies(characterId: string) {
     const updated = await updatePal(submitted);
     box.pal = dtoToPal(updated);
     selectedBaseline = selectedSnapshot();
+    applySelectedVitalMaxPreferences();
     box.dirty = true;
     const tile = box.tiles.find((value) => value.slot === box.selectedSlot);
     if (tile) {
@@ -170,6 +221,7 @@ export async function selectSlot(slot: number) {
     box.pal = dtoToPal(dto);
     box.selectedSlot = slot;
     selectedBaseline = selectedSnapshot();
+    applySelectedVitalMaxPreferences();
   } catch (error) {
     box.error = String(error);
   }

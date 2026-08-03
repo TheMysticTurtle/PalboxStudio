@@ -8,7 +8,13 @@
   import { STATUE_OF_POWER_ART } from "$lib/data/icons";
   import SectionHeader from "./SectionHeader.svelte";
 
-  let { pal }: { pal: Pal } = $props();
+  let {
+    pal,
+    onprojectionchange = () => {},
+  }: {
+    pal: Pal;
+    onprojectionchange?: () => void;
+  } = $props();
 
   const clampIV = (v: number) => Math.max(LIMITS.ivMin, Math.min(LIMITS.ivMax, Math.round(v) || 0));
 
@@ -25,15 +31,40 @@
     { key: "craftSpeed", label: "WS", color: "var(--accent-purple)" },
   ] as const;
 
-  const decSoul = (k: (typeof soulStats)[number]["key"]) =>
-    (pal.soulRanks[k] = Math.max(LIMITS.soulsMin, pal.soulRanks[k] - 1));
-  const incSoul = (k: (typeof soulStats)[number]["key"]) =>
-    (pal.soulRanks[k] = Math.min(LIMITS.soulsMax, pal.soulRanks[k] + 1));
-  const setSoul = (k: (typeof soulStats)[number]["key"], i: number) =>
-    (pal.soulRanks[k] = pal.soulRanks[k] === i + 1 ? i : i + 1);
+  const decSoul = (k: (typeof soulStats)[number]["key"]) => {
+    pal.soulRanks[k] = Math.max(LIMITS.soulsMin, pal.soulRanks[k] - 1);
+    onprojectionchange();
+  };
+  const incSoul = (k: (typeof soulStats)[number]["key"]) => {
+    pal.soulRanks[k] = Math.min(LIMITS.soulsMax, pal.soulRanks[k] + 1);
+    onprojectionchange();
+  };
+  const setSoul = (k: (typeof soulStats)[number]["key"], i: number) => {
+    pal.soulRanks[k] = pal.soulRanks[k] === i + 1 ? i : i + 1;
+    onprojectionchange();
+  };
 
-  const setCondensation = (i: number) =>
-    (pal.condensation = pal.condensation === i + 1 ? i : i + 1);
+  const setIV = (key: (typeof ivRows)[number]["key"], value: number) => {
+    pal.ivs[key] = clampIV(value);
+    onprojectionchange();
+  };
+
+  const setCondensation = (i: number) => {
+    if (pal.awakened) {
+      pal.awakened = false;
+      pal.condensation = i + 1;
+      onprojectionchange();
+      return;
+    }
+    pal.condensation = pal.condensation === i + 1 ? i : i + 1;
+    onprojectionchange();
+  };
+
+  const toggleAwakened = () => {
+    pal.awakened = !pal.awakened;
+    if (pal.awakened) pal.condensation = LIMITS.condensationMax;
+    onprojectionchange();
+  };
 </script>
 
 <div class="adv">
@@ -49,7 +80,7 @@
               class="ivnum"
               inputmode="numeric"
               value={pal.ivs[r.key]}
-              onchange={(e) => (pal.ivs[r.key] = clampIV(+e.currentTarget.value))}
+              onchange={(e) => setIV(r.key, +e.currentTarget.value)}
               style="--c:{r.color}"
               aria-label="{r.label} IV"
             />
@@ -60,6 +91,7 @@
             min={LIMITS.ivMin}
             max={LIMITS.ivMax}
             bind:value={pal.ivs[r.key]}
+            onchange={() => onprojectionchange()}
             style="--pct:{pal.ivs[r.key]}%; --c:{r.color}"
             aria-label="{r.label} IV slider"
           />
@@ -123,11 +155,27 @@
             title="{i + 1} condensation stars · save Rank {i + 2}"
           >★</button>
         {/each}
+        <button
+          class="awakening"
+          class:on={pal.awakened}
+          onclick={toggleAwakened}
+          aria-pressed={pal.awakened}
+          aria-label={pal.awakened ? "Remove awakened state" : "Set awakened state and maximize condensation"}
+          title="Awakened · bIsAwakening · sets condensation to 4 stars (save Rank 5)"
+        >
+          <img src="/icons/awakening.webp" alt="" />
+          <span>AWAKENED</span>
+        </button>
       </div>
       <div class="condnote">
-        Condensation / ascension: {pal.condensation} / {LIMITS.condensationMax} stars
-        · save Rank {pal.condensation + 1} / {LIMITS.condensationMax + 1}
-        · +{pal.condensation * 5}% HP·Atk·Def
+        {#if pal.awakened}
+          Awakened · condensation {LIMITS.condensationMax} / {LIMITS.condensationMax} stars
+          · save Rank {LIMITS.condensationMax + 1} · +{LIMITS.condensationMax * 5}% HP·Atk·Def
+        {:else}
+          Condensation / ascension: {pal.condensation} / {LIMITS.condensationMax} stars
+          · save Rank {pal.condensation + 1} / {LIMITS.condensationMax + 1}
+          · +{pal.condensation * 5}% HP·Atk·Def
+        {/if}
       </div>
     </div>
   </div>
@@ -189,9 +237,23 @@
 
   /* Condensation */
   .cond { padding: 14px; border-radius: 12px; background: rgba(245, 166, 35, 0.07); border: 1px solid rgba(245, 166, 35, 0.26); text-align: center; }
-  .stars { display: flex; justify-content: center; gap: 7px; }
-  .star { background: none; border: 0; cursor: pointer; font-size: 30px; line-height: 1; color: rgba(255, 255, 255, 0.2); padding: 0; }
+  .stars { display: flex; justify-content: center; align-items: center; gap: 10px; }
+  .star { background: none; border: 0; cursor: pointer; font-size: 40px; line-height: 1; color: rgba(255, 255, 255, 0.2); padding: 0; }
   .star.on { color: var(--accent-amber); text-shadow: 0 0 10px color-mix(in srgb, var(--accent-amber) 60%, transparent); }
+  .awakening {
+    width: 72px; min-height: 70px; margin-left: 5px; padding: 2px 4px 4px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    border: 1px solid rgba(245, 201, 122, 0.24); border-radius: 10px;
+    background: rgba(255, 255, 255, 0.025); color: #7f8a94; cursor: pointer;
+  }
+  .awakening img { width: 48px; height: 48px; object-fit: contain; filter: grayscale(1) brightness(0.55); opacity: 0.58; }
+  .awakening span { font: 700 var(--type-micro)/1 var(--font-head); letter-spacing: 0.08em; }
+  .awakening.on {
+    border-color: rgba(245, 201, 122, 0.72);
+    background: radial-gradient(circle at 50% 35%, rgba(245, 201, 122, 0.2), rgba(245, 166, 35, 0.07) 68%);
+    color: #f5c97a; box-shadow: 0 0 16px rgba(245, 166, 35, 0.2), inset 0 0 12px rgba(245, 201, 122, 0.08);
+  }
+  .awakening.on img { filter: none; opacity: 1; }
   .condnote { font-size: var(--type-caption); color: #7f8a94; margin-top: 9px; }
 
   /* Warning */

@@ -2,6 +2,41 @@
 
 Living log of where the build is and what's next. Read this first when resuming.
 
+## Session — 2026-08-02: Pal Awakening and focused editor refinements
+
+- Verified the Palworld 1.0 save representation from the local sanitized Pal extracts:
+  Awakening is `bIsAwakening`, a `BoolProperty` independent of condensation's one-based `Rank`.
+- Added the Awakened Boolean to the headless engine's read/edit contract and writable-schema
+  registry. Enabling it through the semantic mutation also sets condensation to four displayed
+  stars, stored as `Rank = 5`; no UI code writes raw save encodings.
+- Added a fifth, labeled Awakening Crystal control beside larger condensation stars in the
+  Progression drawer. The artwork is the locally bundled Palworld Neutral Awakening Crystal.
+- Added focused regression coverage for Boolean read/write, max-rank coupling, missing-schema
+  repair, encode/decode, and fresh projection back to the UI contract.
+- Newly created Pals now receive explicit 50/50/50 HP/Attack/Defense IVs, uncondensed `Rank = 1`,
+  and `bIsAwakening = false`. A missing-schema regression verifies all four values survive a full
+  encode/decode cycle.
+- Work Suitability controls now consume the engine's species-aware `available` projection. The UI
+  shows the species' real jobs plus any nonzero saved exception, instead of all 13 jobs.
+- Reordered only the title-bar save actions so the status message and Open Backup grow to the left
+  while Save Box remains anchored beside the working-copy badge.
+- Added a preset-builder convenience action that copies the selected Pal's current passive skills
+  into the unsaved preset draft; the existing Save Preset action remains the only persistence step.
+- Advanced `palbox-user.db` to schema v5 with four durable MAX preferences. HP, SAN, and Food
+  default on; Trust defaults off. Selecting a Pal applies enabled maxima, and engine projection
+  reapplies MAX HP against newly calculated values without writing the save early.
+- Level, IV, Soul, condensation/Awakening, Alpha/Lucky, and passive edits now immediately refresh
+  engine-projected HP, Attack, and Defense while remaining unsaved until Save Box.
+- Work Suitability levels are typeable and clamped to the engine-owned 1–10 range; the existing
+  arrow controls remain available.
+- Compacted the hero by moving larger element pills beside Alpha/Lucky and placing Trust Rank and
+  MAX on one row. Real Pal artwork and the empty-state logo use separate framing.
+- Raised the shared micro/label/caption/body/control type scale by one pixel and routed the last
+  hard-coded tiny labels through those tokens for a consistent readability floor.
+
+**Verification:** all 35 Rust/core tests and 11 UI unit tests pass; `cargo fmt --check` is clean;
+Svelte reports 0 errors and 0 warnings; the production UI build succeeds.
+
 ## Session — 2026-07-30: DB facts, engine authority, and semantic Pal views
 
 Completed the authority migration on `fix/engine-save-authority` without changing

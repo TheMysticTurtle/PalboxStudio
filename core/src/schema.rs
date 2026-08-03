@@ -141,6 +141,10 @@ pub fn ensure_writable_schemas(save: &mut PalSave) -> usize {
         "SaveParameterArray.SaveParameter.IsRarePal",
         scalar(PropertyType::BoolProperty)
     );
+    ensure!(
+        "SaveParameterArray.SaveParameter.bIsAwakening",
+        scalar(PropertyType::BoolProperty)
+    );
 
     // FixedPoint64 HP is a nested user struct.
     ensure!(
