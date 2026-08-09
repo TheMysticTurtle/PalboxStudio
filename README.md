@@ -1,4 +1,6 @@
-<h1 align="center">Palbox Studio</h1>
+<p align="center">
+  <img src="assets/Palbox%20Studio%20Banner%20-%20Resized.png" alt="Palbox Studio — Palworld 1.0 compatible" width="900">
+</p>
 
 <p align="center"><strong>A desktop editor for the Palworld&nbsp;1.0 Global Palbox.</strong></p>
 
